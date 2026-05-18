@@ -69,6 +69,13 @@ docs/
 play-store-listing.md
 progress.md
 Sesler/
+functions/
+server/
+privacy-policy.html
+public/vite.svg
+android/app/src/main/res/mipmap-xhdpi/ic_launcher_backup.png
+fairy-poc/fairy-stockfish-nnue.wasm-1.1.11.tgz
+tests/game-record-validator.test.js
 
 # Unrelated local experiment folders accidentally placed near the app
 9'lu SoS/
