@@ -1,0 +1,67 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+.env
+exports
+secrets
+*service-account*.json
+*firebase-admin*.json
+android/app/google-services.json
+output
+artifacts
+android/.gradle
+android/app/build
+android/keystore.properties
+android/*.keystore
+android/app/*.keystore
+*.jks
+*.apk
+*.aab
+*.apks
+
+# Local tool profiles and temporary extraction folders
+.android-user/
+.android-user-home/
+.chrome-shot-profile/
+.gradle-user/
+.gradle-user-home/
+temp_apk_extract/
+old_extract/
+old_version.zip
+design-backups/
+
+# Local screenshots / verification captures that are not source
+emulator_screen*.png
+final_*.png
+verified_*.png
+menu_verified.png
+board_fix_v2.png
+fix.png
+en_store_*.png
+com.timurlenk.turkchess_feedback.pdf
+
+# Unrelated local experiment folders accidentally placed near the app
+9'lu SoS/
+Satrancı/
+Türk/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

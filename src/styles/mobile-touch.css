@@ -1,0 +1,377 @@
+/* ===== MOBILE TOUCH OPTIMIZATIONS ===== */
+/* Magnifier, Piece Info Panel, Focus Mode */
+
+/* ===== 1. MAGNIFIER (Dokunmatik BÃ¼yÃ¼teÃ§) ===== */
+.magnifier {
+    position: fixed;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 3px solid var(--primary-color);
+    box-shadow:
+        0 0 20px rgba(255, 215, 0, 0.4),
+        0 8px 32px rgba(0, 0, 0, 0.6),
+        inset 0 0 30px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 9999;
+    display: none;
+    background: var(--surface-dark);
+    transition: opacity 0.15s ease;
+}
+
+.magnifier.active {
+    display: block;
+    animation: magnifierAppear 0.2s ease-out;
+}
+
+@keyframes magnifierAppear {
+    from {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.magnifier-content {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.magnifier-crosshair {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 215, 0, 0.7);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* ===== 2. PIECE INFO PANEL (HUD Altı Bilgi Widget) ===== */
+.piece-info-panel {
+    position: relative;
+    width: calc(100% - 18px);
+    margin: 4px 9px 0;
+    background: rgba(7, 15, 28, 0.76);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 215, 0, 0.22);
+    border-left: 3px solid var(--primary-color);
+    border-radius: 13px;
+    padding: 4px 9px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 56px;
+    min-height: 56px;
+    max-height: 56px;
+    overflow: hidden;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    z-index: 18;
+}
+
+.piece-info-panel.hidden {
+    display: none !important;
+}
+
+/* Default state: captured pieces + turn info */
+.piece-info-default {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 10px;
+}
+
+.piece-info-summary {
+    gap: 8px;
+}
+
+.piece-info-summary .avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 0.76rem;
+    flex: 0 0 auto;
+}
+
+.piece-info-summary .details .name {
+    font-size: 0.74rem;
+    line-height: 1.05;
+}
+
+.piece-info-summary .details .status {
+    font-size: 0.58rem;
+    line-height: 1.12;
+}
+
+/* Detail state: selected piece info */
+.piece-info-detail {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 100%;
+    animation: panelSlideDown 0.25s ease-out;
+}
+
+.piece-info-panel.showing-detail .piece-info-default {
+    display: none;
+}
+
+.piece-info-panel.showing-detail .piece-info-detail {
+    display: flex;
+}
+
+@keyframes panelSlideDown {
+    from {
+        transform: translateY(-8px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Piece preview in info panel */
+.info-piece-preview {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 9px;
+    border: 1px solid rgba(255, 215, 0, 0.45);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.14);
+}
+
+.info-piece-preview .piece {
+    width: 27px !important;
+    height: 27px !important;
+    cursor: default;
+}
+
+.info-piece-preview .piece:hover {
+    transform: none;
+    filter: none;
+}
+
+/* Piece text info */
+.info-piece-text {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.info-piece-name {
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 1px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1.05;
+}
+
+.info-piece-name .piece-type-badge {
+    font-size: 0.52rem;
+    padding: 1px 6px;
+    background: rgba(255, 215, 0, 0.15);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 4px;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.info-piece-desc {
+    font-size: 0.58rem;
+    color: var(--text-muted);
+    line-height: 1.12;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+/* Mini movement diagram */
+.info-move-diagram {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    gap: 1px;
+    border-radius: 5px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.info-move-diagram .diagram-cell {
+    background: rgba(255, 255, 255, 0.03);
+    position: relative;
+}
+
+.info-move-diagram .diagram-cell.center {
+    background: rgba(255, 215, 0, 0.3);
+}
+
+.info-move-diagram .diagram-cell.move-target {
+    background: rgba(0, 255, 128, 0.3);
+}
+
+.info-move-diagram .diagram-cell.move-target::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: rgba(0, 255, 128, 0.8);
+    box-shadow: 0 0 4px rgba(0, 255, 128, 0.6);
+}
+
+.info-move-diagram .diagram-cell.path-cell {
+    background: rgba(0, 255, 128, 0.1);
+}
+
+/* ===== 3. FOCUS MODE OVERLAY ===== */
+.board-focus-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 8;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: 4px;
+}
+
+.board-focus-overlay.active {
+    opacity: 1;
+}
+
+/* When focus mode is active, selected cell and valid moves pop above overlay */
+.chess-board.focus-active .cell.selected,
+.chess-board.focus-active .cell.valid-move,
+.chess-board.focus-active .cell.valid-capture {
+    z-index: 12;
+    position: relative;
+}
+
+/* Enhanced glow on valid moves during focus mode */
+.chess-board.focus-active .cell.valid-move::after {
+    box-shadow: 0 0 12px rgba(0, 255, 128, 0.9), 0 0 4px rgba(0, 255, 128, 0.5);
+    width: 30%;
+    height: 30%;
+}
+
+.chess-board.focus-active .cell.valid-capture::after {
+    border-width: 3px;
+    box-shadow: inset 0 0 12px rgba(255, 50, 50, 0.6), 0 0 8px rgba(255, 50, 50, 0.4);
+}
+
+/* Selected cell extra highlight in focus mode */
+.chess-board.focus-active .cell.selected {
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5), 0 0 16px rgba(255, 215, 0, 0.6);
+}
+
+/* ===== 4. GAME FOOTER ADAPTATION ===== */
+.game-footer {
+    transition: min-height 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.game-footer.expanded {
+    min-height: 80px;
+}
+
+@media (max-width: 768px) and (pointer: coarse) {
+    .game-footer {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+        padding-top: 6px;
+        padding-bottom: 5px;
+    }
+
+    .game-footer > .player-info.bottom-player,
+    .game-footer > .piece-info-panel {
+        width: 100%;
+    }
+
+    .game-footer > .player-info.bottom-player {
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .game-footer > .player-info.bottom-player .captured-pieces {
+        margin-left: 0;
+        max-width: none;
+        flex: 1 1 auto;
+        justify-content: flex-start;
+    }
+
+    .game-footer > .player-info.bottom-player .details {
+        flex-shrink: 0;
+    }
+}
+/* ===== 5. MOBILE-ONLY ENHANCEMENTS ===== */
+@media (max-width: 768px) and (pointer: coarse) {
+
+    /* Larger touch targets on mobile */
+    .cell {
+        cursor: default;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Slightly larger valid move dots for touch */
+    .cell.valid-move::after {
+        width: 30%;
+        height: 30%;
+    }
+
+    /* Remove hover effects on touch devices */
+    .piece:hover {
+        transform: none;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+    }
+
+    .cell:hover {
+        box-shadow: none;
+    }
+}
+
+/* ===== 6. TOUCH ACTIVE FEEDBACK ===== */
+@media (pointer: coarse) {
+    .cell:active {
+        background-color: rgba(255, 215, 0, 0.2) !important;
+        transition: none;
+    }
+
+    .piece:active {
+        transform: scale(1.1);
+        filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.5)) !important;
+    }
+}

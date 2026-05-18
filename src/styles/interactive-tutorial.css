@@ -1,0 +1,288 @@
+/* Interactive Tutorial Styles */
+
+/* Container */
+.itut-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 100vh;
+    overflow-y: auto;
+}
+
+/* Header */
+.itut-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.itut-header h2 {
+    font-size: 1.3rem;
+    color: #FFD700;
+    margin: 0;
+    font-family: 'Outfit', sans-serif;
+}
+
+/* Progress Bar */
+.itut-progress-bar {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.itut-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #FFD700, #FF8C00);
+    border-radius: 3px;
+    transition: width 0.4s ease;
+}
+
+.itut-progress-label {
+    text-align: center;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-family: 'Outfit', sans-serif;
+}
+
+/* Title & Description */
+.itut-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #fff;
+    text-align: center;
+    font-family: 'Outfit', sans-serif;
+}
+
+.itut-description {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.8);
+    text-align: center;
+    line-height: 1.5;
+    padding: 0 10px;
+}
+
+.itut-description strong {
+    color: #FFD700;
+}
+
+/* Board */
+.itut-board-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 8px 0;
+}
+
+.itut-board {
+    display: grid;
+    gap: 0;
+    border: 3px solid #FFD700;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    width: min(90vw, 360px);
+    height: min(90vw, 360px);
+}
+
+.itut-cell {
+    aspect-ratio: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.itut-cell.light {
+    background-color: #f0d9b5;
+}
+
+.itut-cell.dark {
+    background-color: #b58863;
+}
+
+/* Target squares — green glow */
+.itut-cell.itut-target {
+    background-color: rgba(76, 175, 80, 0.5) !important;
+    box-shadow: inset 0 0 12px rgba(76, 175, 80, 0.6);
+}
+
+.itut-cell.itut-target::after {
+    content: '';
+    position: absolute;
+    width: 30%;
+    height: 30%;
+    border-radius: 50%;
+    background: rgba(76, 175, 80, 0.7);
+    animation: targetPulse 1.5s infinite ease-in-out;
+}
+
+@keyframes targetPulse {
+
+    0%,
+    100% {
+        transform: scale(0.8);
+        opacity: 0.6;
+    }
+
+    50% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+}
+
+/* Selectable piece — golden border */
+.itut-cell.itut-selectable {
+    box-shadow: inset 0 0 0 3px rgba(255, 215, 0, 0.6);
+    animation: selectablePulse 2s infinite ease-in-out;
+}
+
+@keyframes selectablePulse {
+
+    0%,
+    100% {
+        box-shadow: inset 0 0 0 3px rgba(255, 215, 0, 0.4);
+    }
+
+    50% {
+        box-shadow: inset 0 0 0 3px rgba(255, 215, 0, 0.9);
+    }
+}
+
+/* Selected piece */
+.itut-cell.itut-selected {
+    background-color: rgba(255, 215, 0, 0.35) !important;
+    box-shadow: inset 0 0 12px rgba(255, 215, 0, 0.5);
+}
+
+/* Completed move */
+.itut-cell.itut-completed {
+    background-color: rgba(76, 175, 80, 0.4) !important;
+    box-shadow: inset 0 0 15px rgba(76, 175, 80, 0.5);
+}
+
+/* Wrong move flash */
+.itut-cell.itut-wrong {
+    animation: wrongFlash 0.3s ease 2;
+}
+
+@keyframes wrongFlash {
+
+    0%,
+    100% {
+        background-color: inherit;
+    }
+
+    50% {
+        background-color: rgba(255, 50, 50, 0.6) !important;
+    }
+}
+
+/* Message Box */
+.itut-message {
+    min-height: 50px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    text-align: center;
+    font-family: 'Outfit', sans-serif;
+    transition: all 0.3s ease;
+}
+
+.itut-instruction {
+    background: rgba(33, 150, 243, 0.15);
+    border: 1px solid rgba(33, 150, 243, 0.3);
+    color: #90CAF9;
+}
+
+.itut-success {
+    background: rgba(76, 175, 80, 0.15);
+    border: 1px solid rgba(76, 175, 80, 0.3);
+    color: #A5D6A7;
+    animation: fadeInMsg 0.3s ease;
+}
+
+.itut-hint-msg {
+    background: rgba(255, 193, 7, 0.15);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    color: #FFE082;
+    animation: fadeInMsg 0.3s ease;
+}
+
+@keyframes fadeInMsg {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Navigation */
+.itut-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+}
+
+.hint-btn {
+    background: rgba(255, 193, 7, 0.15) !important;
+    border: 1px solid rgba(255, 193, 7, 0.3) !important;
+    color: #FFE082 !important;
+    font-size: 0.8rem !important;
+    padding: 6px 14px !important;
+}
+
+.hint-btn:hover {
+    background: rgba(255, 193, 7, 0.25) !important;
+}
+
+/* Pulse next button after completion */
+.itut-pulse {
+    animation: pulseBtn 1s ease infinite;
+}
+
+@keyframes pulseBtn {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 0 0 10px rgba(255, 215, 0, 0);
+    }
+}
+
+/* Pieces in tutorial board */
+.itut-cell .piece {
+    width: 85%;
+    height: 85%;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .itut-board {
+        width: min(85vw, 300px);
+        height: min(85vw, 300px);
+    }
+
+    .itut-title {
+        font-size: 1rem;
+    }
+
+    .itut-description {
+        font-size: 0.78rem;
+    }
+}

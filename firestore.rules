@@ -1,0 +1,204 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isNonEmptyString(value) {
+      return value is string && value.size() > 0;
+    }
+
+    function isNullableString(value) {
+      return value == null || value is string;
+    }
+
+    function isNullableNumber(value) {
+      return value == null || value is int || value is float;
+    }
+
+    function isNullableList(value) {
+      return value == null || value is list;
+    }
+
+    function hasOnlyKeys(data, keys) {
+      return data.keys().hasOnly(keys);
+    }
+
+    function validApp(app) {
+      return app is map
+        && hasOnlyKeys(app, ['platform', 'version', 'buildNumber', 'locale'])
+        && isNonEmptyString(app.platform)
+        && isNonEmptyString(app.version)
+        && isNonEmptyString(app.buildNumber)
+        && isNonEmptyString(app.locale);
+    }
+
+    function validPlayer(player) {
+      return player is map
+        && hasOnlyKeys(player, ['installToken', 'authUid', 'recordedBy'])
+        && isNonEmptyString(player.installToken)
+        && isNonEmptyString(player.recordedBy)
+        && isNonEmptyString(player.authUid)
+        && player.authUid == request.auth.uid;
+    }
+
+    function validGame(game) {
+      return game is map
+        && hasOnlyKeys(
+          game,
+          [
+            'mode',
+            'difficulty',
+            'formation',
+            'isOnline',
+            'isScripted',
+            'isPuzzle',
+            'localColor',
+            'winner',
+            'resultType',
+            'moveCount',
+            'durationSeconds',
+            'specialEventCount'
+          ]
+        )
+        && isNonEmptyString(game.mode)
+        && isNonEmptyString(game.difficulty)
+        && isNullableString(game.formation)
+        && game.isOnline is bool
+        && game.isScripted is bool
+        && game.isPuzzle is bool
+        && isNonEmptyString(game.localColor)
+        && isNullableString(game.winner)
+        && isNonEmptyString(game.resultType)
+        && game.moveCount is int
+        && game.durationSeconds is int
+        && game.specialEventCount is int;
+    }
+
+    function validFlags(flags) {
+      return flags is map
+        && hasOnlyKeys(flags, ['hasRoyalSwap', 'hasCitadelExchange', 'hasPawnCycle', 'hasPromotion'])
+        && flags.hasRoyalSwap is bool
+        && flags.hasCitadelExchange is bool
+        && flags.hasPawnCycle is bool
+        && flags.hasPromotion is bool;
+    }
+
+    function validAnalysisSummary(summary) {
+      return summary == null
+        || (
+          summary is map
+          && hasOnlyKeys(summary, ['whiteAccuracy', 'blackAccuracy', 'biggestSwingIndex', 'biggestSwingDelta'])
+          && isNullableNumber(summary.whiteAccuracy)
+          && isNullableNumber(summary.blackAccuracy)
+          && isNullableNumber(summary.biggestSwingIndex)
+          && isNullableNumber(summary.biggestSwingDelta)
+        );
+    }
+
+    function validGameRecord(data, gameId) {
+      return data is map
+        && hasOnlyKeys(
+          data,
+          [
+            'schemaVersion',
+            'gameId',
+            'createdAt',
+            'finishedAt',
+            'uploadedAt',
+            'storedMoveCount',
+            'app',
+            'player',
+            'game',
+            'flags',
+            'analysisSummary'
+          ]
+        )
+        && data.schemaVersion is int
+        && isNonEmptyString(data.gameId)
+        && data.gameId == gameId
+        && isNonEmptyString(data.createdAt)
+        && isNonEmptyString(data.finishedAt)
+        && data.uploadedAt == request.time
+        && data.storedMoveCount is int
+        && validApp(data.app)
+        && validPlayer(data.player)
+        && validGame(data.game)
+        && validFlags(data.flags)
+        && validAnalysisSummary(data.analysisSummary);
+    }
+
+    function validMoveRecord(data) {
+      return data is map
+        && hasOnlyKeys(
+          data,
+          [
+            'index',
+            'moveNumber',
+            'color',
+            'pieceTypeBefore',
+            'pieceTypeAfter',
+            'pawnType',
+            'fromRow',
+            'fromCol',
+            'toRow',
+            'toCol',
+            'fromLabel',
+            'toLabel',
+            'notation',
+            'capturedPieceType',
+            'specialMoveType',
+            'specialTags',
+            'isCheck',
+            'resultType',
+            'beforeHash',
+            'afterHash'
+          ]
+        )
+        && data.index is int
+        && data.moveNumber is int
+        && isNonEmptyString(data.color)
+        && isNullableString(data.pieceTypeBefore)
+        && isNullableString(data.pieceTypeAfter)
+        && isNullableString(data.pawnType)
+        && isNullableNumber(data.fromRow)
+        && isNullableNumber(data.fromCol)
+        && isNullableNumber(data.toRow)
+        && isNullableNumber(data.toCol)
+        && isNullableString(data.fromLabel)
+        && isNullableString(data.toLabel)
+        && isNonEmptyString(data.notation)
+        && isNullableString(data.capturedPieceType)
+        && isNullableString(data.specialMoveType)
+        && isNullableList(data.specialTags)
+        && data.isCheck is bool
+        && isNullableString(data.resultType)
+        && isNullableString(data.beforeHash)
+        && isNullableString(data.afterHash);
+    }
+
+    function ownsGame(gameId) {
+      return exists(/databases/$(database)/documents/games/$(gameId))
+        && get(/databases/$(database)/documents/games/$(gameId)).data.player.authUid == request.auth.uid;
+    }
+
+    match /games/{gameId} {
+      allow read: if false;
+      allow create: if isSignedIn() && validGameRecord(request.resource.data, gameId);
+      allow update: if isSignedIn()
+        && resource.data.player.authUid == request.auth.uid
+        && request.resource.data.player.authUid == resource.data.player.authUid
+        && validGameRecord(request.resource.data, gameId);
+      allow delete: if false;
+    }
+
+    match /games/{gameId}/moves/{moveId} {
+      allow read: if false;
+      allow create, update: if isSignedIn()
+        && ownsGame(gameId)
+        && validMoveRecord(request.resource.data);
+      allow delete: if false;
+    }
+  }
+}

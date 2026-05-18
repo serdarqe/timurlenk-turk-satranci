@@ -1,0 +1,38 @@
+{
+  "purpose": "Fairy-Stockfish single-thread WebView assets used by the Fairy-first Timur AI fork and smoke tests.",
+  "generatedAt": "2026-05-18T21:51:55.061Z",
+  "bundle": "singlethread",
+  "source": "fairy-poc/vendor/fairy-stockfish-singlethread.wasm",
+  "variant": "fairy-poc/timur-draft.variants.ini",
+  "license": "GPL-3.0",
+  "artifacts": [
+    {
+      "name": "stockfish.js",
+      "bytes": 47313
+    },
+    {
+      "name": "stockfish.wasm",
+      "bytes": 48263421
+    },
+    {
+      "name": "uci.js",
+      "bytes": 1117
+    },
+    {
+      "name": "package.json",
+      "bytes": 536
+    },
+    {
+      "name": "AUTHORS",
+      "bytes": 4950
+    },
+    {
+      "name": "Copying.txt",
+      "bytes": 35821
+    },
+    {
+      "name": "timur-draft.variants.ini",
+      "bytes": 2462
+    }
+  ]
+}

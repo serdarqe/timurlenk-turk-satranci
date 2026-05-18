@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self' https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob:; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://unpkg.com; worker-src 'self' blob:; connect-src 'self' https: wss:;" />
+  <meta name="description"
+    content="Timurlenk T?rk Satranc? - 10x11 tahtada oynanan tarihi T?rk satran? oyunu. Yapay zekaya kar?? oynay?n!" />
+  <meta name="theme-color" content="#0a1628" />
+  <title data-i18n="game.title">Timurlenk T?rk Satranc?</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <link rel="stylesheet" href="./src/styles/main.css">
+  <link rel="stylesheet" href="./src/styles/board.css">
+  <link rel="stylesheet" href="./src/styles/pieces.css">
+  <link rel="stylesheet" href="./src/styles/menu.css">
+  <link rel="stylesheet" href="./src/styles/tutorial.css">
+
+  <!-- PeerJS WebRTC Kütüphanesi -->
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+</head>
+
+<body>
+  <div id="app">
+    <div id="main-menu" class="overlay-container">
+      <div class="menu-box glass-panel">
+        <h1 class="game-title" data-i18n="game.title">T?MURLENK<br>T?RK SATRANCI</h1>
+        <div class="language-selector">
+          <button class="lang-btn" data-lang="tr">TR</button>
+          <button class="lang-btn" data-lang="en">EN</button>
+        </div>
+        <div class="menu-options">
+          <button id="btn-quick-start" class="btn primary-btn quick-start-btn"><i class="fas fa-bolt"></i> <span
+              data-i18n="menu.quick_start">Hızlı Başlat</span></button>
+          <button id="btn-new-game" class="btn primary-btn"><i class="fas fa-play"></i> <span
+              data-i18n="menu.new_game">Yeni Oyun</span></button>
+          <button id="btn-interactive-tutorial" class="btn primary-btn learn-btn"><i class="fas fa-gamepad"></i> <span
+              data-i18n="menu.interactive_tutorial">Oynayarak ??ren</span></button>
+          <button id="btn-tutorial" class="btn secondary-btn"><i class="fas fa-book-open"></i> <span
+              data-i18n="menu.tutorial">??retici Rehber</span></button>
+          <button id="btn-match-history" class="btn secondary-btn"><i class="fas fa-scroll"></i> <span
+              data-i18n="menu.match_history">Maç Geçmişi</span></button>
+          <button id="btn-online" class="btn secondary-btn"><i class="fas fa-globe"></i> <span
+              data-i18n="menu.online">?evrimi?i</span></button>
+        </div>
+        <div class="decor-line"></div>
+        <div class="menu-footer">
+          <a href="https://sites.google.com/view/timurlenk-gizlilik-politikasi/ana-sayfa" target="_blank" rel="noopener noreferrer" class="policy-link" data-i18n="menu.privacy_policy">Gizlilik
+            Politikas?</a>
+          <button id="btn-open-licenses" class="policy-link policy-link-button" type="button" data-i18n="menu.open_source_licenses">Açık Kaynak ve Lisanslar</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="formation-menu" class="overlay-container hidden">
+      <div class="menu-box glass-panel">
+        <button id="btn-open-bot-menu" class="bot-menu-entry-btn" type="button">
+          <span class="bot-menu-entry-icon"><i class="fas fa-robot"></i></span>
+          <span class="bot-menu-entry-copy">
+            <strong data-i18n="ai.bot.entry_title">Botlara Karşı Oyna</strong>
+            <small data-i18n="ai.bot.entry_desc">1-15 seviye hazır rakip seç.</small>
+          </span>
+          <i class="fas fa-chevron-right bot-menu-entry-arrow"></i>
+        </button>
+
+        <h2 data-i18n="formation.title">Ba?lang?? Dizilimi Se?</h2>
+        <div class="formation-cards">
+          <div class="card formation-card selected" data-formation="masculine">
+            <i class="fas fa-chess-knight card-icon"></i>
+            <h3 data-i18n="formation.masculine">Eril Dizilim</h3>
+            <p data-i18n="formation.masculine_desc">Orijinal ve en ?ok bilinen karargah dizilimi.</p>
+          </div>
+          <div class="card formation-card" data-formation="feminine">
+            <i class="fas fa-chess-queen card-icon"></i>
+            <h3 data-i18n="formation.feminine">Di?il Dizilim</h3>
+            <p data-i18n="formation.feminine_desc">Bakan ve Vezir yer de?i?tirmi? alternatif a??l??.</p>
+          </div>
+          <div class="card formation-card disabled" data-formation="full" aria-disabled="true">
+            <i class="fas fa-chess-board card-icon"></i>
+            <h3 data-i18n="formation.full">Tam Dizilim</h3>
+            <p data-i18n="formation.full_desc">Bu mod hen?z haz?r de?il. ?imdilik se?ilemez.</p>
+          </div>
+        </div>
+
+        <h2 style="margin-top:20px;" data-i18n="difficulty.title">Zorluk Seviyesi Se?</h2>
+        <div class="difficulty-cards">
+          <div class="card difficulty-card" data-difficulty="easy">
+            <i class="fas fa-seedling card-icon" style="color:#4CAF50;"></i>
+            <h3 data-i18n="difficulty.easy">Kolay</h3>
+          </div>
+          <div class="card difficulty-card selected" data-difficulty="medium">
+            <i class="fas fa-fire card-icon" style="color:#FF9800;"></i>
+            <h3 data-i18n="difficulty.medium">Orta</h3>
+          </div>
+          <div class="card difficulty-card" data-difficulty="hard">
+            <i class="fas fa-skull card-icon" style="color:#F44336;"></i>
+            <h3 data-i18n="difficulty.hard">Zor</h3>
+          </div>
+        </div>
+
+        <h2 style="margin-top:20px;" data-i18n="player_color.title">Taş Rengi</h2>
+        <div class="player-color-cards">
+          <div class="card player-color-card selected" data-player-color="white">
+            <i class="fas fa-chess-pawn card-icon" style="color:#F8FAFC;"></i>
+            <h3 data-i18n="player_color.white">Beyaz Oyna</h3>
+            <p data-i18n="player_color.white_desc">İlk hamle sende olur.</p>
+          </div>
+          <div class="card player-color-card" data-player-color="black">
+            <i class="fas fa-chess-pawn card-icon" style="color:#111827;"></i>
+            <h3 data-i18n="player_color.black">Siyah Oyna</h3>
+            <p data-i18n="player_color.black_desc">AI ilk hamleyi yapar, sen karşılık verirsin.</p>
+          </div>
+        </div>
+
+        <h2 style="margin-top:20px;" data-i18n="ai.persona.title">Yapay Zeka Karakteri</h2>
+        <div class="ai-persona-cards">
+          <div class="card ai-persona-card selected" data-ai-persona="timur">
+            <i class="fas fa-crown card-icon" style="color:#F59E0B;"></i>
+            <h3 data-i18n="ai.persona.timur">Timur</h3>
+            <p data-i18n="ai.persona.timur_desc">Baskı kurar, üstünlüğü kazanca çevirmeyi sever.</p>
+          </div>
+          <div class="card ai-persona-card" data-ai-persona="beyazid">
+            <i class="fas fa-khanda card-icon" style="color:#EF4444;"></i>
+            <h3 data-i18n="ai.persona.beyazid">Beyazıd</h3>
+            <p data-i18n="ai.persona.beyazid_desc">Cesur saldırır, alan ve tempo arar.</p>
+          </div>
+          <div class="card ai-persona-card" data-ai-persona="ulu_bey">
+            <i class="fas fa-star-and-crescent card-icon" style="color:#38BDF8;"></i>
+            <h3 data-i18n="ai.persona.ulu_bey">Uluğ Bey</h3>
+            <p data-i18n="ai.persona.ulu_bey_desc">Hesaplı oynar, güvenli kral ve denge arar.</p>
+          </div>
+          <div class="card ai-persona-card" data-ai-persona="saray_veziri">
+            <i class="fas fa-shield-alt card-icon" style="color:#A7F3D0;"></i>
+            <h3 data-i18n="ai.persona.saray_veziri">Saray Veziri</h3>
+            <p data-i18n="ai.persona.saray_veziri_desc">Savunmayı önce tutar, taş güvenliğini korur.</p>
+          </div>
+        </div>
+
+        <h2 style="margin-top:20px;" data-i18n="time.title">Süre Kontrolü</h2>
+        <div class="time-control-cards">
+          <div class="card time-control-card selected" data-time-control="none">
+            <i class="fas fa-infinity card-icon" style="color:#9CA3AF;"></i>
+            <h3 data-i18n="time.none">Süresiz</h3>
+          </div>
+          <div class="card time-control-card" data-time-control="5m">
+            <i class="fas fa-stopwatch card-icon" style="color:#F97316;"></i>
+            <h3 data-i18n="time.five_minutes">5 dk</h3>
+          </div>
+          <div class="card time-control-card" data-time-control="15m">
+            <i class="fas fa-hourglass-half card-icon" style="color:#38BDF8;"></i>
+            <h3 data-i18n="time.fifteen_minutes">15 dk</h3>
+          </div>
+          <div class="card time-control-card" data-time-control="30m">
+            <i class="fas fa-clock card-icon" style="color:#A7F3D0;"></i>
+            <h3 data-i18n="time.thirty_minutes">30 dk</h3>
+          </div>
+        </div>
+
+        <div class="menu-actions">
+          <button id="btn-back-main" class="btn secondary-btn" data-i18n="common.back">Geri</button>
+          <button id="btn-start-match" class="btn primary-btn" data-i18n="common.start">M?cadeleye Ba?la</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="bot-menu" class="overlay-container hidden">
+      <div class="menu-box glass-panel bot-menu-box">
+        <div class="bot-menu-header">
+          <p class="bot-menu-eyebrow" data-i18n="ai.bot.title">Bot Rakipleri</p>
+          <h2 data-i18n="ai.bot.menu_title">Botlara Karşı Oyna</h2>
+          <p data-i18n="ai.bot.menu_desc">Botunu seç; zorluk ve karakter otomatik ayarlanır.</p>
+        </div>
+
+        <div class="ai-bot-list" id="ai-bot-cards"></div>
+
+        <div class="menu-actions bot-menu-actions">
+          <button id="btn-back-formation-from-bots" class="btn secondary-btn" data-i18n="common.back">Geri</button>
+          <button id="btn-start-bot-match" class="btn primary-btn" data-i18n="ai.bot.play_selected">Seçili Botla Oyna</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="online-menu" class="overlay-container hidden">
+      <div class="menu-box glass-panel">
+        <h2><i class="fas fa-globe"></i> <span data-i18n="online.title">Çevrimiçi Oyun</span></h2>
+        
+        <div id="online-setup-container" style="display: flex; flex-direction: column; gap: 1rem; align-items: center; justify-content: center; margin-top: 1rem;">
+           <p style="color: var(--text-muted); text-align: center; font-size: 0.95rem; line-height: 1.4;" data-i18n="online.desc">Arkadaşınla oynamak için bir oda kur veya var olan bir oda kodunu gir.</p>
+           
+           <button id="btn-create-room" class="btn primary-btn" style="width: 100%; padding: 12px; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
+             <i class="fas fa-plus-circle"></i> <span data-i18n="online.create_room">Oda Kur</span>
+           </button>
+           
+           <div style="width: 100%; display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+             <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></div>
+             <span style="color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase;" data-i18n="online.or">YADA</span>
+             <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></div>
+           </div>
+
+           <div style="display: flex; gap: 8px; width: 100%;">
+             <input type="text" id="join-room-code" data-i18n="online.room_code" placeholder="Oda Kodu" class="styled-input" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.4); color: white; text-align: center; font-size: 1.1rem; text-transform: uppercase; font-weight: 600; letter-spacing: 2px;" maxlength="6">
+             <button id="btn-join-room" class="btn secondary-btn" style="padding: 0 20px; font-weight: 600;">
+               <i class="fas fa-sign-in-alt" style="margin-right: 5px;"></i> <span data-i18n="online.join_room">Katıl</span>
+             </button>
+           </div>
+        </div>
+
+        <div id="online-waiting-container" class="hidden" style="display: flex; flex-direction: column; align-items: center; margin-top: 1rem;">
+           <div style="background: rgba(76, 175, 80, 0.1); border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 12px; padding: 15px; width: 100%; text-align: center; margin-bottom: 20px;">
+             <p style="font-size: 0.9rem; color: #a5d6a7; margin-bottom: 15px;" data-i18n="online.waiting_desc">Oda Kuruldu. Arkadaşının katılması için şu kodu paylaş:</p>
+             <h1 id="display-room-code" style="letter-spacing: 8px; color: #4CAF50; font-size: 2.5rem; text-shadow: 0 0 10px rgba(76, 175, 80, 0.4); margin: 0; user-select: text;"></h1>
+             
+             <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
+               <button id="btn-copy-code" class="btn secondary-btn" style="padding: 8px 15px; font-size: 0.9rem; flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                 <i class="fas fa-copy"></i> <span data-i18n="online.copy_code">Kopyala</span>
+               </button>
+               <button id="btn-share-code" class="btn primary-btn" style="padding: 8px 15px; font-size: 0.9rem; flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                 <i class="fas fa-share-alt"></i> <span data-i18n="online.share_code">Paylaş</span>
+               </button>
+             </div>
+           </div>
+           
+           <div style="display: flex; align-items: center; gap: 10px;">
+             <i class="fas fa-spinner fa-spin" style="color: var(--text-light);"></i>
+             <p class="blink-text" style="color: var(--text-light); font-weight: 500;" data-i18n="online.waiting_opponent">Rakip bekleniyor...</p>
+           </div>
+        </div>
+
+        <div class="menu-actions" style="margin-top: 25px;">
+          <button id="btn-back-online-menu" class="btn ghost-btn" style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(255,255,255,0.05); color: var(--text-light);">
+            <i class="fas fa-arrow-left" style="margin-right: 5px;"></i> <span data-i18n="common.back">Geri</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="interactive-tutorial-overlay" class="overlay-container hidden">
+      <div class="menu-box glass-panel itut-container"></div>
+    </div>
+
+    <div id="tutorial-overlay" class="overlay-container hidden">
+      <div class="menu-box glass-panel tutorial-box">
+        <div class="tutorial-header">
+          <h2><i class="fas fa-book-open"></i> <span data-i18n="menu.tutorial">??retici Rehber</span></h2>
+          <button id="btn-close-tutorial" class="btn icon-btn" aria-label="Kapat"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="tutorial-tabs">
+          <button class="tutorial-tab active" data-lesson="0" data-i18n="tutorial.tab.board">Tahta</button>
+          <button class="tutorial-tab" data-lesson="1" data-i18n="tutorial.tab.basic">Temel</button>
+          <button class="tutorial-tab" data-lesson="2" data-i18n="tutorial.tab.cavalry">S?vari</button>
+          <button class="tutorial-tab" data-lesson="3" data-i18n="tutorial.tab.siege">Ku?atma</button>
+          <button class="tutorial-tab" data-lesson="4" data-i18n="tutorial.tab.range">Menzil</button>
+          <button class="tutorial-tab" data-lesson="5" data-i18n="tutorial.tab.pawn">Piyon</button>
+          <button class="tutorial-tab" data-lesson="6" data-i18n="tutorial.tab.special">?zel</button>
+          <button class="tutorial-tab" data-lesson="7" data-i18n="tutorial.tab.strategy">Strateji</button>
+        </div>
+        <div id="tutorial-content" class="tutorial-content"></div>
+        <div class="tutorial-nav">
+          <button id="btn-prev-lesson" class="btn secondary-btn"><i class="fas fa-arrow-left"></i> <span data-i18n="common.previous">?nceki</span></button>
+          <span id="lesson-counter" class="lesson-counter">1 / 8</span>
+          <button id="btn-next-lesson" class="btn primary-btn"><span data-i18n="common.next">Sonraki</span> <i class="fas fa-arrow-right"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <div id="puzzles-overlay" class="overlay-container hidden">
+      <div class="menu-box glass-panel">
+        <div class="tutorial-header">
+          <h2><i class="fas fa-puzzle-piece"></i> <span data-i18n="menu.puzzles">Satran? Bulmacalar?</span></h2>
+          <button id="btn-close-puzzles" class="btn icon-btn" aria-label="Kapat"><i class="fas fa-times"></i></button>
+        </div>
+        <p style="color: var(--text-muted); margin-bottom: 20px;" data-i18n="puzzles.desc">Tarihi fig?rlerin kulland??? taktikleri ??z ve
+          Timurlenk satranc?nda kendini geli?tir.</p>
+        <div class="puzzle-list" id="puzzle-list"></div>
+      </div>
+    </div>
+
+    <div id="match-history-overlay" class="overlay-container hidden">
+      <div class="menu-box glass-panel match-history-box">
+        <div class="tutorial-header">
+          <h2><i class="fas fa-scroll"></i> <span data-i18n="history.title">Maç Geçmişi</span></h2>
+          <button id="btn-close-match-history" class="btn icon-btn" aria-label="Kapat"><i class="fas fa-times"></i></button>
+        </div>
+        <p class="history-desc" data-i18n="history.desc">Son oynanan maçları ve hamle listesini buradan görebilirsin.</p>
+        <div id="match-history-list" class="match-history-list"></div>
+      </div>
+    </div>
+
+    <div id="licenses-overlay" class="overlay-container hidden">
+      <div class="menu-box glass-panel license-box">
+        <div class="tutorial-header">
+          <h2><i class="fas fa-scale-balanced"></i> <span data-i18n="licenses.title">Açık Kaynak ve Lisanslar</span></h2>
+          <button id="btn-close-licenses" class="btn icon-btn" aria-label="Kapat"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div class="license-list">
+          <section class="license-card">
+            <span class="license-card-kicker" data-i18n="licenses.engine_kicker">Satranç Motoru</span>
+            <h3 data-i18n="licenses.fairy_title">Powered by Fairy-Stockfish</h3>
+            <p data-i18n="licenses.fairy_desc">Yapay zeka motorunda Fairy-Stockfish/WASM kullanılır. Fairy-Stockfish GPL-3.0 lisanslı açık kaynak bir motordur.</p>
+            <a class="license-external-link" href="https://github.com/fairy-stockfish/Fairy-Stockfish" target="_blank" rel="noopener noreferrer">
+              <i class="fas fa-up-right-from-square"></i>
+              <span data-i18n="licenses.fairy_source">Fairy-Stockfish kaynak kodu</span>
+            </a>
+          </section>
+
+          <section class="license-card">
+            <span class="license-card-kicker" data-i18n="licenses.app_kicker">Uygulama Kaynağı</span>
+            <h3 data-i18n="licenses.app_title">Timurlenk Türk Satrancı GPL-3.0-only</h3>
+            <p data-i18n="licenses.app_desc">Fairy motoruyla yayımlanan sürümlerde uygulama kaynak kodu GPL uyumlu şekilde paylaşılır. Play Store sürümüyle eşleşen kaynak kod GitHub tag'i ile sunulacaktır.</p>
+          </section>
+
+          <section class="license-card">
+            <span class="license-card-kicker" data-i18n="licenses.notice_kicker">Bildirim</span>
+            <h3 data-i18n="licenses.notice_title">Üçüncü taraf lisans notları</h3>
+            <p data-i18n="licenses.notice_desc">Detaylı bildirimler proje kaynaklarında LICENSE, THIRD_PARTY_NOTICES.md ve SOURCE_DISTRIBUTION.md dosyalarında tutulur.</p>
+          </section>
+        </div>
+
+        <div class="menu-actions">
+          <button id="btn-close-licenses-secondary" class="btn primary-btn" data-i18n="settings.close">Kapat</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="game-view" class="view-container hidden">
+      <header class="game-header glass-panel">
+        <div class="player-info top-player">
+          <div class="avatar"><i id="top-player-avatar-icon" class="fas fa-robot"></i></div>
+          <div class="details">
+            <span id="top-player-name" class="name" data-i18n="players.ai">Yapay Zeka</span>
+            <span id="ai-status" class="status" role="status">Bekliyor...</span>
+            <span id="top-player-clock" class="player-clock hidden">--:--</span>
+          </div>
+          <div class="captured-pieces" id="ai-captured"></div>
+        </div>
+        <button id="btn-toggle-log" class="btn icon-btn" aria-label="Hamle Ge?mi?i" style="margin-right: 10px;"><i
+            class="fas fa-scroll"></i></button>
+        <button id="btn-game-menu" class="btn icon-btn" aria-label="Men?"><i class="fas fa-pause"></i></button>
+      </header>
+
+      <div id="piece-info-panel" class="piece-info-panel glass-panel" aria-live="polite"></div>
+
+      <main class="board-container">
+        <aside id="advantage-meter" class="advantage-meter hidden" aria-live="polite" aria-hidden="true">
+          <span class="advantage-meter-title" data-i18n="advantage.title">Durum</span>
+          <div class="advantage-meter-track" aria-hidden="true">
+            <div id="advantage-black-fill" class="advantage-meter-fill advantage-meter-fill-black"></div>
+            <div id="advantage-white-fill" class="advantage-meter-fill advantage-meter-fill-white"></div>
+          </div>
+          <span id="advantage-score" class="advantage-meter-score">0.0</span>
+          <span id="advantage-label" class="advantage-meter-label" data-i18n="advantage.balanced">Dengeli</span>
+          <span id="advantage-impact" class="advantage-meter-impact hidden">Son hamle 0.0</span>
+        </aside>
+        <div id="citadel-ai" class="citadel black-citadel"></div>
+        <div id="chess-board" class="chess-board"></div>
+        <div id="board-focus-overlay" class="board-focus-overlay"></div>
+        <div id="citadel-player" class="citadel white-citadel"></div>
+        <div id="scripted-tutorial-coach" class="scripted-tutorial-coach glass-panel hidden" aria-live="polite">
+          <div class="scripted-tutorial-coach-header">
+            <span id="scripted-tutorial-phase" class="scripted-tutorial-phase"></span>
+            <span id="scripted-tutorial-step" class="scripted-tutorial-step"></span>
+          </div>
+          <div id="scripted-tutorial-text" class="scripted-tutorial-text"></div>
+          <div class="scripted-tutorial-actions">
+            <button id="btn-scripted-hint" class="btn secondary-btn">İpucu</button>
+            <button id="btn-scripted-exit" class="btn icon-btn" aria-label="Kapat"><i class="fas fa-times"></i></button>
+          </div>
+        </div>
+        <div id="analysis-practice-explanation" class="analysis-practice-explanation glass-panel hidden" aria-live="polite">
+          <div class="analysis-practice-header">
+            <span class="analysis-practice-label" data-i18n="analysis.explanation.title">Bu hamle neden daha iyi?</span>
+          </div>
+          <p id="analysis-practice-best-move" class="analysis-practice-best-move"></p>
+          <div id="analysis-practice-tags" class="analysis-tags"></div>
+          <ul id="analysis-practice-reasons" class="analysis-practice-reasons"></ul>
+          <div class="analysis-practice-actions">
+            <button id="btn-practice-return-analysis" class="btn primary-btn" type="button" data-i18n="analysis.explanation.continue">Analize Dön</button>
+          </div>
+        </div>
+      </main>
+
+      <footer class="game-footer glass-panel">
+        <div class="player-info bottom-player">
+          <div class="captured-pieces" id="player-captured"></div>
+          <div class="details">
+            <span id="bottom-player-name" class="name" data-i18n="players.you">Oyuncu</span>
+            <span class="turn-indicator" id="turn-indicator" data-i18n="common.your_turn" role="status" aria-live="polite">Senin S?ran</span>
+            <span id="bottom-player-clock" class="player-clock hidden">--:--</span>
+          </div>
+        </div>
+      </footer>
+
+      <div id="move-log-panel" class="move-log-panel hidden glass-panel">
+        <div class="log-header">
+          <h3 data-i18n="game.move_log">Hamle Ge?mi?i</h3>
+          <button id="btn-close-log" class="btn icon-btn"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="log-content">
+          <ul id="move-list" class="move-list"></ul>
+        </div>
+      </div>
+
+    </div>
+
+    <div id="game-analysis-overlay" class="overlay-container hidden">
+      <div class="menu-box glass-panel analysis-box">
+        <div class="analysis-header">
+          <h2><i class="fas fa-chart-line"></i> <span data-i18n="analysis.title">Sefer Sonu Analizi</span></h2>
+          <button id="btn-close-analysis" class="btn icon-btn" aria-label="Kapat"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div id="game-analysis-content" class="analysis-content"></div>
+
+        <div class="menu-actions analysis-actions">
+          <button id="btn-analysis-return-board" class="btn secondary-btn" data-i18n="analysis.action.return_board">Tahtaya Dön</button>
+          <button id="btn-analysis-main-menu" class="btn primary-btn" data-i18n="analysis.action.main_menu">Ana Menü</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="game-end-result-overlay" class="overlay-container hidden">
+      <div class="menu-box glass-panel game-end-result-box">
+        <div class="game-end-result-header">
+          <span class="game-end-result-kicker" data-i18n="game_end.kicker">Oyun Sonu</span>
+          <button id="btn-close-game-end-result" class="btn icon-btn" aria-label="Kapat"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div class="game-end-result-body">
+          <div class="game-end-result-badge" id="game-end-result-badge">-</div>
+          <h2 id="game-end-result-title">-</h2>
+          <p id="game-end-result-subtitle">-</p>
+          <div class="game-end-result-meta">
+            <span id="game-end-result-meta-moves">-</span>
+            <span id="game-end-result-meta-special">-</span>
+          </div>
+        </div>
+
+        <div class="menu-actions game-end-result-actions">
+          <button id="btn-game-end-rematch" class="btn secondary-btn" data-i18n="game_end.rematch">Tekrar Oyna</button>
+          <button id="btn-game-end-analysis" class="btn primary-btn" data-i18n="game_end.analysis">Analize Git</button>
+          <button id="btn-game-end-main-menu" class="btn secondary-btn" data-i18n="game_end.main_menu">Ana Menü</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="game-settings-overlay" class="overlay-container hidden">
+      <div class="menu-box glass-panel game-settings-box">
+        <div class="game-settings-header">
+          <h2><i class="fas fa-sliders"></i> <span data-i18n="settings.title">Oyun Ayarları</span></h2>
+          <button id="btn-close-settings" class="btn icon-btn" aria-label="Kapat"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div class="settings-list">
+          <div class="settings-row">
+            <div class="settings-copy">
+              <span class="settings-label" data-i18n="settings.show_piece_letters">Taş Harflerini Göster</span>
+              <span class="settings-hint" data-i18n="settings.piece_letters_hint">Taşların üstündeki kısa harf etiketlerini aç veya kapat.</span>
+            </div>
+            <button id="btn-toggle-piece-letters" class="btn secondary-btn settings-toggle" type="button" aria-pressed="false">
+              <span id="piece-letters-toggle-state" data-i18n="settings.off">Kapalı</span>
+            </button>
+          </div>
+
+          <div class="settings-row">
+            <div class="settings-copy">
+              <span class="settings-label" data-i18n="settings.show_advantage_meter">Üstünlük Barı</span>
+              <span class="settings-hint" data-i18n="settings.advantage_meter_hint">Tahtanın solundaki durum barını aç veya kapat.</span>
+            </div>
+            <button id="btn-toggle-advantage-meter" class="btn secondary-btn settings-toggle" type="button" aria-pressed="true">
+              <span id="advantage-meter-toggle-state" data-i18n="settings.on">Açık</span>
+            </button>
+          </div>
+
+          <div class="settings-row settings-row--vertical">
+            <div class="settings-copy">
+              <span class="settings-label" data-i18n="settings.board_theme">Tahta Teması</span>
+              <span class="settings-hint" data-i18n="settings.board_theme_hint">Tarihi renge göre tahta görünümü seç.</span>
+            </div>
+            <div class="theme-btn-group" id="board-theme-group">
+              <button class="theme-choice-btn" data-board-theme="samarkand" data-i18n="settings.theme_samarkand">Semerkant</button>
+              <button class="theme-choice-btn" data-board-theme="silk-road" data-i18n="settings.theme_silk_road">İpek Yolu</button>
+              <button class="theme-choice-btn" data-board-theme="khorasan" data-i18n="settings.theme_khorasan">Horasan</button>
+            </div>
+          </div>
+
+          <div class="settings-row settings-row--vertical">
+            <div class="settings-copy">
+              <span class="settings-label" data-i18n="settings.piece_skin">Taş Görünümü</span>
+              <span class="settings-hint" data-i18n="settings.piece_skin_hint">Taşların tasarım stilini seç.</span>
+            </div>
+            <div class="theme-btn-group" id="piece-skin-group">
+              <button class="theme-choice-btn" data-piece-skin="classic" data-i18n="settings.skin_classic">Klasik</button>
+              <button class="theme-choice-btn" data-piece-skin="warrior" data-i18n="settings.skin_warrior">Savaşçı</button>
+              <button class="theme-choice-btn" data-piece-skin="dynasty" data-i18n="settings.skin_dynasty">Hanedan</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-actions settings-actions">
+          <button id="btn-return-main-menu" class="btn secondary-btn" data-i18n="settings.return_main_menu">Ana Menüye Dön</button>
+          <button id="btn-close-settings-secondary" class="btn primary-btn" data-i18n="settings.close">Kapat</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <div id="magnifier" class="magnifier">
+      <div class="magnifier-content"></div>
+      <div class="magnifier-crosshair"></div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>

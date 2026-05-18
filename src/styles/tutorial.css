@@ -1,0 +1,573 @@
+/* Tutorial Overlay Styles */
+.tutorial-box {
+    max-width: 800px;
+    width: 95vw;
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    align-items: stretch;
+    background:
+        radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.12), transparent 28%),
+        rgba(12, 17, 28, 0.88);
+}
+
+.tutorial-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.tutorial-header h2 {
+    margin: 0;
+    color: var(--primary-color);
+    font-size: 1.4rem;
+    line-height: 1.12;
+    overflow-wrap: anywhere;
+}
+
+.tutorial-header h2 i {
+    margin-right: 8px;
+}
+
+/* Tab Navigation */
+.tutorial-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 12px 0;
+    overflow-x: auto;
+    flex-shrink: 0;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 215, 0, 0.3) transparent;
+}
+
+.tutorial-tab {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 215, 0, 0.15);
+    color: #ccc;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: 'Outfit', sans-serif;
+    white-space: nowrap;
+    transition: all 0.25s ease;
+}
+
+.tutorial-tab:hover {
+    background: rgba(255, 215, 0, 0.1);
+    color: #fff;
+}
+
+.tutorial-tab.active {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.15));
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+/* Lesson Content */
+.tutorial-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px 6px;
+    min-height: 300px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 215, 0, 0.3) transparent;
+}
+
+.tutorial-quick-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.tutorial-action-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 215, 0, 0.14);
+}
+
+.tutorial-action-card strong {
+    color: var(--primary-color);
+    font-size: 0.95rem;
+}
+
+.tutorial-action-card p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.78);
+    line-height: 1.5;
+    font-size: 0.84rem;
+}
+
+.piece-guide-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 10px;
+    margin: 0 0 16px;
+}
+
+.piece-guide-card {
+    position: relative;
+    min-width: 0;
+    text-align: left;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+        "copy diagram"
+        "move diagram"
+        "capture diagram"
+        "note note";
+    gap: 7px 10px;
+    padding: 12px;
+    border-radius: 15px;
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+        rgba(9, 17, 29, 0.74);
+    border: 1px solid rgba(245, 158, 11, 0.22);
+    box-shadow:
+        0 12px 26px rgba(0, 0, 0, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+}
+
+.piece-guide-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 10px;
+    bottom: 10px;
+    width: 3px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, var(--primary-color), #f97316);
+}
+
+.piece-guide-copy {
+    grid-area: copy;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.piece-guide-icon {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    color: #07111f;
+    background: linear-gradient(135deg, #facc15, #f97316);
+    box-shadow: 0 8px 16px rgba(245, 158, 11, 0.22);
+    font-size: 1rem;
+    font-weight: 900;
+}
+
+.piece-guide-card h4 {
+    margin: 0;
+    color: #fff5c7;
+    font-size: 0.94rem;
+    line-height: 1.08;
+    overflow-wrap: anywhere;
+}
+
+.piece-guide-subtitle {
+    margin: 2px 0 0;
+    color: rgba(255, 255, 255, 0.66);
+    font-size: 0.68rem;
+    line-height: 1.16;
+}
+
+.piece-guide-rule {
+    min-width: 0;
+    color: rgba(255, 255, 255, 0.86);
+    font-size: 0.72rem;
+    line-height: 1.24;
+    overflow-wrap: anywhere;
+}
+
+.piece-guide-move {
+    grid-area: move;
+}
+
+.piece-guide-capture {
+    grid-area: capture;
+}
+
+.piece-guide-rule strong {
+    color: var(--primary-color);
+}
+
+.piece-guide-note {
+    grid-area: note;
+    margin: 0;
+    padding-top: 4px;
+    color: rgba(255, 255, 255, 0.62);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 0.68rem;
+    line-height: 1.24;
+}
+
+.piece-guide-diagram {
+    grid-area: diagram;
+    align-self: center;
+    justify-self: end;
+}
+
+.mini-board-compact {
+    border-width: 1px;
+    border-radius: 8px;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
+}
+
+.mini-board-compact.grid-3 {
+    grid-template-columns: repeat(3, 20px);
+}
+
+.mini-board-compact.grid-5 {
+    grid-template-columns: repeat(5, 16px);
+}
+
+.mini-board-compact.grid-7 {
+    grid-template-columns: repeat(7, 13px);
+}
+
+.mini-board-compact .mini-cell {
+    min-width: 0;
+    font-size: 0.58rem;
+}
+
+.mini-board-compact .mini-cell.piece-cell {
+    color: #111827;
+    font-size: 0.7rem;
+}
+
+.lesson-title {
+    color: var(--primary-color);
+    font-size: 1.3rem;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1.14;
+    overflow-wrap: anywhere;
+}
+
+.lesson-body {
+    color: #ddd;
+    line-height: 1.58;
+    font-size: 0.92rem;
+    overflow-wrap: anywhere;
+}
+
+.lesson-body h4 {
+    color: var(--primary-color);
+    margin-top: 16px;
+    margin-bottom: 8px;
+    font-size: 1.05rem;
+    line-height: 1.18;
+}
+
+.lesson-body p {
+    margin-bottom: 12px;
+}
+
+.lesson-body ul {
+    padding-left: 20px;
+    margin-bottom: 12px;
+}
+
+.lesson-body li {
+    margin-bottom: 6px;
+    line-height: 1.42;
+}
+
+.lesson-body .piece-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 215, 0, 0.15);
+    border-radius: 50%;
+    font-size: 14px;
+    margin: 0 4px;
+    vertical-align: middle;
+}
+
+.lesson-body strong {
+    color: #ffd700;
+}
+
+.lesson-body .rule-box {
+    background: rgba(255, 215, 0, 0.08);
+    border-left: 3px solid var(--primary-color);
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    margin: 12px 0;
+    font-style: italic;
+}
+
+.lesson-body .tip-box {
+    background: rgba(76, 175, 80, 0.1);
+    border-left: 3px solid #4CAF50;
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    margin: 12px 0;
+}
+
+.lesson-body .warning-box {
+    background: rgba(244, 67, 54, 0.1);
+    border-left: 3px solid #F44336;
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    margin: 12px 0;
+}
+
+/* Mini Diagram */
+.lesson-diagram {
+    display: flex;
+    justify-content: center;
+    padding: 12px;
+    overflow-x: auto;
+}
+
+.mini-board {
+    display: grid;
+    gap: 0;
+    border: 2px solid var(--primary-color);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.mini-board.grid-5 {
+    grid-template-columns: repeat(5, 40px);
+}
+
+.mini-board.grid-7 {
+    grid-template-columns: repeat(7, 36px);
+}
+
+.mini-cell {
+    width: 100%;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.mini-cell.dark {
+    background: #6a4c2e;
+}
+
+.mini-cell.light {
+    background: #c8a96a;
+}
+
+.mini-cell.highlight {
+    background: rgba(76, 175, 80, 0.5) !important;
+}
+
+.mini-cell.piece-cell {
+    color: #222;
+    font-size: 18px;
+}
+
+.mini-cell.attack {
+    background: rgba(244, 67, 54, 0.4) !important;
+}
+
+/* Tutorial Navigation */
+.tutorial-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 215, 0, 0.2);
+    flex-shrink: 0;
+}
+
+.lesson-counter {
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.scripted-tutorial-coach {
+    position: absolute;
+    left: 50%;
+    top: 10px;
+    transform: translateX(-50%);
+    width: min(440px, calc(100vw - 40px));
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 6;
+    border: 1px solid rgba(255, 215, 0, 0.22);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.24);
+}
+
+.scripted-tutorial-coach.hidden {
+    display: none;
+}
+
+.scripted-tutorial-coach-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.scripted-tutorial-phase {
+    color: var(--primary-color);
+    font-weight: 700;
+    font-size: 0.82rem;
+}
+
+.scripted-tutorial-step {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.72rem;
+    white-space: nowrap;
+}
+
+.scripted-tutorial-text {
+    color: #f4f0dd;
+    line-height: 1.42;
+    font-size: 0.84rem;
+}
+
+.scripted-tutorial-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Difficulty Cards */
+.difficulty-cards {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.difficulty-card {
+    min-width: 130px;
+    flex: 1;
+    transition: all 0.3s ease;
+}
+
+.difficulty-card.selected {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 820px) {
+    .tutorial-box {
+        width: 98vw;
+        max-height: 92vh;
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .tutorial-quick-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .tutorial-tabs {
+        gap: 3px;
+    }
+
+    .tutorial-tab {
+        padding: 6px 10px;
+        font-size: 0.72rem;
+    }
+
+    .lesson-title {
+        font-size: 1.08rem;
+        margin-bottom: 11px;
+    }
+
+    .lesson-body {
+        font-size: 0.84rem;
+        line-height: 1.48;
+    }
+
+    .lesson-body h4 {
+        font-size: 0.92rem;
+        margin-top: 12px;
+    }
+
+    .piece-guide-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .piece-guide-card {
+        grid-template-columns: minmax(0, 1fr) auto;
+        padding: 10px 10px 10px 12px;
+        gap: 6px 8px;
+    }
+
+    .piece-guide-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 9px;
+        font-size: 0.88rem;
+    }
+
+    .piece-guide-card h4 {
+        font-size: 0.86rem;
+    }
+
+    .piece-guide-subtitle,
+    .piece-guide-note {
+        font-size: 0.62rem;
+    }
+
+    .piece-guide-rule {
+        font-size: 0.66rem;
+    }
+
+    .mini-board-compact.grid-5 {
+        grid-template-columns: repeat(5, 14px);
+    }
+
+    .mini-board-compact.grid-7 {
+        grid-template-columns: repeat(7, 11px);
+    }
+
+    .difficulty-cards {
+        flex-direction: column;
+    }
+
+    .scripted-tutorial-coach {
+        top: 6px;
+        width: min(calc(100vw - 24px), 420px);
+        padding: 9px 10px 8px;
+    }
+
+    .scripted-tutorial-coach-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+    }
+
+    .scripted-tutorial-actions {
+        justify-content: flex-end;
+        gap: 8px;
+    }
+}

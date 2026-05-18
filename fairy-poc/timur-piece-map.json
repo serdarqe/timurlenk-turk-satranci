@@ -1,0 +1,125 @@
+{
+  "status": "draft_for_fairy_stockfish_poc",
+  "board": {
+    "mainBoard": "10 rows x 11 files",
+    "citadels": [
+      { "name": "black_citadel", "row": 0, "col": -1, "status": "requires_wrapper_or_cpp_change" },
+      { "name": "white_citadel", "row": 9, "col": 11, "status": "requires_wrapper_or_cpp_change" }
+    ]
+  },
+  "pieces": {
+    "king": {
+      "appType": "king",
+      "movement": "one square all directions; own citadel entry from corner",
+      "fairyCandidate": "K",
+      "status": "partial",
+      "notes": "Normal king movement fits. Citadel entry and draw rules do not fit plain config."
+    },
+    "vizier": {
+      "appType": "vizier",
+      "movement": "one square orthogonal",
+      "fairyCandidate": "W",
+      "status": "likely_supported"
+    },
+    "sea_monster": {
+      "appType": "sea_monster",
+      "movement": "currently same as vizier",
+      "fairyCandidate": "s:W",
+      "status": "likely_supported"
+    },
+    "general": {
+      "appType": "general",
+      "movement": "one square diagonal",
+      "fairyCandidate": "F",
+      "status": "likely_supported"
+    },
+    "knight": {
+      "appType": "knight",
+      "movement": "standard knight",
+      "fairyCandidate": "N",
+      "status": "supported"
+    },
+    "elephant": {
+      "appType": "elephant",
+      "movement": "2 diagonal leaper",
+      "fairyCandidate": "A",
+      "status": "supported"
+    },
+    "dabbaba": {
+      "appType": "dabbaba",
+      "movement": "2 orthogonal leaper",
+      "fairyCandidate": "D",
+      "status": "supported"
+    },
+    "camel": {
+      "appType": "camel",
+      "movement": "3,1 leaper",
+      "fairyCandidate": "C",
+      "status": "likely_supported"
+    },
+    "bull": {
+      "appType": "bull",
+      "movement": "3,2 leaper",
+      "fairyCandidate": "b:Z",
+      "status": "poc_validation_added"
+    },
+    "revealer": {
+      "appType": "revealer",
+      "movement": "3,3 leaper",
+      "fairyCandidate": "h:G",
+      "status": "poc_validation_added"
+    },
+    "lion": {
+      "appType": "lion",
+      "movement": "3 orthogonal leaper",
+      "fairyCandidate": "l:H",
+      "status": "poc_validation_added"
+    },
+    "picket": {
+      "appType": "picket",
+      "movement": "diagonal slider, minimum 2 squares",
+      "fairyCandidate": "B with minimum-distance wrapper or custom Betza",
+      "status": "needs_validation"
+    },
+    "giraffe": {
+      "appType": "giraffe",
+      "movement": "one empty diagonal step, then at least 3 straight orthogonal squares in the same diagonal direction",
+      "fairyCandidate": "probably cpp_or_wrapper",
+      "status": "hard_blocker"
+    },
+    "rook": {
+      "appType": "rook",
+      "movement": "orthogonal slider",
+      "fairyCandidate": "R",
+      "status": "supported"
+    },
+    "pawn": {
+      "appType": "pawn",
+      "movement": "one forward, diagonal capture, no double step",
+      "fairyCandidate": "custom pawn config",
+      "status": "partial",
+      "notes": "Different pawn types and pawn-of-pawns cycle require wrapper or multiple pawn types."
+    },
+    "prince": {
+      "appType": "prince",
+      "movement": "king movement, royal backup",
+      "fairyCandidate": "q:K for movement only",
+      "status": "movement_supported_rules_require_wrapper"
+    },
+    "adventitious_king": {
+      "appType": "adventitious_king",
+      "movement": "king movement, created by pawn-of-pawns",
+      "fairyCandidate": "a:K for movement only",
+      "status": "movement_supported_rules_require_wrapper"
+    }
+  },
+  "specialRules": {
+    "royal_capture": "requires custom royal hierarchy or wrapper",
+    "royal_swap": "requires wrapper or cpp change",
+    "citadel_draw": "requires wrapper or cpp change",
+    "citadel_exchange": "requires wrapper or cpp change",
+    "pawn_of_pawns_cycle": "requires wrapper or cpp change",
+    "threefold_repetition": "supported by Fairy nFoldRule",
+    "fifty_move_draw": "supported by Fairy nMoveRule"
+  }
+}

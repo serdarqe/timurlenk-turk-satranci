@@ -1,0 +1,42 @@
+{
+  "purpose": "Fairy-Stockfish pthread WebView smoke assets kept for comparison and future performance rollout.",
+  "generatedAt": "2026-05-18T21:51:55.028Z",
+  "bundle": "pthread",
+  "source": "fairy-poc/vendor/fairy-stockfish-nnue.wasm",
+  "variant": "fairy-poc/timur-draft.variants.ini",
+  "license": "GPL-3.0",
+  "artifacts": [
+    {
+      "name": "stockfish.js",
+      "bytes": 64273
+    },
+    {
+      "name": "stockfish.wasm",
+      "bytes": 1636483
+    },
+    {
+      "name": "stockfish.worker.js",
+      "bytes": 3321
+    },
+    {
+      "name": "uci.js",
+      "bytes": 1117
+    },
+    {
+      "name": "package.json",
+      "bytes": 527
+    },
+    {
+      "name": "AUTHORS",
+      "bytes": 4950
+    },
+    {
+      "name": "Copying.txt",
+      "bytes": 35821
+    },
+    {
+      "name": "timur-draft.variants.ini",
+      "bytes": 2462
+    }
+  ]
+}

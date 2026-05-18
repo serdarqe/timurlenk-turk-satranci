@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="tr">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'; connect-src 'self'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline';">
+  <title>Fairy WebView Smoke</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #07111f;
+      color: #f8fafc;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      box-sizing: border-box;
+      background:
+        radial-gradient(circle at top left, rgba(245, 158, 11, 0.2), transparent 32rem),
+        linear-gradient(160deg, #07111f, #120706 72%);
+    }
+
+    main {
+      width: min(760px, 100%);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: 22px;
+      background: rgba(12, 18, 29, 0.9);
+      box-shadow: 0 28px 80px rgba(0, 0, 0, 0.35);
+      padding: 22px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      color: #f59e0b;
+      font-size: clamp(24px, 6vw, 36px);
+      letter-spacing: 0.02em;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 12px 0 18px;
+      padding: 9px 13px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.16);
+      color: #cbd5e1;
+      font-weight: 700;
+    }
+
+    .status.pass {
+      background: rgba(34, 197, 94, 0.16);
+      color: #86efac;
+    }
+
+    .status.fail {
+      background: rgba(239, 68, 68, 0.16);
+      color: #fca5a5;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .cap {
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: 14px;
+      padding: 10px;
+      color: #cbd5e1;
+      background: rgba(15, 23, 42, 0.72);
+    }
+
+    .cap strong {
+      display: block;
+      color: #f8fafc;
+      margin-bottom: 2px;
+    }
+
+    pre {
+      max-height: 44vh;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      padding: 14px;
+      border-radius: 14px;
+      background: #020617;
+      color: #d1d5db;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+  </style>
+</head>
+
+<body data-smoke-result="pending">
+  <main>
+    <h1>Fairy WebView Smoke Test</h1>
+    <p>Bu sayfa Fairy-Stockfish WASM dosyalarini Android WebView icinde izole test eder. Oyun AI'sina bagli
+      degildir.</p>
+    <div id="status" class="status">Hazirlaniyor...</div>
+    <div id="capabilities" class="grid"></div>
+    <pre id="log"></pre>
+  </main>
+
+  <script>
+    (() => {
+      const params = new URLSearchParams(window.location.search);
+      const engineMode = params.get('engine') === 'pthread' ? 'pthread' : 'singlethread';
+      const assetRoot = engineMode === 'singlethread' ? './fairy-singlethread' : './fairy';
+      const variantMode = params.get('variant') === 'poc' ? 'poc' : 'native';
+      const searchDepth = Math.min(8, Math.max(1, Number(params.get('depth') || '1') || 1));
+      const statusEl = document.getElementById('status');
+      const logEl = document.getElementById('log');
+      const capabilitiesEl = document.getElementById('capabilities');
+      const lines = [];
+      const waiters = [];
+
+      function log(message) {
+        const text = `[${new Date().toISOString()}] ${message}`;
+        lines.push(text);
+        logEl.textContent = lines.join('\n');
+        logEl.scrollTop = logEl.scrollHeight;
+        console.log(text);
+      }
+
+      function setStatus(kind, message) {
+        statusEl.className = `status ${kind}`;
+        statusEl.textContent = message;
+        document.body.dataset.smokeResult = kind;
+        window.timurFairyWebViewSmoke = {
+          result: kind,
+          message,
+          lines: lines.slice(-40),
+          finishedAt: new Date().toISOString()
+        };
+      }
+
+      function renderCapabilities() {
+        const caps = [
+          ['WebAssembly', typeof WebAssembly === 'object'],
+          ['Worker', typeof Worker === 'function'],
+          ['SharedArrayBuffer', typeof SharedArrayBuffer === 'function'],
+          ['Atomics', typeof Atomics === 'object'],
+          ['crossOriginIsolated', !!window.crossOriginIsolated]
+        ];
+        capabilitiesEl.innerHTML = caps.map(([label, ok]) => `
+          <div class="cap">
+            <strong>${label}</strong>
+            <span>${ok ? 'OK' : 'YOK'}</span>
+          </div>
+        `).join('');
+      }
+
+      function waitFor(predicate, timeoutMs, label) {
+        const existing = lines.find(predicate);
+        if (existing) return Promise.resolve(existing);
+
+        return new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error(`${label} zaman asimi (${timeoutMs}ms)`));
+          }, timeoutMs);
+
+          waiters.push((line) => {
+            if (!predicate(line)) return false;
+            clearTimeout(timeout);
+            resolve(line);
+            return true;
+          });
+        });
+      }
+
+      function loadScript(src) {
+        return new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = src;
+          script.async = true;
+          script.onload = resolve;
+          script.onerror = () => reject(new Error(`Script yuklenemedi: ${src}`));
+          document.head.appendChild(script);
+        });
+      }
+
+      function attachEngineLogger(engine) {
+        engine.addMessageListener((line) => {
+          const text = String(line);
+          lines.push(text);
+          logEl.textContent = lines.join('\n');
+          logEl.scrollTop = logEl.scrollHeight;
+          for (let index = waiters.length - 1; index >= 0; index -= 1) {
+            if (waiters[index](text)) waiters.splice(index, 1);
+          }
+        });
+      }
+
+      async function run() {
+        renderCapabilities();
+        log(`Engine mode: ${engineMode}`);
+        log(`Variant mode: ${variantMode}`);
+        log(`Asset root: ${assetRoot}`);
+        log(`Search depth: ${searchDepth}`);
+        log(`User agent: ${navigator.userAgent}`);
+
+        await loadScript(`${assetRoot}/stockfish.js`);
+
+        if (typeof Stockfish !== 'function') {
+          throw new Error('Stockfish global fonksiyonu bulunamadi.');
+        }
+
+        log('Fairy motor olusturuluyor...');
+        const engine = await Stockfish({
+          locateFile: (filename) => `${assetRoot}/${filename}`,
+          mainScriptUrlOrBlob: `${assetRoot}/stockfish.js`
+        });
+        attachEngineLogger(engine);
+
+        engine.postMessage('uci');
+        await waitFor((line) => line.includes('uciok'), 20000, 'uciok');
+
+        engine.postMessage('isready');
+        await waitFor((line) => line.includes('readyok'), 20000, 'readyok');
+
+        log('Timur varyanti seciliyor...');
+        if (variantMode === 'poc') {
+          const variantText = await fetch(`${assetRoot}/timur-draft.variants.ini`, { cache: 'no-store' }).then((response) => {
+            if (!response.ok) throw new Error(`Varyant dosyasi yuklenemedi: ${response.status}`);
+            return response.text();
+          });
+          engine.FS.writeFile('/timur-draft.variants.ini', variantText);
+          engine.postMessage('load /timur-draft.variants.ini');
+          engine.postMessage('setoption name UCI_Variant value timur_poc');
+        } else {
+          engine.postMessage('setoption name UCI_Variant value timur');
+        }
+        engine.postMessage('isready');
+        await waitFor((line) => line.includes('readyok'), 20000, 'timur readyok');
+
+        engine.postMessage('ucinewgame');
+        engine.postMessage('position startpos');
+        const startedAt = performance.now();
+        engine.postMessage(`go depth ${searchDepth}`);
+        const bestmove = await waitFor((line) => /^bestmove\s+\S+/.test(line), 30000, 'bestmove');
+        const elapsedMs = Math.round(performance.now() - startedAt);
+        log(`Sonuc: ${bestmove} depth=${searchDepth} (${elapsedMs}ms)`);
+        setStatus('pass', `GECTI (${engineMode}, depth ${searchDepth}): ${bestmove}`);
+
+        try {
+          engine.postMessage('quit');
+          engine.terminate?.();
+        } catch {
+          // Ignore shutdown errors in smoke pages.
+        }
+      }
+
+      run().catch((error) => {
+        log(`HATA: ${error.message}`);
+        setStatus('fail', `KALDI: ${error.message}`);
+      });
+    })();
+  </script>
+</body>
+
+</html>

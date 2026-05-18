@@ -1,0 +1,190 @@
+/* ================================================================
+   THEMES.CSS — Tahta Temaları & Taş Skin'leri
+   Timurlenk Türk Satrancı
+   ================================================================ */
+
+/* ----------------------------------------------------------------
+   TAHTA TEMALARI
+   Uygulanır: document.documentElement.dataset.boardTheme
+   Varsayılan (samarkand) zaten main.css :root'ta tanımlı.
+   ---------------------------------------------------------------- */
+
+/* --- SEMERKANT (samarkand) --- */
+/* main.css :root zaten Semerkant renklerini kullanıyor.
+   Yine de explicit olarak tekrar tanımlıyoruz tutarlılık için. */
+:root[data-board-theme="samarkand"],
+:root:not([data-board-theme]) {
+    --board-light: hsl(35, 40%, 75%);
+    --board-dark: hsl(25, 45%, 45%);
+    --board-highlight: rgba(255, 215, 0, 0.4);
+    --board-valid-move: rgba(0, 255, 128, 0.4);
+    --citadel-bg: hsl(0, 0%, 15%);
+    --citadel-border: hsl(45, 100%, 50%);
+    --bg-color: hsl(220, 30%, 10%);
+    --surface-dark: hsl(220, 25%, 15%);
+    --surface-light: hsl(220, 20%, 25%);
+    --primary-color: hsl(45, 100%, 60%);
+    --primary-color-hover: hsl(45, 100%, 70%);
+    --accent-color: hsl(190, 80%, 50%);
+    --glass-bg: rgba(25, 30, 40, 0.6);
+}
+
+/* --- İPEK YOLU (silk-road) --- */
+/* Çöl & Bakır — Orta Asya kervan yolu esini */
+:root[data-board-theme="silk-road"] {
+    --board-light: hsl(38, 55%, 72%);
+    --board-dark: hsl(18, 50%, 35%);
+    --board-highlight: rgba(210, 140, 0, 0.45);
+    --board-valid-move: rgba(150, 230, 80, 0.45);
+    --citadel-bg: hsl(18, 35%, 16%);
+    --citadel-border: hsl(28, 85%, 55%);
+    --bg-color: hsl(15, 35%, 8%);
+    --surface-dark: hsl(15, 28%, 13%);
+    --surface-light: hsl(15, 22%, 22%);
+    --primary-color: hsl(30, 90%, 55%);
+    --primary-color-hover: hsl(30, 90%, 65%);
+    --accent-color: hsl(15, 75%, 55%);
+    --glass-bg: rgba(30, 16, 8, 0.65);
+    --danger: hsl(0, 80%, 58%);
+}
+
+/* --- HORASAN GECESİ (khorasan) --- */
+/* Zümrüt & Obsidyen — İran-Türk kültür sentezi */
+:root[data-board-theme="khorasan"] {
+    --board-light: hsl(155, 18%, 60%);
+    --board-dark: hsl(155, 42%, 19%);
+    --board-highlight: rgba(80, 220, 140, 0.45);
+    --board-valid-move: rgba(80, 255, 160, 0.45);
+    --citadel-bg: hsl(155, 32%, 10%);
+    --citadel-border: hsl(148, 65%, 42%);
+    --bg-color: hsl(155, 28%, 6%);
+    --surface-dark: hsl(155, 22%, 10%);
+    --surface-light: hsl(155, 18%, 20%);
+    --primary-color: hsl(148, 58%, 48%);
+    --primary-color-hover: hsl(148, 65%, 58%);
+    --accent-color: hsl(155, 60%, 55%);
+    --glass-bg: rgba(6, 18, 12, 0.65);
+    --danger: hsl(355, 75%, 58%);
+}
+
+/* Horasan tahta parlaması — yeşil renk */
+:root[data-board-theme="khorasan"] .chess-board {
+    animation: boardGlowKhorasan 3s ease-in-out forwards;
+}
+
+@keyframes boardGlowKhorasan {
+    0%   { box-shadow: 0 10px 40px rgba(0,0,0,0.7), 0 0 20px rgba(0, 180, 80, 0.2); }
+    50%  { box-shadow: 0 10px 40px rgba(0,0,0,0.7), 0 0 40px rgba(0, 200, 100, 0.6); }
+    100% { box-shadow: 0 10px 40px rgba(0,0,0,0.7), 0 0 20px rgba(0, 180, 80, 0.2); }
+}
+
+/* İpek Yolu tahta parlaması — bakır renk */
+:root[data-board-theme="silk-road"] .chess-board {
+    animation: boardGlowSilkRoad 3s ease-in-out forwards;
+}
+
+@keyframes boardGlowSilkRoad {
+    0%   { box-shadow: 0 10px 40px rgba(0,0,0,0.7), 0 0 20px rgba(200, 100, 0, 0.2); }
+    50%  { box-shadow: 0 10px 40px rgba(0,0,0,0.7), 0 0 40px rgba(220, 120, 0, 0.6); }
+    100% { box-shadow: 0 10px 40px rgba(0,0,0,0.7), 0 0 20px rgba(200, 100, 0, 0.2); }
+}
+
+
+/* ================================================================
+   TAŞ SKİN'LERİ
+   Uygulanır: document.documentElement.dataset.pieceSkin
+   Varsayılan (classic) zaten pieces.css'de tanımlı.
+   ================================================================ */
+
+/* --- SAVAŞÇI (warrior) --- */
+/* Köşeli, geometrik, askeri tarz — vektör SVG taşlar */
+
+:root[data-piece-skin="warrior"] .piece.white {
+    --p1: #E8C84A;
+    --p2: #B8941A;
+    --p3: #6B5510;
+    filter: drop-shadow(0 0 5px rgba(232, 200, 74, 0.6))
+            drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
+}
+
+:root[data-piece-skin="warrior"] .piece.black {
+    --p1: #3A3A50;
+    --p2: #5A5A72;
+    --p3: #1A1A2E;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.82));
+}
+
+:root[data-piece-skin="warrior"] .piece.black .piece-img {
+    filter: none;
+}
+
+:root[data-piece-skin="warrior"] .piece.white.selected,
+:root[data-piece-skin="warrior"] .piece.white:hover {
+    filter: drop-shadow(0 0 10px rgba(232, 200, 74, 0.9))
+            drop-shadow(0 5px 8px rgba(0, 0, 0, 0.4)) !important;
+}
+
+:root[data-piece-skin="warrior"] .piece.black.selected,
+:root[data-piece-skin="warrior"] .piece.black:hover {
+    filter: drop-shadow(0 0 4px rgba(100, 140, 220, 0.64))
+            drop-shadow(0 2px 2px rgba(0, 0, 0, 0.7)) !important;
+}
+
+:root[data-piece-skin="warrior"] .piece.adventitious_king {
+    filter: drop-shadow(0 0 14px rgba(255, 200, 0, 1)) !important;
+}
+
+:root[data-piece-skin="warrior"] .piece.adventitious_king.black {
+    filter: drop-shadow(0 0 14px rgba(100, 160, 255, 0.9)) !important;
+}
+
+
+/* --- HANEDAN (dynasty) --- */
+/* Zarif, yuvarlak, Osmanlı saray estetiği — vektör SVG taşlar */
+
+:root[data-piece-skin="dynasty"] .piece.white {
+    --p1: #F5E6C8;
+    --p2: #C8A872;
+    --p3: #8B7040;
+    filter: drop-shadow(0 0 5px rgba(245, 230, 200, 0.5))
+            drop-shadow(0 2px 5px rgba(0, 0, 0, 0.4));
+}
+
+:root[data-piece-skin="dynasty"] .piece.black {
+    --p1: #1E2952;
+    --p2: #3A4A7A;
+    --p3: #0A1230;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.82));
+}
+
+:root[data-piece-skin="dynasty"] .piece.black .piece-img {
+    filter: none;
+}
+
+:root[data-piece-skin="dynasty"] .piece.white.selected,
+:root[data-piece-skin="dynasty"] .piece.white:hover {
+    filter: drop-shadow(0 0 10px rgba(245, 230, 200, 0.9))
+            drop-shadow(0 5px 8px rgba(0, 0, 0, 0.35)) !important;
+}
+
+:root[data-piece-skin="dynasty"] .piece.black.selected,
+:root[data-piece-skin="dynasty"] .piece.black:hover {
+    filter: drop-shadow(0 0 4px rgba(50, 80, 200, 0.68))
+            drop-shadow(0 2px 2px rgba(0, 0, 0, 0.7)) !important;
+}
+
+:root[data-piece-skin="dynasty"] .piece.adventitious_king {
+    filter: drop-shadow(0 0 14px rgba(245, 230, 200, 0.95)) !important;
+}
+
+:root[data-piece-skin="dynasty"] .piece.adventitious_king.black {
+    filter: drop-shadow(0 0 14px rgba(60, 100, 255, 0.9)) !important;
+}
+
+
+/* ================================================================
+   EVRENSEL GÖRÜNÜRLÜK İYİLEŞTİRMESİ
+   Tüm tema/skin kombinasyonlarında geçerli
+   ================================================================ */
+
+/* Kontrast dairesi kaldırıldı */
