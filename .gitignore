@@ -50,6 +50,26 @@ fix.png
 en_store_*.png
 com.timurlenk.turkchess_feedback.pdf
 
+# Local planning/report notes kept out of the public GPL source release
+ACILIS_KITABI.md
+AI_*.md
+ANA_MENU_TASARIM_ERTELEME_NOTU.md
+ENDGAME_PIECE_ROLES.md
+FAIRY_*.md
+KOZMETIK_SISTEMI.md
+KRITIK_EKSIKLER_KAPATILDI.md
+MAT_ARAMA_MODULU.md
+OBJEKTIF_MOTOR_DEGERLENDIRMESI.md
+OPEN_SOURCE_RELEASE_GUIDE.md
+Online_Multiplayer_Mantigi.md
+OYUN-KAYIT-KOMUTLARI.txt
+TIMUR_SATRANCI_MOTOR_MIMARI_PLANI.md
+ZAAFLAR_KAPATMA_RAPORU.md
+docs/
+play-store-listing.md
+progress.md
+Sesler/
+
 # Unrelated local experiment folders accidentally placed near the app
 9'lu SoS/
 Satrancı/

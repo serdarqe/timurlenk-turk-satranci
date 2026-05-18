@@ -20,7 +20,6 @@ Fairy-Stockfish bileseni GPL-3.0 lisanslidir. Ayrintilar icin:
 
 - `THIRD_PARTY_NOTICES.md`
 - `SOURCE_DISTRIBUTION.md`
-- `OPEN_SOURCE_RELEASE_GUIDE.md`
 
 ## Gelistirme
 

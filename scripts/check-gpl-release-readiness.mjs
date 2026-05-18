@@ -10,9 +10,7 @@ const projectRoot = path.resolve(__dirname, '..');
 const requiredFiles = [
   'LICENSE',
   'THIRD_PARTY_NOTICES.md',
-  'OPEN_SOURCE_RELEASE_GUIDE.md',
   'SOURCE_DISTRIBUTION.md',
-  'FAIRY_GPL_RELEASE_DECISION.md',
   'package.json',
   'public/fairy/package.json',
   'public/fairy/AUTHORS',

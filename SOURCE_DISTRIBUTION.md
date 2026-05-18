@@ -13,7 +13,6 @@ Bu proje GitHub'da kaynak kodu acik sekilde yayinlanacak sekilde hazirlanir.
 - `package.json` ve `package-lock.json`
 - `LICENSE`
 - `THIRD_PARTY_NOTICES.md`
-- `OPEN_SOURCE_RELEASE_GUIDE.md`
 
 ## Dahil edilmemesi gerekenler
 
