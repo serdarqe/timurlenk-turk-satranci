@@ -1,0 +1,31 @@
+# Normalize text files across Windows/macOS/Linux.
+* text=auto
+
+# Source files should stay readable in diffs.
+*.js text eol=lf
+*.mjs text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Windows/Android scripts.
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary assets.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.mp3 binary
+*.wasm binary
+*.apk binary
+*.aab binary
+*.apks binary
+*.jks binary
+*.keystore binary
+*.pdf binary
+*.zip binary
