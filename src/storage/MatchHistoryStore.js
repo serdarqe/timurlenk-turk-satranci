@@ -2,6 +2,10 @@ import { getAIProfile } from '../ai/AIProfiles.js';
 import { getAIPersona, getAIPersonaLabel } from '../ai/AIPersonas.js';
 import { getAIBot, isAIBotId } from '../ai/AIBots.js';
 import { COLORS, FORMATIONS } from '../utils/constants.js';
+import {
+    buildFairyShadowLogEntry,
+    buildFairyShadowLogReport
+} from '../fairy/FairyShadowLog.js';
 
 const HISTORY_KEY = 'timur_match_history_v1';
 const MAX_HISTORY_RECORDS = 50;
@@ -93,11 +97,26 @@ function getFairyDebugSummary(moveHistory = []) {
     const samples = (moveHistory || []).filter((move) => move?.fairyDebug?.enabled);
     if (!samples.length) return null;
 
+    const shadowReport = buildFairyShadowLogReport(
+        samples.map((move, index) => move.fairyDebug?.shadowLogEntry
+            || buildFairyShadowLogEntry(move.fairyDebug, {
+                moveIndex: Number.isFinite(move.index) ? move.index : index + 1,
+                sideToMove: move.color || null
+            }))
+    );
+
     return {
         sampleCount: samples.length,
         acceptedCount: samples.filter((move) => move.fairyDebug?.fairyAccepted).length,
         matchCount: samples.filter((move) => move.fairyDebug?.fairyMatchesJsMove).length,
-        timeoutCount: samples.filter((move) => move.fairyDebug?.timeout).length
+        timeoutCount: samples.filter((move) => move.fairyDebug?.timeout).length,
+        mismatchCount: shadowReport.mismatchCount,
+        warningCount: shadowReport.warningCount,
+        rootComparisonCount: shadowReport.rootComparisonCount,
+        rootMovesAvailableCount: shadowReport.rootMovesAvailableCount,
+        rootMovesErrorCount: shadowReport.rootMovesErrorCount,
+        rejectionReasons: shadowReport.rejectionReasons,
+        problemMoves: shadowReport.problemMoves
     };
 }
 

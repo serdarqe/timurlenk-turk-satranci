@@ -152,7 +152,7 @@ async function main() {
   printMoves('Beklenmeyen Fairy-only farklar', summary.unexpectedFairyOnly);
 
   console.log('\nNot');
-  console.log('- Kalan beklenen farklar: zurafa plain variants.ini ile birebir ifade edilemiyor; picket icin en az 2 kare sarti wrapper veya fork ister.');
+  console.log('- Kalan beklenen farklar: zurafa plain variants.ini ile birebir ifade edilemiyor; native fork kaynak kodunda ozel hareket destegi vardir, WASM rebuild sonrasi POC farki azalmalidir. Picket icin en az 2 kare sarti wrapper veya fork ister.');
   console.log('- Hisar, sah degisimi ve pawn-of-pawns gibi ozel kurallar bu baslangic perft karsilastirmasinda henuz hedeflenmedi.');
 }
 

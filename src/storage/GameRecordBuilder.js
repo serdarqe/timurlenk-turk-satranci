@@ -2,6 +2,10 @@ import { COLORS } from '../utils/constants.js';
 import { buildPositionHash } from '../ai/AiStrategy.js';
 import { getAIPersona } from '../ai/AIPersonas.js';
 import { getAIBot, isAIBotId } from '../ai/AIBots.js';
+import {
+    buildFairyShadowLogEntry,
+    buildFairyShadowLogReport
+} from '../fairy/FairyShadowLog.js';
 
 function toIsoString(value, fallback = new Date()) {
     if (!value) return fallback.toISOString();
@@ -62,7 +66,8 @@ function buildAnalysisSummary(report) {
 function compactFairyDebug(debug) {
     if (!debug?.enabled) return null;
 
-    return {
+    const compact = {
+        enabled: true,
         mode: debug.mode || 'shadow',
         shadowOnly: debug.shadowOnly !== false,
         appliedToGame: Boolean(debug.appliedToGame),
@@ -74,6 +79,10 @@ function compactFairyDebug(debug) {
         fairyRejectedReason: debug.fairyRejectedReason || null,
         fallbackUsed: Boolean(debug.fallbackUsed),
         fairyThinkMs: Number.isFinite(debug.fairyThinkMs) ? debug.fairyThinkMs : null,
+        rootMovesAvailable: Boolean(debug.rootMovesAvailable),
+        rootMoveCount: Number.isFinite(debug.rootMoveCount) ? debug.rootMoveCount : 0,
+        rootMoveThinkMs: Number.isFinite(debug.rootMoveThinkMs) ? debug.rootMoveThinkMs : null,
+        rootMovesError: debug.rootMovesError || null,
         jsAiMove: debug.jsAiMove || null,
         fairySelectedMove: debug.fairySelectedMove || null,
         fairyMatchesJsMove: Boolean(debug.fairyMatchesJsMove),
@@ -81,7 +90,31 @@ function compactFairyDebug(debug) {
         hybridApplied: Boolean(debug.hybridApplied),
         hybridRejectedReason: debug.hybridRejectedReason || null,
         timeout: Boolean(debug.timeout),
-        errorCode: debug.errorCode || null
+        errorCode: debug.errorCode || null,
+        shadowMode: compactShadowMode(debug.shadowMode)
+    };
+
+    compact.shadowLogEntry = debug.shadowLogEntry
+        || buildFairyShadowLogEntry(compact);
+    return compact;
+}
+
+function compactShadowMode(shadowMode) {
+    if (!shadowMode?.enabled) return null;
+
+    return {
+        enabled: true,
+        status: shadowMode.status || null,
+        authoritativeSource: shadowMode.authoritativeSource || 'js',
+        rootComparisonAvailable: Boolean(shadowMode.rootComparisonAvailable),
+        exactMatch: Boolean(shadowMode.exactMatch),
+        onlyExpectedDiffs: Boolean(shadowMode.onlyExpectedDiffs),
+        missingWrapperCount: Number.isFinite(shadowMode.missingWrapperCount) ? shadowMode.missingWrapperCount : 0,
+        rejectedFairyCount: Number.isFinite(shadowMode.rejectedFairyCount) ? shadowMode.rejectedFairyCount : 0,
+        unexpectedJsOnlyCount: Number.isFinite(shadowMode.unexpectedJsOnlyCount) ? shadowMode.unexpectedJsOnlyCount : 0,
+        unexpectedFairyOnlyCount: Number.isFinite(shadowMode.unexpectedFairyOnlyCount) ? shadowMode.unexpectedFairyOnlyCount : 0,
+        nativeBestMoveStatus: shadowMode.nativeBestMoveStatus || null,
+        nativeBestMoveReason: shadowMode.nativeBestMoveReason || null
     };
 }
 
@@ -91,6 +124,10 @@ function buildDebugSummary(moveHistory = []) {
         .filter(Boolean);
 
     if (!fairyMoves.length) return null;
+
+    const shadowReport = buildFairyShadowLogReport(
+        fairyMoves.map((entry, index) => entry.shadowLogEntry || buildFairyShadowLogEntry(entry, { moveIndex: index + 1 }))
+    );
 
     return {
         fairyShadow: {
@@ -102,6 +139,15 @@ function buildDebugSummary(moveHistory = []) {
             hybridAppliedCount: fairyMoves.filter((entry) => entry.hybridApplied).length,
             timeoutCount: fairyMoves.filter((entry) => entry.timeout).length,
             errorCount: fairyMoves.filter((entry) => entry.errorCode && !entry.timeout).length,
+            mismatchCount: shadowReport.mismatchCount,
+            warningCount: shadowReport.warningCount,
+            rootComparisonCount: shadowReport.rootComparisonCount,
+            rootMovesAvailableCount: shadowReport.rootMovesAvailableCount,
+            rootMovesErrorCount: shadowReport.rootMovesErrorCount,
+            expectedDifferenceCount: shadowReport.expectedDifferenceCount,
+            statusCounts: shadowReport.statusCounts,
+            rejectionReasons: shadowReport.rejectionReasons,
+            problemMoves: shadowReport.problemMoves,
             artifact: fairyMoves.at(-1)?.artifact || null,
             variant: fairyMoves.at(-1)?.variant || null
         }

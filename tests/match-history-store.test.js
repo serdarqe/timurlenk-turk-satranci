@@ -77,7 +77,24 @@ test('buildMatchHistoryRecord stores setup, result, and compact moves', () => {
                     index: 1,
                     moveNumber: 1,
                     color: COLORS.WHITE,
-                    notation: 'a2 -> a3'
+                    notation: 'a2 -> a3',
+                    fairyDebug: {
+                        enabled: true,
+                        mode: 'shadow',
+                        fairyAccepted: true,
+                        fairyMatchesJsMove: true,
+                        rootMovesAvailable: true,
+                        rootMoveCount: 48,
+                        shadowMode: {
+                            enabled: true,
+                            status: 'in_sync',
+                            rootComparisonAvailable: true,
+                            unexpectedJsOnlyCount: 0,
+                            unexpectedFairyOnlyCount: 0,
+                            nativeBestMoveStatus: 'accepted',
+                            nativeBestMoveReason: 'fairy_bestmove_is_timur_legal'
+                        }
+                    }
                 }
             ]
         }
@@ -99,4 +116,8 @@ test('buildMatchHistoryRecord stores setup, result, and compact moves', () => {
     assert.equal(record.analysisReport.summary.whiteAccuracy, 76);
     assert.equal(record.analysisReport.criticalMoments[0].index, 1);
     assert.equal(record.analysisReport.moves[0].notation, 'a2 -> a3');
+    assert.equal(record.fairyDebugSummary.sampleCount, 1);
+    assert.equal(record.fairyDebugSummary.rootComparisonCount, 1);
+    assert.equal(record.fairyDebugSummary.mismatchCount, 0);
+    assert.equal(record.moves[0].fairyDebug.shadowMode.status, 'in_sync');
 });

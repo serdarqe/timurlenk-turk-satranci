@@ -2,6 +2,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import {
+  FAIRY_VARIANT_SOURCE_PATH,
+  getCitadelDrawSourceEvidence
+} from './fairy-native-source-evidence.mjs';
+import { hashFile } from '../src/fairy/FairyWasmRebuildEvidence.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
@@ -48,8 +54,22 @@ function copyArtifact(bundle, name) {
   };
 }
 
+function buildNativeSourceManifest() {
+  const sourceEvidence = getCitadelDrawSourceEvidence();
+  const sourceStat = fs.statSync(FAIRY_VARIANT_SOURCE_PATH);
+
+  return {
+    variantCppPath: path.relative(projectRoot, FAIRY_VARIANT_SOURCE_PATH).replace(/\\/g, '/'),
+    variantCppSha256: hashFile(FAIRY_VARIANT_SOURCE_PATH),
+    variantCppLastModifiedAt: sourceStat.mtime.toISOString(),
+    citadelDrawSourceMarker: sourceEvidence.nativeSourceMarker,
+    missingCitadelDrawMarkers: sourceEvidence.missingMarkers
+  };
+}
+
 function main() {
   assertFile(variantPath);
+  const nativeSource = buildNativeSourceManifest();
 
   for (const bundle of bundles) {
     fs.mkdirSync(bundle.output, { recursive: true });
@@ -65,6 +85,7 @@ function main() {
       source: path.relative(projectRoot, bundle.source).replace(/\\/g, '/'),
       variant: 'fairy-poc/timur-draft.variants.ini',
       license: 'GPL-3.0',
+      nativeSource,
       artifacts: [
         ...copied,
         {

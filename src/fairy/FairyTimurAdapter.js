@@ -1,12 +1,15 @@
 import { MoveValidator } from '../game/MoveValidator.js';
-import { PIECE_TYPES } from '../utils/constants.js';
+import { COLORS, PIECE_TYPES } from '../utils/constants.js';
+import {
+    buildCitadelOffboardTokenFromMove,
+    parseCitadelOffboardToken
+} from './FairyCitadelOffboardNativeSmoke.js';
+import { getWrapperReasons } from './FairyNativeTransition.js';
+import { getPromotionParityCase } from './FairyPromotionParity.js';
 
 export const FAIRY_FILES = 'abcdefghijk';
 
-const EXPECTED_POC_REASONS = new Set([
-    'giraffe_requires_wrapper',
-    'picket_minimum_distance_rule'
-]);
+const EXPECTED_POC_REASONS = new Set(getWrapperReasons());
 
 export function coordToFairySquare(row, col) {
     if (!Number.isInteger(row) || !Number.isInteger(col) || col < 0 || col >= FAIRY_FILES.length) {
@@ -48,6 +51,17 @@ function stateSafeTargetLabel(row, col) {
 }
 
 export function parseFairyUciMove(uci) {
+    const citadelToken = parseCitadelOffboardToken(uci);
+    if (citadelToken) {
+        return {
+            uci: citadelToken.token,
+            from: citadelToken.from,
+            to: citadelToken.to,
+            suffix: '',
+            offboardCitadel: citadelToken
+        };
+    }
+
     const match = String(uci || '').toLowerCase().match(/^([a-k](?:10|[1-9]))([a-k](?:10|[1-9]))([a-z]*)$/);
     if (!match) return null;
 
@@ -98,7 +112,13 @@ export function collectTimurLegalMoves(state) {
                 fromCol: piece.col,
                 toRow: move.row,
                 toCol: move.col,
-                specialMove: move.specialMove || null
+                specialMove: move.specialMove || null,
+                nativeOffboardToken: buildCitadelOffboardTokenFromMove({
+                    from: coordToFairySquare(piece.row, piece.col),
+                    to: coordToFairySquare(move.row, move.col) || stateSafeTargetLabel(move.row, move.col),
+                    toRow: move.row,
+                    toCol: move.col
+                })
             });
         }
     }
@@ -115,11 +135,16 @@ export function reconcileFairyMovesWithTimurRules(state, fairyMoves, options = {
     const fairySet = new Set(normalizedFairyMoves);
 
     const acceptedMoves = normalizedFairyMoves
-        .filter((uci) => jsByUci.has(uci))
-        .map((uci) => jsByUci.get(uci));
+        .map((uci) => getAcceptedTimurMoveForFairyUci(state, jsByUci, uci, { jsMoves }))
+        .filter(Boolean);
+    const acceptedJsUciSet = new Set(acceptedMoves.map((move) => move.uci));
 
-    const jsOnlyMoves = jsMoves.filter((move) => move.unsupported || !fairySet.has(move.uci));
-    const fairyOnlyMoves = normalizedFairyMoves.filter((uci) => !jsByUci.has(uci));
+    const jsOnlyMoves = jsMoves.filter((move) => (
+        move.unsupported
+            ? !acceptedJsUciSet.has(move.uci)
+            : !fairySet.has(move.uci)
+    ));
+    const fairyOnlyMoves = normalizedFairyMoves.filter((uci) => !getAcceptedTimurMoveForFairyUci(state, jsByUci, uci, { jsMoves }));
 
     const missingWrapperMoves = jsOnlyMoves.map((move) => ({
         ...move,
@@ -187,11 +212,57 @@ export function selectSafeTimurMoveFromFairyBestMove(state, fairyBestMove, optio
         });
     }
 
-    if (parsed.suffix) {
+    if (parsed.offboardCitadel) {
+        const acceptedCitadelMove = getAcceptedTimurMoveForFairyUci(state, new Map(), normalizedBestMove, { jsMoves });
+        if (acceptedCitadelMove) {
+            return buildBestMoveDecision({
+                accepted: true,
+                source: 'fairy',
+                reason: 'fairy_citadel_offboard_token_is_timur_legal',
+                fairyBestMove,
+                normalizedBestMove,
+                selectedMove: acceptedCitadelMove,
+                fallbackMove,
+                parsed
+            });
+        }
+
         return buildBestMoveDecision({
             accepted: false,
             source: fallbackMove ? 'fallback' : 'none',
-            reason: 'promotion_suffix_requires_wrapper',
+            reason: 'citadel_offboard_token_not_legal',
+            fairyBestMove,
+            normalizedBestMove,
+            selectedMove: fallbackMove,
+            fallbackMove,
+            parsed
+        });
+    }
+
+    if (parsed.suffix) {
+        const suffixVerdict = getNativePromotionSuffixVerdict(state, parsed);
+        const baseUci = getFairyUciWithoutSuffix(parsed);
+        const acceptedMove = suffixVerdict.accepted
+            ? jsMoves.find((move) => !move.unsupported && move.uci === baseUci)
+            : null;
+
+        if (acceptedMove) {
+            return buildBestMoveDecision({
+                accepted: true,
+                source: 'fairy',
+                reason: 'fairy_promotion_suffix_is_timur_legal',
+                fairyBestMove,
+                normalizedBestMove,
+                selectedMove: markPromotionSuffix(acceptedMove, parsed.suffix),
+                fallbackMove,
+                parsed
+            });
+        }
+
+        return buildBestMoveDecision({
+            accepted: false,
+            source: fallbackMove ? 'fallback' : 'none',
+            reason: suffixVerdict.reason,
             fairyBestMove,
             normalizedBestMove,
             selectedMove: fallbackMove,
@@ -240,6 +311,8 @@ export function classifyJsOnlyMove(state, move) {
 export function classifyFairyOnlyMove(state, uci) {
     const parsed = parseFairyUciMove(uci);
     if (!parsed) return 'invalid_fairy_uci';
+    if (parsed.offboardCitadel) return 'citadel_offboard_token_not_legal';
+    if (parsed.suffix) return getNativePromotionSuffixVerdict(state, parsed).reason;
 
     const piece = state.board.getPieceAt(parsed.from.row, parsed.from.col);
     if (!piece) return 'fairy_source_square_empty';
@@ -268,6 +341,65 @@ function normalizeFairyMoves(fairyMoves) {
             .map((move) => String(move || '').trim().toLowerCase())
             .filter(Boolean)
     )].sort((a, b) => a.localeCompare(b));
+}
+
+function getAcceptedTimurMoveForFairyUci(state, jsByUci, uci, options = {}) {
+    if (jsByUci.has(uci)) return jsByUci.get(uci);
+
+    const parsed = parseFairyUciMove(uci);
+    if (parsed?.offboardCitadel) {
+        return getAcceptedCitadelOffboardMove(options.jsMoves || collectTimurLegalMoves(state), parsed.offboardCitadel);
+    }
+    if (!parsed?.suffix) return null;
+
+    const suffixVerdict = getNativePromotionSuffixVerdict(state, parsed);
+    if (!suffixVerdict.accepted) return null;
+
+    const baseUci = getFairyUciWithoutSuffix(parsed);
+    const baseMove = jsByUci.get(baseUci);
+    return baseMove ? markPromotionSuffix(baseMove, parsed.suffix) : null;
+}
+
+function getAcceptedCitadelOffboardMove(jsMoves, citadelToken) {
+    const acceptedMove = (jsMoves || []).find((move) => (
+        move.nativeOffboardToken === citadelToken.token
+        || move.uci === citadelToken.jsMoveId
+    ));
+
+    if (!acceptedMove) return null;
+
+    return {
+        ...acceptedMove,
+        unsupported: false,
+        wasUnsupportedOffboard: acceptedMove.unsupported === true,
+        nativeOffboardToken: citadelToken.token
+    };
+}
+
+function getNativePromotionSuffixVerdict(state, parsed) {
+    const piece = state?.board?.getPieceAt(parsed.from.row, parsed.from.col);
+    if (!piece) return { accepted: false, reason: 'fairy_source_square_empty' };
+    if (piece.type !== PIECE_TYPES.PAWN) return { accepted: false, reason: 'promotion_suffix_non_pawn_move' };
+
+    const parityCase = getPromotionParityCase(piece.pawnType);
+    if (!parityCase) return { accepted: false, reason: 'promotion_suffix_requires_wrapper' };
+
+    const promotionRow = piece.color === COLORS.WHITE ? 0 : 9;
+    if (parsed.to.row !== promotionRow) return { accepted: false, reason: 'promotion_suffix_not_on_promotion_rank' };
+    if (parsed.suffix !== parityCase.nativeSuffix) return { accepted: false, reason: 'promotion_suffix_mismatch' };
+
+    return { accepted: true, reason: 'fairy_promotion_suffix_is_timur_legal' };
+}
+
+function getFairyUciWithoutSuffix(parsed) {
+    return parsed.suffix ? parsed.uci.slice(0, -parsed.suffix.length) : parsed.uci;
+}
+
+function markPromotionSuffix(move, suffix) {
+    return {
+        ...move,
+        fairyPromotionSuffix: suffix
+    };
 }
 
 function buildBestMoveDecision(decision) {

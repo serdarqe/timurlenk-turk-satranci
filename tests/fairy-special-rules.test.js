@@ -44,7 +44,7 @@ test('picket one-square diagonal bestmove is rejected by Timur gate', async () =
     assert.equal(decision.selectedMove.uci, 'd3d4');
 });
 
-test('promotion suffix from Fairy is rejected until Timur promotion wrapper handles it', async () => {
+test('non-promotion suffix from Fairy is rejected as unsafe', async () => {
     const state = await GameState.createInitialState(FORMATIONS.MASCULINE);
     state.currentTurn = COLORS.WHITE;
     const fallbackMove = collectTimurLegalMoves(state).find((move) => move.uci === 'd3d4');
@@ -53,7 +53,26 @@ test('promotion suffix from Fairy is rejected until Timur promotion wrapper hand
 
     assert.equal(decision.accepted, false);
     assert.equal(decision.source, 'fallback');
-    assert.equal(decision.reason, 'promotion_suffix_requires_wrapper');
+    assert.equal(decision.reason, 'promotion_suffix_not_on_promotion_rank');
+});
+
+test('non-promotion suffixes are unsafe Fairy-only differences in reconciliation', async () => {
+    const state = await GameState.createInitialState(FORMATIONS.MASCULINE);
+    state.currentTurn = COLORS.WHITE;
+
+    const jsMoves = collectTimurLegalMoves(state);
+    const summary = reconcileFairyMovesWithTimurRules(state, [
+        ...jsMoves.filter((move) => !move.unsupported).map((move) => move.uci),
+        'd3d4q'
+    ], { jsMoves });
+
+    assert.equal(summary.onlyExpectedPocDiffs, false);
+    assert.equal(
+        summary.rejectedFairyMoves.some((move) => (
+            move.uci === 'd3d4q' && move.reason === 'promotion_suffix_not_on_promotion_rank'
+        )),
+        true
+    );
 });
 
 test('royal swap stays visible as a wrapper-required special move', () => {
@@ -73,6 +92,7 @@ test('royal swap stays visible as a wrapper-required special move', () => {
     );
 
     assert.ok(royalSwap);
+    assert.equal(summary.onlyExpectedPocDiffs, true);
     assert.equal(
         summary.missingWrapperMoves.some((move) => (
             move.uci === royalSwap.uci && move.reason === 'royal_swap_requires_wrapper'
@@ -97,6 +117,7 @@ test('citadel exchange stays visible as a wrapper-required special move', () => 
     );
 
     assert.ok(citadelExchange);
+    assert.equal(summary.onlyExpectedPocDiffs, true);
     assert.equal(
         summary.missingWrapperMoves.some((move) => (
             move.uci === citadelExchange.uci && move.reason === 'citadel_exchange_requires_wrapper'
@@ -120,6 +141,7 @@ test('offboard citadel entry is not silently dropped by the adapter', () => {
     );
 
     assert.ok(citadelMove);
+    assert.equal(summary.onlyExpectedPocDiffs, true);
     assert.equal(citadelMove.unsupported, true);
     assert.equal(citadelMove.uci, 'a10->citadel:black');
     assert.equal(
@@ -128,6 +150,43 @@ test('offboard citadel entry is not silently dropped by the adapter', () => {
         )),
         true
     );
+});
+
+test('native citadel off-board token reconciles to the JS citadel wrapper move', () => {
+    const state = new GameState();
+    state.currentTurn = COLORS.WHITE;
+    state.board.setPiece(0, 0, new King(COLORS.WHITE, 0, 0));
+    state.board.setPiece(9, 10, new King(COLORS.BLACK, 9, 10));
+
+    const jsMoves = collectTimurLegalMoves(state);
+    const summary = reconcileFairyMovesWithTimurRules(
+        state,
+        ['a10@blackcitadel'],
+        { jsMoves }
+    );
+
+    assert.equal(summary.exactMatch, false);
+    assert.equal(summary.acceptedMoves.some((move) => (
+        move.uci === 'a10->citadel:black'
+        && move.nativeOffboardToken === 'a10@blackcitadel'
+    )), true);
+    assert.equal(summary.rejectedFairyMoves.some((move) => move.uci === 'a10@blackcitadel'), false);
+    assert.equal(summary.missingWrapperMoves.some((move) => move.uci === 'a10->citadel:black'), false);
+});
+
+test('native citadel off-board bestmove can select the JS citadel wrapper move', () => {
+    const state = new GameState();
+    state.currentTurn = COLORS.WHITE;
+    state.board.setPiece(0, 0, new King(COLORS.WHITE, 0, 0));
+    state.board.setPiece(9, 10, new King(COLORS.BLACK, 9, 10));
+
+    const decision = selectSafeTimurMoveFromFairyBestMove(state, 'bestmove a10@blackcitadel');
+
+    assert.equal(decision.accepted, true);
+    assert.equal(decision.source, 'fairy');
+    assert.equal(decision.reason, 'fairy_citadel_offboard_token_is_timur_legal');
+    assert.equal(decision.selectedMove.uci, 'a10->citadel:black');
+    assert.equal(decision.selectedMove.nativeOffboardToken, 'a10@blackcitadel');
 });
 
 test('unsupported pseudo moves are never selected as fallback moves', () => {

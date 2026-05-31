@@ -56,7 +56,35 @@ test('buildGameRecord finished oyunu kompakt payloada cevirir', () => {
                 moveNumber: 1,
                 color: COLORS.BLACK,
                 specialTags: ['promotion', 'royal_swap'],
-                resultType: 'checkmate'
+                resultType: 'checkmate',
+                fairyDebug: {
+                    enabled: true,
+                    mode: 'shadow',
+                    depth: 4,
+                    fairyBestMove: 'c2d1',
+                    fairyAccepted: false,
+                    fairyRejectedReason: 'picket_minimum_distance_rule',
+                    fallbackUsed: true,
+                    fairyThinkMs: 31,
+                    rootMovesAvailable: false,
+                    rootMoveCount: 0,
+                    rootMovesError: null,
+                    jsAiMove: 'd3d4',
+                    fairySelectedMove: 'd3d4',
+                    fairyMatchesJsMove: false,
+                    hybridApplied: false,
+                    timeout: false,
+                    errorCode: null,
+                    shadowMode: {
+                        enabled: true,
+                        status: 'bestmove_only_rejected',
+                        rootComparisonAvailable: false,
+                        unexpectedJsOnlyCount: 0,
+                        unexpectedFairyOnlyCount: 0,
+                        nativeBestMoveStatus: 'rejected',
+                        nativeBestMoveReason: 'picket_minimum_distance_rule'
+                    }
+                }
             })
         ],
         analysisReport: {
@@ -124,4 +152,11 @@ test('buildGameRecord finished oyunu kompakt payloada cevirir', () => {
     assert.equal(record.moves[1].specialMoveType, null);
     assert.equal(record.moves[1].resultType, 'checkmate');
     assert.equal(typeof record.moves[0].beforeHash, 'string');
+    assert.equal(record.moves[1].fairyDebug.shadowMode.status, 'bestmove_only_rejected');
+    assert.equal(record.moves[1].fairyDebug.shadowLogEntry.severity, 'mismatch');
+    assert.equal(record.debug.fairyShadow.sampleCount, 1);
+    assert.equal(record.debug.fairyShadow.mismatchCount, 1);
+    assert.deepEqual(record.debug.fairyShadow.rejectionReasons, [
+        { reason: 'picket_minimum_distance_rule', count: 1 }
+    ]);
 });

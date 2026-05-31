@@ -1,10 +1,17 @@
 {
-  "purpose": "Fairy-Stockfish single-thread WebView assets used by the Fairy-first Timur AI fork and smoke tests.",
-  "generatedAt": "2026-05-18T21:51:55.061Z",
+  "purpose": "Fairy-Stockfish WebView smoke test assets. Not wired into production AI.",
+  "generatedAt": "2026-05-19T19:23:02.372Z",
   "bundle": "singlethread",
   "source": "fairy-poc/vendor/fairy-stockfish-singlethread.wasm",
   "variant": "fairy-poc/timur-draft.variants.ini",
   "license": "GPL-3.0",
+  "nativeSource": {
+    "variantCppPath": "../Satranc Motoru/fairy-stockfish.wasm-nnue/src/variant.cpp",
+    "variantCppSha256": "0f9c652339433f4961eb4be7a6145419d8f29993b917c487260ad7023af92bac",
+    "variantCppLastModifiedAt": "2026-05-19T19:00:10.728Z",
+    "citadelDrawSourceMarker": true,
+    "missingCitadelDrawMarkers": []
+  },
   "artifacts": [
     {
       "name": "stockfish.js",
@@ -12,7 +19,7 @@
     },
     {
       "name": "stockfish.wasm",
-      "bytes": 48263421
+      "bytes": 48267326
     },
     {
       "name": "uci.js",
@@ -32,7 +39,7 @@
     },
     {
       "name": "timur-draft.variants.ini",
-      "bytes": 2462
+      "bytes": 2737
     }
   ]
 }

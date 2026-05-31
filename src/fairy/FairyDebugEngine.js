@@ -4,12 +4,21 @@ import {
     selectSafeTimurMoveFromFairyBestMove
 } from './FairyTimurAdapter.js';
 import { stateToFairyFen } from './FairyFen.js';
+import { buildFairyShadowModeReport } from './FairyShadowMode.js';
+import {
+    appendFairyShadowLogEntry,
+    buildFairyShadowLogEntry,
+    buildFairyShadowLogReport
+} from './FairyShadowLog.js';
 
 const DEBUG_STORAGE_KEY = 'timur_fairy_debug';
 const HYBRID_STORAGE_KEY = 'timur_fairy_hybrid';
 const FORK_STORAGE_KEY = 'timur_fairy_fork';
+const SHADOW_LOG_GLOBAL_KEY = '__TIMUR_FAIRY_SHADOW_LOG__';
 const DEFAULT_DEPTH = 4;
 const DEFAULT_TIMEOUT_MS = 1200;
+const DEFAULT_ROOT_MOVES_TIMEOUT_MS = 5000;
+const DEFAULT_SHADOW_LOG_LIMIT = 200;
 const DEFAULT_FAIRY_FORK_ENABLED = true;
 const ASSET_ROOT = '/fairy-singlethread';
 const VARIANT_NAME = 'timur';
@@ -289,9 +298,69 @@ function enqueueSearch(task) {
     return queued;
 }
 
-async function requestFairyBestMove(fen, depth) {
+export function parseFairyPerftRootMoves(lines) {
+    return [...new Set(lines
+        .map(parseFairyPerftRootMove)
+        .filter(Boolean))].sort((a, b) => a.localeCompare(b));
+}
+
+function parseFairyPerftRootMove(line) {
+    const text = String(line || '').trim().toLowerCase();
+    return text.match(/^(citadel_exchange:[a-k](?:10|[1-9]):[a-k](?:10|[1-9])@(blackcitadel|whitecitadel)):\s+\d+$/)?.[1]
+        || text.match(/^(royal_swap:[a-k](?:10|[1-9]):[a-k](?:10|[1-9])@ransom):\s+\d+$/)?.[1]
+        || text.match(/^(pawn_cycle:[a-k](?:10|[1-9]):[a-k](?:10|[1-9])@(stage2|stage3|adventitious)):\s+\d+$/)?.[1]
+        || text.match(/^([a-k](?:10|[1-9])@(blackcitadel|whitecitadel)):\s+\d+$/)?.[1]
+        || text.match(/^([a-k](?:10|[1-9])(?:[a-k](?:10|[1-9]))[a-z]*):\s+\d+$/)?.[1]
+        || null;
+}
+
+async function requestFairyRootMoves(session, fen, timeoutMs) {
+    const startIndex = session.lines.length;
+    const startedAt = performance.now();
+
+    session.engine.postMessage('ucinewgame');
+    session.engine.postMessage(`position fen ${fen}`);
+    session.engine.postMessage('go perft 1');
+
+    await waitForLine(
+        session.lines,
+        (line) => /^Nodes searched:\s+\d+/i.test(line),
+        timeoutMs,
+        'fairy_root_moves',
+        startIndex
+    );
+
+    return {
+        rootMoves: parseFairyPerftRootMoves(session.lines.slice(startIndex)),
+        rootMoveThinkMs: Math.round(performance.now() - startedAt),
+        rootMovesError: null
+    };
+}
+
+async function tryRequestFairyRootMoves(session, fen, options = {}) {
+    if (!options.collectRootMoves) {
+        return { rootMoves: null, rootMoveThinkMs: null, rootMovesError: null };
+    }
+
+    try {
+        return await requestFairyRootMoves(
+            session,
+            fen,
+            Math.max(250, Number(options.rootMovesTimeoutMs || DEFAULT_ROOT_MOVES_TIMEOUT_MS))
+        );
+    } catch (error) {
+        return {
+            rootMoves: null,
+            rootMoveThinkMs: null,
+            rootMovesError: error?.message || 'fairy_root_moves_failed'
+        };
+    }
+}
+
+async function requestFairyBestMove(fen, depth, options = {}) {
     return enqueueSearch(async () => {
         const session = await getEngineSession();
+        const rootMoveProbe = await tryRequestFairyRootMoves(session, fen, options);
         const startIndex = session.lines.length;
         const startedAt = performance.now();
 
@@ -311,6 +380,10 @@ async function requestFairyBestMove(fen, depth) {
             ok: true,
             bestmove,
             thinkMs: Math.round(performance.now() - startedAt),
+            rootMoves: rootMoveProbe.rootMoves,
+            rootMoveCount: Array.isArray(rootMoveProbe.rootMoves) ? rootMoveProbe.rootMoves.length : 0,
+            rootMoveThinkMs: rootMoveProbe.rootMoveThinkMs,
+            rootMovesError: rootMoveProbe.rootMovesError,
             tail: session.lines.slice(startIndex).slice(-12),
             artifact: session.artifact,
             variant: session.variant,
@@ -326,10 +399,18 @@ export function startFairyShadowProbe(gameState, options = {}) {
     const depth = resolveFairySearchDepth(gameState, { ...options, fairyPrimary });
     try {
         const fen = stateToFairyFen(gameState);
-        return requestFairyBestMove(fen, depth).catch((error) => ({
+        const collectRootMoves = options.collectRootMoves ?? (isFairyDebugEnabled() || isFairyHybridEnabled());
+        return requestFairyBestMove(fen, depth, {
+            collectRootMoves,
+            rootMovesTimeoutMs: options.rootMovesTimeoutMs
+        }).catch((error) => ({
             ok: false,
             errorCode: error?.message || 'fairy_debug_unknown_error',
             thinkMs: 0,
+            rootMoves: null,
+            rootMoveCount: 0,
+            rootMoveThinkMs: null,
+            rootMovesError: error?.message || 'fairy_debug_unknown_error',
             artifact: 'singlethread',
             variant: VARIANT_NAME,
             depth
@@ -339,6 +420,10 @@ export function startFairyShadowProbe(gameState, options = {}) {
             ok: false,
             errorCode: error?.message || 'fairy_debug_fen_error',
             thinkMs: 0,
+            rootMoves: null,
+            rootMoveCount: 0,
+            rootMoveThinkMs: null,
+            rootMovesError: error?.message || 'fairy_debug_fen_error',
             artifact: 'singlethread',
             variant: VARIANT_NAME,
             depth
@@ -439,10 +524,88 @@ function buildHybridApplicationDecision(gameState, decision, normalizedJsMove, o
     };
 }
 
+function summarizeShadowModeReport(report) {
+    return {
+        enabled: true,
+        status: report.status,
+        authoritativeSource: report.authoritativeSource,
+        rootComparisonAvailable: report.rootComparisonAvailable,
+        exactMatch: report.exactMatch,
+        onlyExpectedDiffs: report.onlyExpectedDiffs,
+        missingWrapperCount: report.stats.missingWrapperCount,
+        rejectedFairyCount: report.stats.rejectedFairyCount,
+        unexpectedJsOnlyCount: report.stats.unexpectedJsOnlyCount,
+        unexpectedFairyOnlyCount: report.stats.unexpectedFairyOnlyCount,
+        nativeBestMoveStatus: report.nativeBestMove?.status || null,
+        nativeBestMoveReason: report.nativeBestMove?.reason || null
+    };
+}
+
+function buildFailedProbeShadowModeMetadata(probe) {
+    return {
+        enabled: true,
+        status: 'probe_failed',
+        authoritativeSource: 'js',
+        rootComparisonAvailable: false,
+        exactMatch: false,
+        onlyExpectedDiffs: true,
+        missingWrapperCount: 0,
+        rejectedFairyCount: 0,
+        unexpectedJsOnlyCount: 0,
+        unexpectedFairyOnlyCount: 0,
+        nativeBestMoveStatus: 'rejected',
+        nativeBestMoveReason: probe?.errorCode || 'fairy_debug_probe_failed'
+    };
+}
+
+function buildShadowLogContext(gameState) {
+    return {
+        moveIndex: Array.isArray(gameState?.moveHistory) ? gameState.moveHistory.length + 1 : null,
+        sideToMove: gameState?.currentTurn || null
+    };
+}
+
+function attachShadowLogMetadata(metadata, gameState) {
+    const entry = buildFairyShadowLogEntry(metadata, buildShadowLogContext(gameState));
+    metadata.shadowLogEntry = entry;
+    recordFairyShadowLogEntry(entry);
+    return metadata;
+}
+
+export function recordFairyShadowLogEntry(entry, options = {}) {
+    if (!entry || !hasBrowserRuntime()) return entry || null;
+
+    const current = Array.isArray(window[SHADOW_LOG_GLOBAL_KEY])
+        ? window[SHADOW_LOG_GLOBAL_KEY]
+        : [];
+    window[SHADOW_LOG_GLOBAL_KEY] = appendFairyShadowLogEntry(current, entry, {
+        maxEntries: options.maxEntries || DEFAULT_SHADOW_LOG_LIMIT
+    });
+    return entry;
+}
+
+export function getFairyShadowLogEntries() {
+    if (!hasBrowserRuntime()) return [];
+    return Array.isArray(window[SHADOW_LOG_GLOBAL_KEY])
+        ? [...window[SHADOW_LOG_GLOBAL_KEY]]
+        : [];
+}
+
+export function getFairyShadowLogReport() {
+    return buildFairyShadowLogReport(getFairyShadowLogEntries());
+}
+
+export function clearFairyShadowLog() {
+    if (!hasBrowserRuntime()) return [];
+    window[SHADOW_LOG_GLOBAL_KEY] = [];
+    return [];
+}
+
 export function buildFairyProbeDecision(gameState, jsMove, probe, options = {}) {
     const normalizedJsMove = normalizeJsMove(jsMove);
+    const jsMoves = collectTimurLegalMoves(gameState);
     const fallbackMove = normalizedJsMove?.uci
-        ? collectTimurLegalMoves(gameState).find((move) => move.uci === normalizedJsMove.uci) || null
+        ? jsMoves.find((move) => move.uci === normalizedJsMove.uci) || null
         : null;
     const mode = options.fairyPrimary ? 'fairy_fork' : (options.allowHybrid ? 'hybrid' : 'shadow');
 
@@ -460,6 +623,10 @@ export function buildFairyProbeDecision(gameState, jsMove, probe, options = {}) 
             fairyRejectedReason: probe?.errorCode || 'fairy_debug_probe_failed',
             fallbackUsed: true,
             fairyThinkMs: probe?.thinkMs ?? null,
+            rootMovesAvailable: Array.isArray(probe?.rootMoves),
+            rootMoveCount: Array.isArray(probe?.rootMoves) ? probe.rootMoves.length : 0,
+            rootMoveThinkMs: probe?.rootMoveThinkMs ?? null,
+            rootMovesError: probe?.rootMovesError || null,
             jsAiMove: normalizedJsMove?.uci || null,
             fairySelectedMove: fallbackMove?.uci || null,
             fairyMatchesJsMove: false,
@@ -468,13 +635,17 @@ export function buildFairyProbeDecision(gameState, jsMove, probe, options = {}) 
             hybridEligible: false,
             hybridApplied: false,
             hybridRejectedReason: probe?.errorCode || 'fairy_debug_probe_failed',
-            fairyForkEnabled: Boolean(options.fairyPrimary)
+            fairyForkEnabled: Boolean(options.fairyPrimary),
+            shadowMode: buildFailedProbeShadowModeMetadata(probe)
         };
 
-        return { metadata, appliedMove: null, decision: null };
+        return { metadata: attachShadowLogMetadata(metadata, gameState), appliedMove: null, decision: null };
     }
 
-    const decision = selectSafeTimurMoveFromFairyBestMove(gameState, probe.bestmove, { fallbackMove });
+    const decision = selectSafeTimurMoveFromFairyBestMove(gameState, probe.bestmove, {
+        jsMoves,
+        fallbackMove
+    });
     const fairySelectedMove = decision.selectedMove?.uci || null;
     const fairyMatchesJsMove = Boolean(
         decision.accepted
@@ -483,6 +654,12 @@ export function buildFairyProbeDecision(gameState, jsMove, probe, options = {}) 
     );
     const hybridDecision = buildHybridApplicationDecision(gameState, decision, normalizedJsMove, options);
     const hybridApplied = Boolean(hybridDecision.applied && hybridDecision.appliedMove);
+    const shadowReport = buildFairyShadowModeReport(gameState, {
+        jsMoves,
+        nativeRootMoves: Array.isArray(probe.rootMoves) ? probe.rootMoves : null,
+        nativeBestMove: probe.bestmove,
+        fallbackMove
+    });
 
     const metadata = {
         enabled: true,
@@ -497,6 +674,10 @@ export function buildFairyProbeDecision(gameState, jsMove, probe, options = {}) 
         fairyRejectedReason: decision.accepted ? null : decision.reason,
         fallbackUsed: !decision.accepted,
         fairyThinkMs: probe.thinkMs ?? null,
+        rootMovesAvailable: Array.isArray(probe.rootMoves),
+        rootMoveCount: Array.isArray(probe.rootMoves) ? probe.rootMoves.length : 0,
+        rootMoveThinkMs: probe.rootMoveThinkMs ?? null,
+        rootMovesError: probe.rootMovesError || null,
         jsAiMove: normalizedJsMove?.uci || null,
         fairySelectedMove,
         fairyMatchesJsMove,
@@ -505,11 +686,12 @@ export function buildFairyProbeDecision(gameState, jsMove, probe, options = {}) 
         hybridEligible: Boolean(hybridDecision.eligible),
         hybridApplied,
         hybridRejectedReason: hybridApplied ? null : hybridDecision.reason,
-        fairyForkEnabled: Boolean(options.fairyPrimary)
+        fairyForkEnabled: Boolean(options.fairyPrimary),
+        shadowMode: summarizeShadowModeReport(shadowReport)
     };
 
     return {
-        metadata,
+        metadata: attachShadowLogMetadata(metadata, gameState),
         appliedMove: hybridApplied ? hybridDecision.appliedMove : null,
         decision
     };
@@ -557,6 +739,9 @@ if (hasBrowserRuntime()) {
             storageKey: DEBUG_STORAGE_KEY,
             hybridStorageKey: HYBRID_STORAGE_KEY,
             forkStorageKey: FORK_STORAGE_KEY
-        })
+        }),
+        shadowLog: () => getFairyShadowLogEntries(),
+        shadowReport: () => getFairyShadowLogReport(),
+        clearShadowLog: () => clearFairyShadowLog()
     };
 }

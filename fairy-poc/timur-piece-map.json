@@ -78,14 +78,16 @@
     "picket": {
       "appType": "picket",
       "movement": "diagonal slider, minimum 2 squares",
-      "fairyCandidate": "B with minimum-distance wrapper or custom Betza",
-      "status": "needs_validation"
+      "fairyCandidate": "native timur_picket_attacks_bb in the Fairy fork source",
+      "status": "native_source_supported_pending_wasm_rebuild",
+      "note": "Plain variants.ini can still over-generate one-square diagonal moves; production support lives in the native timur variant source."
     },
     "giraffe": {
       "appType": "giraffe",
       "movement": "one empty diagonal step, then at least 3 straight orthogonal squares in the same diagonal direction",
-      "fairyCandidate": "probably cpp_or_wrapper",
-      "status": "hard_blocker"
+      "fairyCandidate": "native timur_giraffe_attacks_bb in the Fairy fork source",
+      "status": "native_source_supported_pending_wasm_rebuild",
+      "note": "Plain variants.ini keeps this piece immobile to avoid wrong POC moves; production support lives in the native timur variant source."
     },
     "rook": {
       "appType": "rook",
@@ -114,12 +116,41 @@
     }
   },
   "specialRules": {
-    "royal_capture": "requires custom royal hierarchy or wrapper",
-    "royal_swap": "requires wrapper or cpp change",
-    "citadel_draw": "requires wrapper or cpp change",
-    "citadel_exchange": "requires wrapper or cpp change",
-    "pawn_of_pawns_cycle": "requires wrapper or cpp change",
-    "threefold_repetition": "supported by Fairy nFoldRule",
-    "fifty_move_draw": "supported by Fairy nMoveRule"
+    "royal_capture": {
+      "status": "js_authoritative_wrapper",
+      "reason": "Timur royal hierarchy can involve Shah, Prince and Adventitious King; JS remains the final game-over arbiter until native multi-royal logic is rebuilt."
+    },
+    "royal_swap": {
+      "status": "expected_wrapper_required",
+      "reason": "Special Shah ransom/swap move is generated and validated by JS, then marked as a known Fairy wrapper difference."
+    },
+    "citadel_draw": {
+      "status": "js_authoritative_wrapper",
+      "reason": "Citadels are off-board coordinates, so entry/draw resolution stays in JS until native board extension is rebuilt."
+    },
+    "citadel_exchange": {
+      "status": "expected_wrapper_required",
+      "reason": "Citadel exchange is a compound move with state flags; JS keeps the authoritative apply/revert path."
+    },
+    "pawn_of_pawns_cycle": {
+      "status": "js_authoritative_wrapper",
+      "reason": "Pawn-of-pawns can repatriate twice and then promote to Adventitious King; this remains JS post-move state logic."
+    },
+    "promotion_suffix": {
+      "status": "native_source_supported",
+      "reason": "Fixed Timur pawn subtype promotion suffixes are accepted only when they match the parity matrix; pawn-of-pawns cycle remains JS authoritative."
+    },
+    "threefold_repetition": {
+      "status": "native_source_supported",
+      "reason": "Fairy native timur variant sets nFoldRule = 3 and JS has a matching safety helper."
+    },
+    "fifty_move_draw": {
+      "status": "native_source_supported",
+      "reason": "Fairy native timur variant sets nMoveRule = 50 and JS has a matching quiet-ply helper."
+    },
+    "stalemate_win": {
+      "status": "native_source_supported",
+      "reason": "Fairy native timur variant sets stalemateValue = VALUE_MATE; JS still validates game UI/result flow."
+    }
   }
 }
