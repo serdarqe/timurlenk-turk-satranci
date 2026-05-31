@@ -1,0 +1,611 @@
+/* ================================================================
+   ORIENTATION: LANDSCAPE (Yatay Mod) — Faz 4
+   Tarih: 2026-05-26
+   ================================================================
+   AMAÇ:
+   - Kullanıcı yatay modu seçtiğinde aktif olur
+   - data-orientation="landscape" attribute ile aktifleşir
+   - SIFIRDAN tasarlanmış custom layout (CSS rotation DEĞİL)
+   - Faz 4: Ana menü yatay (45/55 split)
+
+   ÖNEMLİ: Otomatik @media (orientation: landscape) KULLANILMAZ.
+   Sadece data-attribute kontrolü — kullanıcı tercihi belirler.
+   ================================================================ */
+
+/* ----------------------------------------------------------------
+   GENEL — Yatay modda body
+   ---------------------------------------------------------------- */
+:root[data-orientation="landscape"] body {
+    overflow: hidden;
+}
+
+/* Overlay container: yatay modda padding küçük */
+:root[data-orientation="landscape"] .overlay-container {
+    align-items: center;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+}
+
+/* ----------------------------------------------------------------
+   ANA MENÜ — Yatay Layout (Saray Salonu 45/55 split)
+   ---------------------------------------------------------------- */
+
+/* Modal container — geniş, yatay */
+:root[data-orientation="landscape"] #main-menu .menu-box {
+    display: grid;
+    grid-template-columns: 45% 55%;
+    grid-template-areas:
+        "header header"
+        "logo   menu"
+        "footer footer";
+    grid-template-rows: auto 1fr auto;
+    grid-column-gap: var(--space-xl, 2.5rem);
+    grid-row-gap: var(--space-sm, 0.5rem);
+    max-width: 920px;
+    width: 95vw;
+    max-height: 92vh;
+    height: auto;
+    padding: var(--space-lg, 1.75rem);
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Toggle butonu — header area'ya yerleşir */
+:root[data-orientation="landscape"] #main-menu .orientation-toggle {
+    grid-area: header;
+    justify-self: end;
+    margin-bottom: var(--space-xs, 0.25rem);
+}
+
+/* Logo + slogan — sol panel */
+:root[data-orientation="landscape"] #main-menu .game-title {
+    grid-area: logo;
+    align-self: center;
+    justify-self: center;
+    font-size: 2.4rem;
+    line-height: 1.1;
+    text-align: center;
+    margin: 0;
+    padding: 0 var(--space-md, 1rem);
+    max-width: 100%;
+}
+
+/* Dil seçici — logo altında */
+:root[data-orientation="landscape"] #main-menu .language-selector {
+    grid-area: logo;
+    align-self: end;
+    justify-self: center;
+    margin: 0 0 var(--space-md, 1rem) 0;
+    padding-bottom: var(--space-md, 1rem);
+}
+
+/* Menü butonları — sağ panel */
+:root[data-orientation="landscape"] #main-menu .menu-options {
+    grid-area: menu;
+    align-self: center;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    max-height: 75vh;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+/* Butonlar — daha kompakt yatayda */
+:root[data-orientation="landscape"] #main-menu .menu-options .btn {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 11px 16px;
+    font-size: var(--fs-small, 0.875rem);
+}
+
+:root[data-orientation="landscape"] #main-menu .menu-options .btn i,
+:root[data-orientation="landscape"] #main-menu .menu-options .btn .fas {
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+/* Decor line — gizle yatayda (yer kazanmak için) */
+:root[data-orientation="landscape"] #main-menu .decor-line {
+    display: none;
+}
+
+/* Footer — alt çubuk (yatayda kompakt 2 satır: links + meta) */
+:root[data-orientation="landscape"] #main-menu .menu-footer {
+    grid-area: footer;
+    text-align: center;
+    margin-top: 0;
+    padding-top: var(--space-sm, 0.5rem);
+    padding-bottom: 0;
+    border-top: 1px solid rgba(201, 162, 75, 0.2);
+    gap: 4px;
+}
+
+:root[data-orientation="landscape"] #main-menu .menu-footer-links {
+    flex-wrap: nowrap;
+    gap: 10px;
+}
+
+:root[data-orientation="landscape"] #main-menu .menu-footer-meta {
+    font-size: 0.65rem;
+    gap: 5px;
+}
+
+:root[data-orientation="landscape"] #main-menu .policy-link {
+    font-size: 0.72rem;
+    white-space: nowrap;
+}
+
+/* Logo'nun ۞ süslerini yatayda daha küçük tut */
+:root[data-historical-theme="on"][data-orientation="landscape"] #main-menu .game-title::before,
+:root[data-historical-theme="on"][data-orientation="landscape"] #main-menu .game-title::after {
+    font-size: 1.1rem;
+    margin: 4px auto;
+}
+
+
+/* ----------------------------------------------------------------
+   KISA EKRANLAR (yatay) — Min height < 500px için scale
+   ---------------------------------------------------------------- */
+@media (max-height: 500px) {
+    :root[data-orientation="landscape"] #main-menu .menu-box {
+        padding: var(--space-md, 1rem);
+        grid-row-gap: 0;
+    }
+
+    :root[data-orientation="landscape"] #main-menu .game-title {
+        font-size: 1.8rem;
+    }
+
+    :root[data-orientation="landscape"] #main-menu .menu-options .btn {
+        padding: 9px 14px;
+        font-size: 0.85rem;
+    }
+}
+
+
+/* ----------------------------------------------------------------
+   KOMUTAN KONSEYİ — Yatay Layout (Faz 5)
+   formation-menu ekranı yatayda 2-satır grid:
+     Satır 1: Bot menu entry (full-width)
+     Satır 2: 5 grup yan yana — Diziliş / Zorluk / Renk / Karakter / Süre
+     Satır 3: Aksiyon barı (Geri + Sefere Başla)
+   Hedef: tek ekrana sığar, dikey scroll yok.
+   ---------------------------------------------------------------- */
+:root[data-orientation="landscape"] #formation-menu .menu-box {
+    max-width: 1100px;
+    width: 96vw;
+    max-height: 94vh;
+    height: auto;
+    padding: var(--space-md, 1rem) var(--space-lg, 1.75rem);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 6px;
+    border-radius: 16px;
+}
+
+/* Bot girişi tam genişlik */
+:root[data-orientation="landscape"] #formation-menu .bot-menu-entry-btn {
+    width: 100%;
+    margin-bottom: 6px;
+}
+
+/* 5 grup yan yana — display: grid wrapper kullanmıyoruz çünkü
+   yapı düz akış. Bunun yerine her başlık + kart-listesi çiftini
+   inline-flex column kolonlarına dönüştürüyoruz. */
+:root[data-orientation="landscape"] #formation-menu h2 {
+    font-size: 0.85rem !important;
+    margin: 4px 0 2px !important;
+    text-align: center;
+}
+
+/* Kartların gruplarını flex column halinde yapıştır:
+   Bunun için sayfada başlık -> kart-listesi sırasıyla
+   ardışık bloklara grid template uygula */
+:root[data-orientation="landscape"] #formation-menu .formation-cards,
+:root[data-orientation="landscape"] #formation-menu .difficulty-cards,
+:root[data-orientation="landscape"] #formation-menu .player-color-cards,
+:root[data-orientation="landscape"] #formation-menu .ai-persona-cards,
+:root[data-orientation="landscape"] #formation-menu .time-control-cards {
+    padding: 4px 2px !important;
+    margin-bottom: 0 !important;
+    gap: 6px !important;
+    justify-content: center !important;
+    overflow-x: auto;
+}
+
+/* Yatayda kartları daha kompakt yap */
+:root[data-orientation="landscape"] #formation-menu .card {
+    flex: 0 0 86px !important;
+    width: 86px !important;
+    min-width: 86px !important;
+    min-height: 78px !important;
+    padding: 7px 4px !important;
+}
+
+:root[data-orientation="landscape"] #formation-menu .formation-card,
+:root[data-orientation="landscape"] #formation-menu .player-color-card,
+:root[data-orientation="landscape"] #formation-menu .ai-persona-card {
+    min-height: 92px !important;
+}
+
+:root[data-orientation="landscape"] #formation-menu .difficulty-card,
+:root[data-orientation="landscape"] #formation-menu .time-control-card {
+    min-height: 70px !important;
+}
+
+/* Persona portresi yatayda biraz daha küçük */
+:root[data-orientation="landscape"] #formation-menu .ai-persona-card .persona-portrait {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 2px;
+}
+
+:root[data-orientation="landscape"] #formation-menu .card-icon {
+    font-size: 1.1rem !important;
+    margin-bottom: 4px !important;
+}
+
+:root[data-orientation="landscape"] #formation-menu .card h3 {
+    font-size: 0.72rem !important;
+    line-height: 1.06;
+    margin: 0;
+}
+
+:root[data-orientation="landscape"] #formation-menu .card p {
+    font-size: 0.56rem !important;
+    line-height: 1.08;
+    margin: 1px 0 0;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+}
+
+/* Aksiyon barı kompakt */
+:root[data-orientation="landscape"] #formation-menu .menu-actions {
+    margin-top: 6px !important;
+    gap: 10px;
+}
+
+:root[data-orientation="landscape"] #formation-menu .menu-actions .btn {
+    padding: 8px 18px !important;
+    font-size: 0.85rem !important;
+}
+
+/* Card seal yatayda biraz küçülsün — köşeye sığması için */
+:root[data-orientation="landscape"][data-historical-theme="on"] #formation-menu .card-seal {
+    top: 4px;
+    right: 4px;
+    width: 12px;
+    height: 12px;
+    font-size: 9px;
+}
+
+
+/* ----------------------------------------------------------------
+   BOT MENU — Yatay layout (Faz 5 bonus)
+   ---------------------------------------------------------------- */
+:root[data-orientation="landscape"] #bot-menu .menu-box {
+    max-width: 1000px;
+    width: 95vw;
+    max-height: 92vh;
+    padding: var(--space-md, 1rem) var(--space-lg, 1.75rem);
+    overflow-y: auto;
+}
+
+:root[data-orientation="landscape"] #bot-menu .ai-bot-list {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+
+/* ----------------------------------------------------------------
+   OYUN TAHTASI — Yatay Layout ⭐ KRİTİK (Faz 6-D)
+   ----------------------------------------------------------------
+   HEDEF: Tahta ekranın çoğunu kaplar (%60+ büyür)
+   YAPI: 2 kolon grid
+     ┌────────────────────┬──────────┐
+     │  Header (full row)             │
+     ├────────────────────┬──────────┤
+     │                    │ Rakip    │
+     │   board-container  │ Hamleler │
+     │   (tahta + hisar)  │ Avantaj  │
+     │                    │ Saat     │
+     ├────────────────────┴──────────┤
+     │  Footer (full row, kompakt)    │
+     └────────────────────────────────┘
+   ---------------------------------------------------------------- */
+
+:root[data-orientation="landscape"] #game-view {
+    display: grid;
+    grid-template-columns: 1fr 260px;
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas:
+        "header header"
+        "board  panel"
+        "footer footer";
+    height: 100%;
+    max-height: 100vh;
+    padding-bottom: 0;
+    overflow: hidden;
+}
+
+/* Header tam genişlik, kompakt */
+:root[data-orientation="landscape"] #game-view .game-header {
+    grid-area: header;
+    min-height: 44px;
+    padding: 4px 14px;
+}
+
+/* Footer tam genişlik, kompakt */
+:root[data-orientation="landscape"] #game-view .game-footer {
+    grid-area: footer;
+    min-height: 44px;
+    padding: 4px 14px;
+}
+
+/* Board container — sol kolon */
+:root[data-orientation="landscape"] #game-view .board-container {
+    grid-area: board;
+    min-width: 0;
+    min-height: 0;
+    padding: 6px 8px 6px 12px;
+}
+
+/* Sağ panel — yeni element gerekmiyor; mevcut move-log-panel sabitlenir */
+:root[data-orientation="landscape"] #game-view .move-log-panel {
+    position: relative;
+    grid-area: panel;
+    top: auto;
+    right: auto;
+    width: 100%;
+    max-height: 100%;
+    height: 100%;
+    margin: 6px 12px 6px 0;
+    transform: none !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/* Yatayda move-log her zaman açık (hidden class'ı görmezden gel)
+   NOT: .hidden global { display: none !important } var, bunu da override etmek lazım */
+:root[data-orientation="landscape"] #game-view .move-log-panel.hidden {
+    display: flex !important;
+    transform: none !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/* Piece info panel yatayda board içine yapışsın (sabit dock olmasın) */
+:root[data-orientation="landscape"] #game-view .piece-info-panel {
+    position: absolute;
+    top: 60px;
+    right: 280px;
+    z-index: 12;
+    width: auto;
+    max-width: 240px;
+    font-size: 0.78rem;
+    padding: 6px 10px;
+    pointer-events: none;
+}
+
+/* Piece info panel boşken görünmesin */
+:root[data-orientation="landscape"] #game-view .piece-info-panel:empty {
+    display: none;
+}
+
+/* Turn indicator: yatayda footer üstüne otursun */
+:root[data-orientation="landscape"] #game-view .turn-indicator {
+    top: -18px;
+    font-size: 0.78rem;
+    padding: 4px 14px;
+}
+
+/* Player info — yatayda kompakt, isim ön planda */
+:root[data-orientation="landscape"] #game-view .player-info {
+    gap: 8px;
+}
+
+:root[data-orientation="landscape"] #game-view .avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 0.85rem;
+}
+
+:root[data-orientation="landscape"] #game-view .details .name {
+    font-size: 0.88rem;
+}
+
+:root[data-orientation="landscape"] #game-view .details .status {
+    font-size: 0.68rem;
+}
+
+:root[data-orientation="landscape"] #game-view .player-clock {
+    font-size: 0.78rem;
+    padding: 2px 8px;
+}
+
+/* Esir taşları yatayda kompakt (max-width küçük) */
+:root[data-orientation="landscape"] #game-view .captured-pieces {
+    max-width: 200px;
+    gap: 1px;
+}
+
+:root[data-orientation="landscape"] #game-view .game-header .top-player .captured-pieces {
+    height: 32px;
+    min-height: 32px;
+    max-width: none;
+}
+
+/* Toggle log button yatayda gizlenir (panel zaten açık) */
+:root[data-orientation="landscape"] #game-view #btn-toggle-log {
+    display: none;
+}
+
+/* Advantage meter — yatayda board sol kenarı, kompakt */
+:root[data-orientation="landscape"] #game-view .advantage-meter {
+    left: 2px;
+    width: 14px;
+    min-height: 160px;
+    height: min(70vh, 320px);
+}
+
+/* Sağ panel sefer defteri başlık kompakt */
+:root[data-orientation="landscape"] #game-view .log-header {
+    padding: 8px 10px;
+    margin-bottom: 6px;
+}
+
+:root[data-orientation="landscape"] #game-view .log-header h3 {
+    font-size: 0.95rem;
+}
+
+/* Close log butonu yatayda gizli (panel sabit) */
+:root[data-orientation="landscape"] #game-view #btn-close-log {
+    display: none;
+}
+
+/* Coach overlay'ları yatayda board üstünde değil, sağ panele yakın */
+:root[data-orientation="landscape"] #game-view .scripted-tutorial-coach,
+:root[data-orientation="landscape"] #game-view .analysis-practice-explanation {
+    max-width: 280px;
+    font-size: 0.82rem;
+}
+
+/* Reduced motion: yatay geçişlerde transition kaldır */
+@media (prefers-reduced-motion: reduce) {
+    :root[data-orientation="landscape"] #game-view .move-log-panel {
+        transition: none;
+    }
+}
+
+
+/* ----------------------------------------------------------------
+   OYUN MENÜSÜ OVERLAY'LARI — Yatay layout (Faz 6 bonus)
+   game-settings, game-end-result, analysis overlay'leri yatayda
+   ekranı taşmamalı
+   ---------------------------------------------------------------- */
+:root[data-orientation="landscape"] #game-settings-overlay .menu-box,
+:root[data-orientation="landscape"] #game-analysis-overlay .menu-box {
+    max-width: min(900px, 95vw);
+    max-height: 92vh;
+    overflow-y: auto;
+}
+
+
+/* ----------------------------------------------------------------
+   SEFER SONU FERMAN — Yatay 2-sütun Layout (Faz 7-C)
+   Sol: badge + başlık + açıklama (sonuç)
+   Sağ: meta + komutan mührü + aksiyon butonları
+   ---------------------------------------------------------------- */
+:root[data-orientation="landscape"] #game-end-result-overlay .ferman-box {
+    max-width: min(820px, 92vw);
+    width: 820px;
+    max-height: 88vh;
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    /* satırlar: border-top, header, meta, seal, actions, border-bot */
+    grid-template-rows: auto auto auto 1fr auto auto;
+    column-gap: var(--space-lg, 1.75rem);
+    row-gap: var(--space-xs, 0.5rem);
+    overflow: hidden;
+}
+
+/* Üst tezhip — tam genişlik (her iki kolon) */
+:root[data-orientation="landscape"] #game-end-result-overlay .ferman-border-top {
+    grid-column: 1 / -1;
+    grid-row: 1;
+}
+
+/* Header — tam genişlik */
+:root[data-orientation="landscape"] #game-end-result-overlay .game-end-result-header {
+    grid-column: 1 / -1;
+    grid-row: 2;
+}
+
+/* Sol kolon: sonuç body (badge + başlık + açıklama)
+   3 satırı kaplar — meta/seal/actions ile aynı boyda */
+:root[data-orientation="landscape"] #game-end-result-overlay .game-end-result-body {
+    grid-column: 1;
+    grid-row: 3 / 6;
+    align-self: center;
+    text-align: center;
+    padding: var(--space-sm, 0.5rem) 0;
+}
+
+/* Sağ kolon — meta (üst) */
+:root[data-orientation="landscape"] #game-end-result-overlay .game-end-result-meta {
+    grid-column: 2;
+    grid-row: 3;
+    align-self: start;
+    flex-direction: column;
+    gap: var(--space-xs, 0.5rem);
+    margin-top: 0;
+}
+
+:root[data-orientation="landscape"] #game-end-result-overlay .game-end-result-meta span {
+    width: 100%;
+    text-align: center;
+    padding: 8px 14px;
+    font-size: 0.84rem;
+}
+
+/* Sağ kolon — komutan mührü (orta) */
+:root[data-orientation="landscape"] #game-end-result-overlay .ferman-seal {
+    grid-column: 2;
+    grid-row: 4;
+    align-self: center;
+    justify-self: center;
+    margin: var(--space-sm, 0.5rem) auto;
+}
+
+/* Sağ kolon — aksiyon butonları (alt) */
+:root[data-orientation="landscape"] #game-end-result-overlay .game-end-result-actions {
+    grid-column: 2;
+    grid-row: 5;
+    align-self: end;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 0;
+}
+
+:root[data-orientation="landscape"] #game-end-result-overlay .game-end-result-actions .btn {
+    width: 100%;
+    padding: 10px 16px;
+    font-size: 0.9rem;
+}
+
+/* Alt tezhip — tam genişlik */
+:root[data-orientation="landscape"] #game-end-result-overlay .ferman-border-bottom {
+    grid-column: 1 / -1;
+    grid-row: 6;
+}
+
+/* Body içindeki başlık biraz büyük */
+:root[data-orientation="landscape"] #game-end-result-overlay .game-end-result-body h2 {
+    font-size: clamp(1.8rem, 4vw, 2.4rem);
+}
+
+/* Default (non-historical) tema yatayda eski single-column akış */
+:root[data-orientation="landscape"]:not([data-historical-theme="on"]) #game-end-result-overlay .ferman-box {
+    display: flex;
+    flex-direction: column;
+    max-width: min(560px, 95vw);
+    width: auto;
+}
+
+
+/* ----------------------------------------------------------------
+   YATAY GEÇİŞ İNDİKATÖRÜ — kullanıcı yatay modda iken yön gösterir
+   ---------------------------------------------------------------- */
+:root[data-orientation="landscape"] .orientation-toggle::after {
+    content: '🔒';
+    margin-left: 6px;
+    font-size: 11px;
+    opacity: 0.6;
+}

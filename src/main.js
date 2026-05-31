@@ -51,6 +51,7 @@ import {
 } from './game/TimeControls.js';
 import { getCurrentGamesAuthUid } from './storage/FirebaseGamesConfig.js';
 import { themeManager } from './utils/ThemeManager.js';
+import { orientationManager } from './utils/OrientationManager.js';
 import { PieceRenderer } from './ui/PieceRenderer.js';
 import { clearBoardInlineTransformForPerspective } from './ui/BoardPerspective.js';
 
@@ -1212,6 +1213,16 @@ function renderGameEndResultOverlay() {
   if (btnGameEndAnalysis) {
     btnGameEndAnalysis.textContent = buttonLabel;
   }
+
+  // Faz 7: Komutan mührü — seçilen AI persona portresi
+  const fermanSeal = document.getElementById('ferman-seal');
+  if (fermanSeal) {
+    const persona = selectedAiPersonaId || 'timur';
+    fermanSeal.setAttribute('data-persona', persona);
+    // Sonuç tipine göre mühür rengini ayarla
+    fermanSeal.classList.remove('is-win', 'is-loss', 'is-draw');
+    fermanSeal.classList.add(badgeClass);
+  }
 }
 
 function showGameEndResultOverlay() {
@@ -1813,9 +1824,64 @@ async function runScreenshotScenario() {
   markScreenshotReady();
 }
 
+/**
+ * Faz 3 — Yön Toggle Event Listener
+ * Ana menüdeki #btn-orientation-toggle butonuna tıklamayı dinler.
+ * Parşömen perdesi animasyonu ile yön değiştirir.
+ */
+function setupOrientationToggle() {
+  const btn = document.getElementById('btn-orientation-toggle');
+  if (!btn) return;
+
+  // İlk aria-pressed state'i ayarla
+  const current = orientationManager.get();
+  btn.setAttribute('aria-pressed', current === 'landscape' ? 'true' : 'false');
+
+  btn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    // Çift tıklamayı engelle (animasyon sırasında)
+    if (btn.disabled) return;
+    btn.disabled = true;
+    try {
+      await orientationManager.toggle({ animate: true });
+      try {
+        analytics?.track?.('orientation_toggled', { mode: orientationManager.get() });
+      } catch (_) { /* analytics opsiyonel */ }
+    } finally {
+      btn.disabled = false;
+    }
+  });
+}
+
+/**
+ * Faz 4-C — Ana menü footer'ında uygulama sürümünü gösterir.
+ * Android build versionName (build.gradle) ile manuel senkron tutulur.
+ * Tek bir sabit (APP_VERSION) — release sırasında elle güncellenir.
+ */
+const APP_VERSION = '1.2.14';
+function setupVersionDisplay() {
+  const el = document.getElementById('app-version-label');
+  if (!el) return;
+  const prefix = (typeof i18n?.t === 'function' ? i18n.t('menu.version_label') : 'v') || 'v';
+  // Eğer i18n metni "Sürüm" / "Version" gibi ise "Sürüm 1.2.14" göster.
+  // i18n yoksa "v1.2.14" fallback.
+  const label = prefix && prefix !== 'v' ? `${prefix} ${APP_VERSION}` : `v${APP_VERSION}`;
+  el.textContent = label;
+}
+
 function init() {
   themeManager.applyAll();
+  orientationManager.init();
+  setupOrientationToggle();
+  // Faz 6: Yön değişiminde tahta yeniden ölçeklenir (board-container boyutu değişir)
+  orientationManager.subscribe(() => {
+    // requestAnimationFrame içinde dene — DOM henüz layout etmemiş olabilir
+    requestAnimationFrame(() => requestBoardScale());
+    // Animasyon sonu için ek tetikleme (parchment-roll 400ms + buffer)
+    requestBoardScale(500);
+  });
   applyInitialLocale();
+  setupVersionDisplay();
   analytics.setLanguage(i18n.getLocale());
   analytics.startSession('boot');
   analytics.track('app_open', { screen_name: 'boot' });
@@ -1891,6 +1957,7 @@ function setupLanguageSwitcher() {
       analytics.setLanguage(btn.dataset.lang);
       renderAiBotCards();
       updatePieceLetterToggleUI();
+      setupVersionDisplay();
       if (currentState === GAME_STATES.PLAYING) {
         boardRenderer?.refreshVisualSettings();
       }

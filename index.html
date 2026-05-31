@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="tr" data-historical-theme="on">
 
 <head>
   <meta charset="UTF-8" />
@@ -11,7 +11,15 @@
     content="Timurlenk T?rk Satranc? - 10x11 tahtada oynanan tarihi T?rk satran? oyunu. Yapay zekaya kar?? oynay?n!" />
   <meta name="theme-color" content="#0a1628" />
   <title data-i18n="game.title">Timurlenk T?rk Satranc?</title>
+
+  <!-- Mevcut font (Outfit) — geriye uyumluluk için korundu -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tarihsel Tema Fontları (Faz 1) — Cinzel + IM Fell English + Cormorant Garamond + Lora + Reem Kufi -->
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:wght@400;500;600&family=IM+Fell+English&family=Lora:wght@400;500;600&family=Reem+Kufi:wght@400;500;700&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <link rel="stylesheet" href="./src/styles/main.css">
@@ -20,14 +28,45 @@
   <link rel="stylesheet" href="./src/styles/menu.css">
   <link rel="stylesheet" href="./src/styles/tutorial.css">
 
+  <!-- Tarihsel Tema Override + Yön Stylesheet'leri (Faz 1) — opt-in: data-attr ile aktifleşir -->
+  <link rel="stylesheet" href="./src/styles/historical-theme.css">
+  <link rel="stylesheet" href="./src/styles/orientation-portrait.css">
+  <link rel="stylesheet" href="./src/styles/orientation-landscape.css">
+
   <!-- PeerJS WebRTC Kütüphanesi -->
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
 
 <body>
   <div id="app">
+    <!-- Yön Geçiş Perdesi (Faz 3 — parşömen geçiş animasyonu için) -->
+    <div id="orientation-transition" class="orientation-transition" aria-hidden="true"></div>
+
     <div id="main-menu" class="overlay-container">
       <div class="menu-box glass-panel">
+        <!-- Yön Toggle (Faz 3 — dikey ↔ yatay) -->
+        <button
+          id="btn-orientation-toggle"
+          class="orientation-toggle"
+          type="button"
+          aria-label="Ekran yönünü değiştir"
+          aria-pressed="false"
+          role="switch"
+          data-i18n-aria-label="orientation.toggle_hint">
+          <span class="orientation-track">
+            <span class="orientation-thumb" data-mode="portrait" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <rect x="7" y="3" width="10" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+              </svg>
+            </span>
+            <span class="orientation-thumb" data-mode="landscape" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="7" width="18" height="10" rx="2" stroke="currentColor" stroke-width="2"/>
+              </svg>
+            </span>
+          </span>
+        </button>
+
         <h1 class="game-title" data-i18n="game.title">T?MURLENK<br>T?RK SATRANCI</h1>
         <div class="language-selector">
           <button class="lang-btn" data-lang="tr">TR</button>
@@ -49,9 +88,17 @@
         </div>
         <div class="decor-line"></div>
         <div class="menu-footer">
-          <a href="privacy-policy.html" target="_blank" rel="noopener noreferrer" class="policy-link" data-i18n="menu.privacy_policy">Gizlilik
-            Politikas?</a>
-          <button id="btn-open-licenses" class="policy-link policy-link-button" type="button" data-i18n="menu.open_source_licenses">Açık Kaynak ve Lisanslar</button>
+          <div class="menu-footer-links">
+            <a href="privacy-policy.html" target="_blank" rel="noopener noreferrer" class="policy-link" data-i18n="menu.privacy_policy">Gizlilik
+              Politikas?</a>
+            <span class="footer-divider" aria-hidden="true">۞</span>
+            <button id="btn-open-licenses" class="policy-link policy-link-button" type="button" data-i18n="menu.open_source_licenses">Açık Kaynak ve Lisanslar</button>
+          </div>
+          <div class="menu-footer-meta">
+            <span class="footer-version" id="app-version-label">v1.2.14</span>
+            <span class="footer-divider" aria-hidden="true">·</span>
+            <span class="footer-tagline" data-i18n="menu.about_tagline">Tarihî Türk Satrancı</span>
+          </div>
         </div>
       </div>
     </div>
@@ -119,24 +166,32 @@
         <h2 style="margin-top:20px;" data-i18n="ai.persona.title">Yapay Zeka Karakteri</h2>
         <div class="ai-persona-cards">
           <div class="card ai-persona-card selected" data-ai-persona="timur">
-            <i class="fas fa-crown card-icon" style="color:#F59E0B;"></i>
+            <div class="persona-portrait" data-persona="timur" aria-hidden="true"></div>
+            <i class="fas fa-crown card-icon persona-icon-fallback" style="color:#F59E0B;"></i>
             <h3 data-i18n="ai.persona.timur">Timur</h3>
             <p data-i18n="ai.persona.timur_desc">Baskı kurar, üstünlüğü kazanca çevirmeyi sever.</p>
+            <span class="card-seal" aria-hidden="true">۞</span>
           </div>
           <div class="card ai-persona-card" data-ai-persona="beyazid">
-            <i class="fas fa-khanda card-icon" style="color:#EF4444;"></i>
+            <div class="persona-portrait" data-persona="beyazid" aria-hidden="true"></div>
+            <i class="fas fa-khanda card-icon persona-icon-fallback" style="color:#EF4444;"></i>
             <h3 data-i18n="ai.persona.beyazid">Beyazıd</h3>
             <p data-i18n="ai.persona.beyazid_desc">Cesur saldırır, alan ve tempo arar.</p>
+            <span class="card-seal" aria-hidden="true">۞</span>
           </div>
           <div class="card ai-persona-card" data-ai-persona="ulu_bey">
-            <i class="fas fa-star-and-crescent card-icon" style="color:#38BDF8;"></i>
+            <div class="persona-portrait" data-persona="ulu_bey" aria-hidden="true"></div>
+            <i class="fas fa-star-and-crescent card-icon persona-icon-fallback" style="color:#38BDF8;"></i>
             <h3 data-i18n="ai.persona.ulu_bey">Uluğ Bey</h3>
             <p data-i18n="ai.persona.ulu_bey_desc">Hesaplı oynar, güvenli kral ve denge arar.</p>
+            <span class="card-seal" aria-hidden="true">۞</span>
           </div>
           <div class="card ai-persona-card" data-ai-persona="saray_veziri">
-            <i class="fas fa-shield-alt card-icon" style="color:#A7F3D0;"></i>
+            <div class="persona-portrait" data-persona="saray_veziri" aria-hidden="true"></div>
+            <i class="fas fa-shield-alt card-icon persona-icon-fallback" style="color:#A7F3D0;"></i>
             <h3 data-i18n="ai.persona.saray_veziri">Saray Veziri</h3>
             <p data-i18n="ai.persona.saray_veziri_desc">Savunmayı önce tutar, taş güvenliğini korur.</p>
+            <span class="card-seal" aria-hidden="true">۞</span>
           </div>
         </div>
 
@@ -424,7 +479,10 @@
     </div>
 
     <div id="game-end-result-overlay" class="overlay-container hidden">
-      <div class="menu-box glass-panel game-end-result-box">
+      <div class="menu-box glass-panel game-end-result-box ferman-box">
+        <!-- Faz 7: Tezhip üst kenar süsü -->
+        <div class="ferman-border-top" aria-hidden="true"></div>
+
         <div class="game-end-result-header">
           <span class="game-end-result-kicker" data-i18n="game_end.kicker">Oyun Sonu</span>
           <button id="btn-close-game-end-result" class="btn icon-btn" aria-label="Kapat"><i class="fas fa-times"></i></button>
@@ -440,11 +498,20 @@
           </div>
         </div>
 
+        <!-- Faz 7: Komutan mührü (seçilen AI persona) -->
+        <div class="ferman-seal" id="ferman-seal" data-persona="timur" aria-hidden="true">
+          <div class="ferman-seal-portrait"></div>
+          <span class="ferman-seal-mark">۞</span>
+        </div>
+
         <div class="menu-actions game-end-result-actions">
           <button id="btn-game-end-rematch" class="btn secondary-btn" data-i18n="game_end.rematch">Tekrar Oyna</button>
           <button id="btn-game-end-analysis" class="btn primary-btn" data-i18n="game_end.analysis">Analize Git</button>
           <button id="btn-game-end-main-menu" class="btn secondary-btn" data-i18n="game_end.main_menu">Ana Menü</button>
         </div>
+
+        <!-- Faz 7: Tezhip alt kenar süsü -->
+        <div class="ferman-border-bottom" aria-hidden="true"></div>
       </div>
     </div>
 

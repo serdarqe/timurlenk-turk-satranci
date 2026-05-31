@@ -377,6 +377,12 @@
     min-height: 104px;
 }
 
+/* Faz 5: Persona portresi (default tema'da gizli — sadece historical'da görünür) */
+#formation-menu .ai-persona-card .persona-portrait {
+    width: 48px;
+    height: 48px;
+}
+
 #formation-menu .difficulty-card,
 #formation-menu .time-control-card {
     min-height: 78px;
@@ -543,6 +549,7 @@
     align-items: center;
     text-align: center;
     box-sizing: border-box;
+    position: relative;
     box-shadow:
         0 10px 22px rgba(0, 0, 0, 0.22),
         inset 0 1px 0 rgba(255, 255, 255, 0.08);
@@ -1051,7 +1058,40 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+}
+
+.menu-footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 6px 8px;
+}
+
+.menu-footer-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.35);
+    letter-spacing: 0.4px;
+}
+
+.footer-divider {
+    color: rgba(255, 255, 255, 0.25);
+    font-size: 0.75rem;
+    user-select: none;
+}
+
+.footer-version {
+    font-weight: 600;
+    letter-spacing: 0.6px;
+}
+
+.footer-tagline {
+    font-style: italic;
+    opacity: 0.85;
 }
 
 .policy-link {
