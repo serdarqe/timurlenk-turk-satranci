@@ -94,9 +94,9 @@ test('Uc kez ayni pozisyon tekrar ederse beraberlik kuralini tanir', () => {
     assert.equal(state.resultType, 'threefold_repetition');
 });
 
-test('Elli hamle kuralinda son 100 yarim hamlede piyon ve tas alma yoksa beraberlik olur', () => {
+test('Timur ilerleme yok kuralinda son 75 yarim hamlede piyon ve tas alma yoksa beraberlik olur', () => {
     const state = new GameState();
-    state.moveHistory = Array.from({ length: 99 }, (_, index) => ({
+    state.moveHistory = Array.from({ length: 74 }, (_, index) => ({
         index: index + 1,
         piece: { typeBefore: PIECE_TYPES.ROOK },
         capturedPiece: null
@@ -110,8 +110,8 @@ test('Elli hamle kuralinda son 100 yarim hamlede piyon ve tas alma yoksa beraber
         }
     }), true);
 
-    state.moveHistory[25] = {
-        index: 26,
+    state.moveHistory[24] = {
+        index: 25,
         piece: { typeBefore: PIECE_TYPES.PAWN },
         capturedPiece: null
     };

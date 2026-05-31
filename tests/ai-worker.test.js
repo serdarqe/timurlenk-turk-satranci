@@ -14,6 +14,8 @@ import {
     evaluateOpponentReplyThreat,
     evaluateTacticalContinuationForBlack,
     evaluateTacticalContinuationDetailsForBlack,
+    getRootCandidateBudgetForSearch,
+    limitRootSearchMovesForSearch,
     normalizeAiRecentPositionHashes,
     scoreTerminalStateForBlack,
     selectAiMoveAnalysisForState,
@@ -92,10 +94,55 @@ test('ai worker snapshotlardan tekrar hash hafizasini uretir', () => {
     assert.deepEqual(state.aiRecentPositionHashes, [buildPositionHash(snapshot)]);
 });
 
+test('hard AI dusuk surede kok adaylarini derinlesmeye yetecek kadar daraltir', () => {
+    const hardTimur = getAIProfile('hard', 'timur');
+    const budget = getRootCandidateBudgetForSearch({
+        profile: hardTimur,
+        maxThinkMs: 70,
+        moveCount: 180,
+        candidateCount: 36
+    });
+
+    assert.equal(budget.reason, 'low_time_candidate_prune');
+    assert.ok(budget.limit <= 14);
+    assert.ok(budget.limit >= 8);
+    assert.ok(budget.originalCount <= 18);
+});
+
+test('quality-depth kosusunda medium ve hard aday havuzunu tamamlanabilir derinlik icin daraltir', () => {
+    const medium = getAIProfile('medium', 'ulu_bey');
+    const hard = getAIProfile('hard', 'timur');
+
+    const mediumBudget = getRootCandidateBudgetForSearch({
+        profile: medium,
+        maxThinkMs: 80,
+        moveCount: 180,
+        candidateCount: 32
+    });
+    const hardBudget = getRootCandidateBudgetForSearch({
+        profile: hard,
+        maxThinkMs: 80,
+        moveCount: 180,
+        candidateCount: 40
+    });
+
+    assert.equal(mediumBudget.reason, 'low_time_candidate_prune');
+    assert.equal(hardBudget.reason, 'low_time_candidate_prune');
+    assert.ok(mediumBudget.limit <= 12);
+    assert.ok(hardBudget.limit <= 14);
+    assert.ok(hardBudget.limit >= mediumBudget.limit);
+});
+
 test('terminal oyun sonu skorları arama icin belirleyici sinyal uretir', () => {
     const blackWin = new GameState('hard');
     blackWin.status = 'game_over';
     blackWin.winner = COLORS.BLACK;
+
+    const blackStalemateWin = new GameState('hard');
+    blackStalemateWin.status = 'game_over';
+    blackStalemateWin.winner = COLORS.BLACK;
+    blackStalemateWin.resultType = 'stalemate';
+    blackStalemateWin.stalemate = true;
 
     const whiteWin = new GameState('hard');
     whiteWin.status = 'game_over';
@@ -106,6 +153,8 @@ test('terminal oyun sonu skorları arama icin belirleyici sinyal uretir', () => 
     draw.winner = 'Draw (Hisar)';
 
     assert.ok(scoreTerminalStateForBlack(blackWin, getAIProfile('hard')) > 100000);
+    assert.ok(scoreTerminalStateForBlack(blackStalemateWin, getAIProfile('hard')) > 40000);
+    assert.ok(scoreTerminalStateForBlack(blackStalemateWin, getAIProfile('hard')) < scoreTerminalStateForBlack(blackWin, getAIProfile('hard')));
     assert.ok(scoreTerminalStateForBlack(whiteWin, getAIProfile('hard')) < -100000);
     assert.equal(scoreTerminalStateForBlack(draw, getAIProfile('hard')), 0);
 });
@@ -340,6 +389,24 @@ test('ai worker beyaz yapay zeka icin riskli kitap yerine guvenli motor hamlesi 
     assert.equal(move.move.col, move.piece.col);
 });
 
+test('ai worker beyaz yapay zeka analiz adaylarini da beyaz perspektife cevirir', async () => {
+    const state = await GameState.createInitialState(FORMATIONS.MASCULINE);
+    state.currentTurn = COLORS.WHITE;
+    state.aiColor = COLORS.WHITE;
+    state.playerColor = COLORS.BLACK;
+    state.difficulty = 'hard';
+    state.formation = FORMATIONS.MASCULINE;
+    state.aiPersonaId = 'timur';
+
+    const analysis = selectAiMoveAnalysisForState(state);
+    const firstCandidate = analysis?.searchInfo?.candidates?.find((candidate) => candidate?.move?.piece);
+
+    assert.equal(analysis.move.piece.color, COLORS.WHITE);
+    assert.ok(firstCandidate);
+    assert.equal(firstCandidate.move.piece.color, COLORS.WHITE);
+    assert.ok(firstCandidate.move.move.row <= firstCandidate.move.piece.row);
+});
+
 test('hard AI acilis kitabi kotu kalirsa kitabi kor takip etmez', () => {
     const openingMove = {
         piece: { row: 1, col: 1 },
@@ -481,6 +548,98 @@ test('hard AI negatif SEE veren kitap hamlesini dogrudan reddeder', () => {
     assert.equal(selectOpeningCandidateIfSafe(candidates, openingMove, getAIProfile('hard')), null);
 });
 
+test('hard AI dusuk veri skorlu kitap hamlesini yakin puanda bile zorlamaz', () => {
+    const openingMove = {
+        piece: { row: 1, col: 1 },
+        move: { row: 3, col: 2 },
+        openingId: 'timur_siege',
+        openingName: 'Timur Siege',
+        openingMoveIndex: 1,
+        openingDataScore: 0.18
+    };
+    const candidates = [
+        {
+            score: 100,
+            move: { piece: { row: 1, col: 4 }, move: { row: 2, col: 4 } },
+            tacticalRisk: { dangerLevel: 0 },
+            metadata: { captures: false },
+            staticExchange: { score: 0, exchangeDebt: 0, favorable: true }
+        },
+        {
+            score: 97,
+            move: openingMove,
+            tacticalRisk: { dangerLevel: 0 },
+            metadata: { captures: false },
+            opponentReplyThreat: { bestCaptureValue: 0 },
+            staticExchange: { score: 0, exchangeDebt: 0, favorable: true }
+        }
+    ];
+
+    assert.equal(selectOpeningCandidateIfSafe(candidates, openingMove, getAIProfile('hard')), null);
+});
+
+test('hard AI tekrar dongusu olusturan kitap hamlesini yakin puanda bile zorlamaz', () => {
+    const openingMove = {
+        piece: { row: 1, col: 1 },
+        move: { row: 3, col: 2 },
+        openingId: 'timur_siege',
+        openingName: 'Timur Siege',
+        openingMoveIndex: 1
+    };
+    const candidates = [
+        {
+            score: 100,
+            move: { piece: { row: 1, col: 4 }, move: { row: 2, col: 4 } },
+            tacticalRisk: { dangerLevel: 0 },
+            repetitionRisk: { severity: 0 },
+            metadata: { captures: false },
+            staticExchange: { score: 0, exchangeDebt: 0, favorable: true }
+        },
+        {
+            score: 98,
+            move: openingMove,
+            tacticalRisk: { dangerLevel: 0 },
+            repetitionRisk: { severity: 1, repeatsRecentPosition: true },
+            metadata: { captures: false },
+            opponentReplyThreat: { bestCaptureValue: 0 },
+            staticExchange: { score: 0, exchangeDebt: 0, favorable: true }
+        }
+    ];
+
+    assert.equal(selectOpeningCandidateIfSafe(candidates, openingMove, getAIProfile('hard')), null);
+});
+
+test('hard AI stil borcu yuksek kitap hamlesini sadece kitap diye secmez', () => {
+    const openingMove = {
+        piece: { row: 1, col: 1 },
+        move: { row: 3, col: 2 },
+        openingId: 'timur_siege',
+        openingName: 'Timur Siege',
+        openingMoveIndex: 1
+    };
+    const candidates = [
+        {
+            score: 100,
+            move: { piece: { row: 1, col: 4 }, move: { row: 2, col: 4 } },
+            tacticalRisk: { dangerLevel: 0 },
+            metadata: { captures: false },
+            staticExchange: { score: 0, exchangeDebt: 0, favorable: true },
+            styleAdjustment: { components: { opening: 0 } }
+        },
+        {
+            score: 99,
+            move: openingMove,
+            tacticalRisk: { dangerLevel: 0 },
+            metadata: { captures: false },
+            opponentReplyThreat: { bestCaptureValue: 0 },
+            staticExchange: { score: 0, exchangeDebt: 0, favorable: true },
+            styleAdjustment: { components: { opening: -72 } }
+        }
+    ];
+
+    assert.equal(selectOpeningCandidateIfSafe(candidates, openingMove, getAIProfile('hard')), null);
+});
+
 test('medium AI kitap hamlesi yuzunden belirgin taktik firsati kacirmaz', () => {
     const openingMove = {
         piece: { row: 1, col: 1 },
@@ -597,6 +756,25 @@ test('AI deadline dolarsa son tamamlanan iterative derinlikten hamle dondurur', 
     assert.ok(analysis.searchInfo.targetDepth > 1);
     assert.equal(analysis.searchInfo.completedDepth, 1);
     assert.equal(analysis.searchInfo.timeExpired, true);
+});
+
+test('ai worker hizli hard adaylarina draw-break ve kritik cevap metadatasi tasir', () => {
+    const state = createPhaseTwoSearchState();
+    state.moveHistory = Array.from({ length: 170 }, (_, index) => ({ index: index + 1 }));
+
+    const analysis = selectAiMoveAnalysisForState(state, {
+        disableEndgameShortcuts: true,
+        maxThinkMs: 25
+    });
+
+    const candidate = analysis.searchInfo.candidates.find((entry) => entry.metadata?.criticalReplyCheck);
+
+    assert.ok(candidate);
+    assert.equal(candidate.metadata.criticalReplyCheck, true);
+    assert.equal(typeof candidate.metadata.materialBalanceForMover, 'number');
+    assert.equal(typeof candidate.metadata.materialBalanceAbs, 'number');
+    assert.equal(typeof candidate.metadata.pawnAdvance, 'number');
+    assert.equal(typeof candidate.metadata.lineOpening, 'boolean');
 });
 
 test('AI arama hafizasi ikinci aramada transposition ve onceki en iyi hamleyi kullanir', () => {
@@ -745,4 +923,35 @@ test('hard AI acilis hamlesi cevapta degerli tas dusuruyorsa kitaptan cikar', ()
     ];
 
     assert.equal(selectOpeningCandidateIfSafe(candidates, openingMove, getAIProfile('hard')), null);
+});
+
+test('hard kok aday budamasi forcing capture hamlesini limit disinda olsa da korur', () => {
+    const state = new GameState('hard');
+    state.currentTurn = COLORS.BLACK;
+    const blackRook = new Rook(COLORS.BLACK, 4, 4);
+    const whitePawn = new TimurPawn(COLORS.WHITE, 4, 8, PAWN_TYPES.PAWN_OF_KINGS);
+    state.board.setPiece(0, 0, new King(COLORS.WHITE, 0, 0));
+    state.board.setPiece(9, 10, new King(COLORS.BLACK, 9, 10));
+    state.board.setPiece(4, 4, blackRook);
+    state.board.setPiece(4, 8, whitePawn);
+
+    const quietMoves = Array.from({ length: 12 }, (_, index) => ({
+        piece: blackRook,
+        move: { row: 4, col: index % 4 }
+    }));
+    const forcingCapture = {
+        piece: blackRook,
+        move: { row: 4, col: 8 }
+    };
+
+    const limited = limitRootSearchMovesForSearch(
+        state,
+        [...quietMoves, forcingCapture],
+        { limit: 10, originalCount: 13, pruned: 3 },
+        getAIProfile('hard', 'timur')
+    );
+
+    assert.ok(limited.includes(forcingCapture));
+    assert.ok(limited.length > 10);
+    assert.ok(limited.length <= 16);
 });

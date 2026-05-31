@@ -17,6 +17,27 @@ function getCandidateRepetitionSeverity(candidate) {
     return candidate?.repetitionRisk?.severity ?? 0;
 }
 
+function getMaxRepetitionSeverity(selection) {
+    return Number.isFinite(selection.maxRepetitionSeverity)
+        ? selection.maxRepetitionSeverity
+        : Infinity;
+}
+
+function getCandidateRepetitionDebt(candidate, selection, profile) {
+    const severityDebt = Math.max(0, getCandidateRepetitionSeverity(candidate) - getMaxRepetitionSeverity(selection));
+    if (!severityDebt) return 0;
+
+    const baseDifficulty = getBaseDifficultyId(profile);
+    const baseDebt = baseDifficulty === 'hard'
+        ? 150
+        : (baseDifficulty === 'medium' ? 95 : 55);
+    const risk = candidate?.repetitionRisk || {};
+    const directLoopMultiplier = risk.repeatsRecentPosition || risk.repeatsSearchHistory ? 1.25 : 1;
+    const routeLoopMultiplier = risk.repeatsMoveRoute ? 1.35 : 1;
+
+    return severityDebt * baseDebt * directLoopMultiplier * routeLoopMultiplier;
+}
+
 function getCandidateDangerLevel(candidate) {
     return candidate?.tacticalRisk?.dangerLevel ?? 0;
 }
@@ -63,6 +84,11 @@ function getCandidateTempoLoss(candidate) {
     return Number.isFinite(tempoLoss) ? Math.max(0, tempoLoss) : 0;
 }
 
+function getCandidateMoveCount(candidate) {
+    const moveCount = candidate?.metadata?.moveCount;
+    return Number.isFinite(moveCount) ? moveCount : null;
+}
+
 function getCandidateOpeningDebt(candidate) {
     const openingScore = candidate?.styleAdjustment?.components?.opening;
     return Number.isFinite(openingScore) ? Math.max(0, -openingScore) : 0;
@@ -76,8 +102,154 @@ function getBaseDifficultyId(profile) {
     return profile?.baseId || String(profile?.id || 'medium').split(':')[0];
 }
 
+function isCautiousPersona(profile) {
+    return profile?.personaId === 'ulu_bey' || profile?.personaId === 'saray_veziri';
+}
+
 function isTerminalWinCandidate(candidate) {
-    return Boolean(candidate?.metadata?.terminalWin);
+    return Boolean(
+        candidate?.metadata?.terminalWin
+        && candidate?.metadata?.terminalResultType !== 'stalemate'
+    );
+}
+
+function isStalemateWinCandidate(candidate) {
+    return Boolean(
+        candidate?.metadata?.terminalWin
+        && candidate?.metadata?.terminalResultType === 'stalemate'
+    );
+}
+
+function isLateConversionProfile(profile) {
+    const baseDifficulty = getBaseDifficultyId(profile);
+    const botLevel = Number.isFinite(profile?.botLevel) ? profile.botLevel : 0;
+    return baseDifficulty === 'hard' || botLevel >= 13;
+}
+
+function getLateConversionStartMove(profile) {
+    const baseDifficulty = getBaseDifficultyId(profile);
+    const botLevel = Number.isFinite(profile?.botLevel) ? profile.botLevel : 0;
+    if (botLevel >= 13) return 144;
+    if (baseDifficulty === 'hard' && isCautiousPersona(profile)) return 132;
+    if (baseDifficulty === 'hard') return 156;
+    if (baseDifficulty === 'medium') return 210;
+    return 260;
+}
+
+function isLateConversionPosition(candidate, profile) {
+    const moveCount = getCandidateMoveCount(candidate);
+    return (
+        isLateConversionProfile(profile)
+        && moveCount != null
+        && moveCount >= getLateConversionStartMove(profile)
+    );
+}
+
+function isCandidateForcingProgress(candidate) {
+    const metadata = candidate?.metadata || {};
+    const endgamePlanScore = candidate?.endgamePlan?.score;
+    const opponentMobility = Number.isFinite(metadata.opponentMobility) ? metadata.opponentMobility : 8;
+    const planProgress = Number.isFinite(metadata.planProgress) ? metadata.planProgress : 0;
+
+    return (
+        isTerminalWinCandidate(candidate)
+        || Boolean(metadata.givesCheck)
+        || (
+            Boolean(metadata.captures)
+            && getCandidateCaptureValue(candidate) >= 20
+            && getCandidateStaticExchangeScore(candidate) >= -8
+        )
+        || opponentMobility <= 3
+        || (Number.isFinite(endgamePlanScore) && endgamePlanScore >= 120)
+        || planProgress >= 20
+    );
+}
+
+function isCandidateQuietDrift(candidate) {
+    const metadata = candidate?.metadata || {};
+    const opponentMobility = Number.isFinite(metadata.opponentMobility) ? metadata.opponentMobility : 8;
+    const planProgress = Number.isFinite(metadata.planProgress) ? metadata.planProgress : 0;
+    const planDrift = Number.isFinite(metadata.planDrift) ? metadata.planDrift : 0;
+    const tempoLoss = getCandidateTempoLoss(candidate);
+    const moveCount = getCandidateMoveCount(candidate) || 0;
+    const repetitionSeverity = getCandidateRepetitionSeverity(candidate);
+
+    return (
+        !isTerminalWinCandidate(candidate)
+        && !metadata.givesCheck
+        && !metadata.captures
+        && opponentMobility >= 6
+        && planProgress < 16
+        && (
+            planDrift >= 8
+            || tempoLoss > 0
+            || repetitionSeverity > 0
+            || moveCount >= 240
+        )
+    );
+}
+
+function getCandidateRouteRepeatCount(candidate) {
+    const routeRepeatCount = candidate?.repetitionRisk?.routeRepeatCount;
+    return Number.isFinite(routeRepeatCount) ? Math.max(0, routeRepeatCount) : 0;
+}
+
+function isCandidateLoopingConversion(candidate, profile) {
+    const repetitionSeverity = getCandidateRepetitionSeverity(candidate);
+    if (repetitionSeverity <= 0) return false;
+
+    const metadata = candidate?.metadata || {};
+    const risk = candidate?.repetitionRisk || {};
+    const moveCount = getCandidateMoveCount(candidate) || 0;
+    const baseDifficulty = getBaseDifficultyId(profile);
+    const startMove = baseDifficulty === 'hard'
+        ? 112
+        : (baseDifficulty === 'medium' ? 148 : 196);
+    const routeRepeatCount = getCandidateRouteRepeatCount(candidate);
+
+    return Boolean(
+        metadata.isWinningSide
+        || moveCount >= startMove
+        || risk.repeatsRecentPosition
+        || risk.repeatsSearchHistory
+        || routeRepeatCount >= 3
+        || repetitionSeverity >= 5
+    );
+}
+
+function isThreefoldRepetitionCandidate(candidate) {
+    const risk = candidate?.repetitionRisk || {};
+    if (risk.wouldCauseThreefold) return true;
+
+    const severity = getCandidateRepetitionSeverity(candidate);
+    const routeRepeatCount = getCandidateRouteRepeatCount(candidate);
+    return Boolean(
+        severity >= 5
+        && (
+            (risk.repeatsRecentPosition && risk.repeatsSearchHistory)
+            || (risk.repeatsRecentPosition && risk.repeatsMoveRoute && routeRepeatCount >= 4)
+        )
+    );
+}
+
+function getCandidateMaterialBalanceForMover(candidate) {
+    const balance = candidate?.metadata?.materialBalanceForMover;
+    return Number.isFinite(balance) ? balance : 0;
+}
+
+function isDefensiveDrawSave(candidate) {
+    return (
+        isThreefoldRepetitionCandidate(candidate)
+        && getCandidateMaterialBalanceForMover(candidate) <= -350
+        && !isTerminalWinCandidate(candidate)
+    );
+}
+
+function hasMeaningfulRepetitionImprovement(candidate, selectedCandidate, selection) {
+    const candidateSeverity = getCandidateRepetitionSeverity(candidate);
+    const selectedSeverity = getCandidateRepetitionSeverity(selectedCandidate);
+    if (candidateSeverity <= getMaxRepetitionSeverity(selection)) return true;
+    return candidateSeverity <= Math.max(0, selectedSeverity - 2);
 }
 
 function getCandidateSafetyDebt(candidate, selection, profile = null) {
@@ -92,13 +264,14 @@ function getCandidateSafetyDebt(candidate, selection, profile = null) {
     const replyDebt = Math.max(0, getCandidateReplyCaptureValue(candidate) - maxReplyCaptureValue) * 2.4;
     const exchangeDebt = getCandidateStaticExchangeDebt(candidate) * 1.35;
     const tempoDebt = getCandidateTempoLoss(candidate) * 8;
+    const repetitionDebt = getCandidateRepetitionDebt(candidate, selection, profile);
     const openingDebt = Math.max(0, getCandidateOpeningDebt(candidate) - getMaxOpeningDebt(selection)) * 1.15;
     const continuationDebt = Math.max(
         0,
         getCandidateContinuationDebt(candidate) - getMaxContinuationDebt(selection, profile)
     ) * 0.9;
 
-    return dangerDebt + replyDebt + exchangeDebt + tempoDebt + openingDebt + continuationDebt;
+    return dangerDebt + replyDebt + exchangeDebt + tempoDebt + repetitionDebt + openingDebt + continuationDebt;
 }
 
 function reduceRepetitionRisk(pool, selection) {
@@ -181,6 +354,7 @@ function isCandidateCleanEnough(candidate, selection, profile = null) {
     return (
         getCandidateDangerLevel(candidate) <= maxDangerLevel
         && getCandidateReplyCaptureValue(candidate) <= maxReplyCaptureValue
+        && getCandidateRepetitionSeverity(candidate) <= getMaxRepetitionSeverity(selection)
         && getCandidateStaticExchangeDebt(candidate) <= 0
         && getCandidateOpeningDebt(candidate) <= getMaxOpeningDebt(selection)
         && getCandidateContinuationDebt(candidate) <= getMaxContinuationDebt(selection, profile)
@@ -216,6 +390,205 @@ function findCleanHighValueCapture(selectedCandidate, sortedCandidates, selectio
         ))[0] || null;
 }
 
+function getLateConversionOverrideTolerance(profile, selectedSafetyDebt) {
+    const baseDifficulty = getBaseDifficultyId(profile);
+    const botLevel = Number.isFinite(profile?.botLevel) ? profile.botLevel : 0;
+    if (botLevel >= 15) return Math.min(720, 320 + selectedSafetyDebt * 1.35);
+    if (botLevel >= 13) return Math.min(620, 280 + selectedSafetyDebt * 1.25);
+    if (baseDifficulty === 'hard' && isCautiousPersona(profile)) {
+        return Math.min(640, 300 + selectedSafetyDebt * 1.22);
+    }
+    if (baseDifficulty === 'hard') return Math.min(520, 240 + selectedSafetyDebt * 1.1);
+    if (baseDifficulty === 'medium') return Math.min(300, 140 + selectedSafetyDebt * 0.8);
+    return Math.min(150, 70 + selectedSafetyDebt * 0.45);
+}
+
+function getForcingProgressRank(candidate) {
+    const metadata = candidate?.metadata || {};
+    const endgamePlanScore = Number.isFinite(candidate?.endgamePlan?.score)
+        ? candidate.endgamePlan.score
+        : 0;
+    const opponentMobility = Number.isFinite(metadata.opponentMobility) ? metadata.opponentMobility : 8;
+    const planProgress = Number.isFinite(metadata.planProgress) ? metadata.planProgress : 0;
+
+    return (
+        (isTerminalWinCandidate(candidate) ? 10000 : 0)
+        + (metadata.givesCheck ? 900 : 0)
+        + Math.max(0, 12 - opponentMobility) * 42
+        + Math.max(0, planProgress) * 18
+        + Math.max(0, endgamePlanScore) * 0.8
+        + getCandidateStaticExchangeScore(candidate) * 1.5
+        + getCandidateCaptureValue(candidate) * 1.2
+        - getCandidateTempoLoss(candidate) * 20
+    );
+}
+
+function isCandidateStructuralProgress(candidate) {
+    const metadata = candidate?.metadata || {};
+    const endgamePlanScore = Number.isFinite(candidate?.endgamePlan?.score)
+        ? candidate.endgamePlan.score
+        : 0;
+    const opponentMobility = Number.isFinite(metadata.opponentMobility) ? metadata.opponentMobility : 8;
+    const planProgress = Number.isFinite(metadata.planProgress) ? metadata.planProgress : 0;
+    const ownMobilityBefore = Number.isFinite(metadata.ownMobilityBefore) ? metadata.ownMobilityBefore : null;
+    const ownMobilityAfter = Number.isFinite(metadata.ownMobilityAfter) ? metadata.ownMobilityAfter : null;
+    const mobilityGain = ownMobilityBefore != null && ownMobilityAfter != null
+        ? ownMobilityAfter - ownMobilityBefore
+        : 0;
+
+    return Boolean(
+        isCandidateForcingProgress(candidate)
+        || planProgress >= 10
+        || endgamePlanScore >= 80
+        || opponentMobility <= 5
+        || metadata.lineOpening
+        || (Number.isFinite(metadata.pawnAdvance) && metadata.pawnAdvance > 0)
+        || mobilityGain >= 3
+    );
+}
+
+function getStructuralProgressRank(candidate) {
+    const metadata = candidate?.metadata || {};
+    const ownMobilityBefore = Number.isFinite(metadata.ownMobilityBefore) ? metadata.ownMobilityBefore : null;
+    const ownMobilityAfter = Number.isFinite(metadata.ownMobilityAfter) ? metadata.ownMobilityAfter : null;
+    const mobilityGain = ownMobilityBefore != null && ownMobilityAfter != null
+        ? ownMobilityAfter - ownMobilityBefore
+        : 0;
+
+    return (
+        getForcingProgressRank(candidate)
+        + (metadata.lineOpening ? 120 : 0)
+        + (Number.isFinite(metadata.pawnAdvance) ? Math.max(0, metadata.pawnAdvance) * 90 : 0)
+        + Math.max(0, mobilityGain) * 36
+        - Math.max(0, getCandidateRepetitionSeverity(candidate)) * 80
+    );
+}
+
+function getThreefoldVetoTolerance(profile, selectedSafetyDebt) {
+    const baseDifficulty = getBaseDifficultyId(profile);
+    const botLevel = Number.isFinite(profile?.botLevel) ? profile.botLevel : 0;
+    if (botLevel >= 13) return Math.min(2200, 860 + selectedSafetyDebt * 0.72);
+    if (baseDifficulty === 'hard') return Math.min(1900, 760 + selectedSafetyDebt * 0.64);
+    if (baseDifficulty === 'medium') return Math.min(900, 360 + selectedSafetyDebt * 0.34);
+    return Math.min(240, 80 + selectedSafetyDebt * 0.1);
+}
+
+function findThreefoldVetoAlternative(selectedCandidate, sortedCandidates, selection, profile, selectedSafetyDebt) {
+    if (!isThreefoldRepetitionCandidate(selectedCandidate)) return null;
+    if (isDefensiveDrawSave(selectedCandidate)) return null;
+
+    const baseDifficulty = getBaseDifficultyId(profile);
+    const botLevel = Number.isFinite(profile?.botLevel) ? profile.botLevel : 0;
+    if (baseDifficulty === 'easy' && botLevel < 7) return null;
+
+    const overrideTolerance = getThreefoldVetoTolerance(profile, selectedSafetyDebt);
+    return sortedCandidates
+        .filter((candidate) => (
+            candidate !== selectedCandidate
+            && candidate.score >= selectedCandidate.score - overrideTolerance
+            && hasMeaningfulRepetitionImprovement(candidate, selectedCandidate, selection)
+            && isCandidateStructuralProgress(candidate)
+            && !isCandidateQuietDrift(candidate)
+            && (
+                isCandidateCleanEnough(candidate, selection, profile)
+                || hasMeaningfulSafetyImprovement(getCandidateSafetyDebt(candidate, selection, profile), selectedSafetyDebt)
+            )
+        ))
+        .sort((a, b) => (
+            getCandidateRepetitionSeverity(a) - getCandidateRepetitionSeverity(b)
+            || getStructuralProgressRank(b) - getStructuralProgressRank(a)
+            || getCandidateSafetyDebt(a, selection, profile) - getCandidateSafetyDebt(b, selection, profile)
+            || b.score - a.score
+        ))[0] || null;
+}
+
+function findLateConversionAlternative(selectedCandidate, sortedCandidates, selection, profile, selectedSafetyDebt) {
+    if (!isLateConversionPosition(selectedCandidate, profile)) return null;
+    if (!isCandidateQuietDrift(selectedCandidate)) return null;
+
+    const overrideTolerance = getLateConversionOverrideTolerance(profile, selectedSafetyDebt);
+    return sortedCandidates
+        .filter((candidate) => (
+            candidate !== selectedCandidate
+            && candidate.score >= selectedCandidate.score - overrideTolerance
+            && isCandidateForcingProgress(candidate)
+            && (
+                isCandidateCleanEnough(candidate, selection, profile)
+                || hasMeaningfulSafetyImprovement(getCandidateSafetyDebt(candidate, selection, profile), selectedSafetyDebt)
+            )
+        ))
+        .sort((a, b) => (
+            getForcingProgressRank(b) - getForcingProgressRank(a)
+            || getCandidateSafetyDebt(a, selection, profile) - getCandidateSafetyDebt(b, selection, profile)
+            || b.score - a.score
+        ))[0] || null;
+}
+
+function getConversionLoopOverrideTolerance(profile, selectedSafetyDebt) {
+    const baseDifficulty = getBaseDifficultyId(profile);
+    const botLevel = Number.isFinite(profile?.botLevel) ? profile.botLevel : 0;
+    if (botLevel >= 15) return Math.min(1080, 380 + selectedSafetyDebt * 0.54);
+    if (botLevel >= 13) return Math.min(980, 340 + selectedSafetyDebt * 0.5);
+    if (baseDifficulty === 'hard') return Math.min(860, 300 + selectedSafetyDebt * 0.46);
+    if (baseDifficulty === 'medium') return Math.min(520, 170 + selectedSafetyDebt * 0.36);
+    return Math.min(230, 78 + selectedSafetyDebt * 0.18);
+}
+
+function findConversionLoopAlternative(selectedCandidate, sortedCandidates, selection, profile, selectedSafetyDebt) {
+    if (!isCandidateLoopingConversion(selectedCandidate, profile)) return null;
+
+    const overrideTolerance = getConversionLoopOverrideTolerance(profile, selectedSafetyDebt);
+    return sortedCandidates
+        .filter((candidate) => (
+            candidate !== selectedCandidate
+            && candidate.score >= selectedCandidate.score - overrideTolerance
+            && hasMeaningfulRepetitionImprovement(candidate, selectedCandidate, selection)
+            && isCandidateForcingProgress(candidate)
+            && !isCandidateQuietDrift(candidate)
+            && (
+                isCandidateCleanEnough(candidate, selection, profile)
+                || hasMeaningfulSafetyImprovement(getCandidateSafetyDebt(candidate, selection, profile), selectedSafetyDebt)
+            )
+        ))
+        .sort((a, b) => (
+            getForcingProgressRank(b) - getForcingProgressRank(a)
+            || getCandidateRepetitionSeverity(a) - getCandidateRepetitionSeverity(b)
+            || getCandidateSafetyDebt(a, selection, profile) - getCandidateSafetyDebt(b, selection, profile)
+            || b.score - a.score
+        ))[0] || null;
+}
+
+function getStalemateOverrideTolerance(profile, selectedSafetyDebt) {
+    const baseDifficulty = getBaseDifficultyId(profile);
+    const botLevel = Number.isFinite(profile?.botLevel) ? profile.botLevel : 0;
+    if (botLevel >= 13) return Math.min(78000, 56000 + selectedSafetyDebt * 1.2);
+    if (baseDifficulty === 'hard') return Math.min(70000, 50000 + selectedSafetyDebt);
+    if (baseDifficulty === 'medium') return Math.min(32000, 18000 + selectedSafetyDebt * 0.6);
+    return Math.min(9000, 3600 + selectedSafetyDebt * 0.25);
+}
+
+function findAlternativeForStalemateWin(selectedCandidate, sortedCandidates, selection, profile, selectedSafetyDebt) {
+    if (!isStalemateWinCandidate(selectedCandidate)) return null;
+
+    const overrideTolerance = getStalemateOverrideTolerance(profile, selectedSafetyDebt);
+    return sortedCandidates
+        .filter((candidate) => (
+            candidate !== selectedCandidate
+            && !isStalemateWinCandidate(candidate)
+            && candidate.score >= selectedCandidate.score - overrideTolerance
+            && isCandidateForcingProgress(candidate)
+            && (
+                isCandidateCleanEnough(candidate, selection, profile)
+                || hasMeaningfulSafetyImprovement(getCandidateSafetyDebt(candidate, selection, profile), selectedSafetyDebt)
+            )
+        ))
+        .sort((a, b) => (
+            getForcingProgressRank(b) - getForcingProgressRank(a)
+            || getCandidateSafetyDebt(a, selection, profile) - getCandidateSafetyDebt(b, selection, profile)
+            || b.score - a.score
+        ))[0] || null;
+}
+
 function getRiskyLowValueCaptureTolerance(profile, selectedSafetyDebt) {
     const baseDifficulty = getBaseDifficultyId(profile);
     if (baseDifficulty === 'easy') return Math.min(120, 44 + selectedSafetyDebt * 0.28);
@@ -244,15 +617,107 @@ function findSaferAlternativeForRiskyLowValueCapture(selectedCandidate, sortedCa
         ))[0] || null;
 }
 
+function getCatastrophicSafetyTolerance(profile, selectedSafetyDebt) {
+    const baseDifficulty = getBaseDifficultyId(profile);
+    if (baseDifficulty === 'hard') return Math.min(1800, 520 + selectedSafetyDebt * 0.42);
+    if (baseDifficulty === 'medium') return Math.min(920, 260 + selectedSafetyDebt * 0.26);
+    return Math.min(360, 120 + selectedSafetyDebt * 0.12);
+}
+
+function findAlternativeForCatastrophicSafetyDebt(selectedCandidate, sortedCandidates, selection, profile, selectedSafetyDebt) {
+    const baseDifficulty = getBaseDifficultyId(profile);
+    const catastrophicThreshold = baseDifficulty === 'hard'
+        ? 520
+        : (baseDifficulty === 'medium' ? 760 : 1180);
+    if (selectedSafetyDebt < catastrophicThreshold) return null;
+
+    const overrideTolerance = getCatastrophicSafetyTolerance(profile, selectedSafetyDebt);
+    return sortedCandidates
+        .filter((candidate) => {
+            if (candidate === selectedCandidate) return false;
+            if (candidate.score < selectedCandidate.score - overrideTolerance) return false;
+            if (isTerminalWinCandidate(candidate)) return true;
+
+            const debt = getCandidateSafetyDebt(candidate, selection, profile);
+            return (
+                debt <= 90
+                || debt <= selectedSafetyDebt * 0.18
+                || (
+                    hasMeaningfulSafetyImprovement(debt, selectedSafetyDebt)
+                    && getCandidateStaticExchangeDebt(candidate) <= 20
+                    && getCandidateReplyCaptureValue(candidate) <= getCandidateReplyCaptureValue(selectedCandidate) * 0.35
+                )
+            );
+        })
+        .sort((a, b) => (
+            getCandidateSafetyDebt(a, selection, profile) - getCandidateSafetyDebt(b, selection, profile)
+            || getCandidateStaticExchangeScore(b) - getCandidateStaticExchangeScore(a)
+            || b.score - a.score
+        ))[0] || null;
+}
+
 function selectSaferCandidateIfNeeded(selectedCandidate, sortedCandidates, selection, profile) {
     if (!selectedCandidate || !selection.avoidUnsafe || sortedCandidates.length <= 1) {
         return selectedCandidate;
     }
-    if (isTerminalWinCandidate(selectedCandidate) || isCandidateCleanEnough(selectedCandidate, selection, profile)) {
+    if (isTerminalWinCandidate(selectedCandidate)) {
         return selectedCandidate;
     }
 
     const selectedSafetyDebt = getCandidateSafetyDebt(selectedCandidate, selection, profile);
+    if (isDefensiveDrawSave(selectedCandidate)) {
+        return selectedCandidate;
+    }
+
+    const threefoldVetoAlternative = findThreefoldVetoAlternative(
+        selectedCandidate,
+        sortedCandidates,
+        selection,
+        profile,
+        selectedSafetyDebt
+    );
+    if (threefoldVetoAlternative) return threefoldVetoAlternative;
+
+    const stalemateAlternative = findAlternativeForStalemateWin(
+        selectedCandidate,
+        sortedCandidates,
+        selection,
+        profile,
+        selectedSafetyDebt
+    );
+    if (stalemateAlternative) return stalemateAlternative;
+
+    const conversionLoopAlternative = findConversionLoopAlternative(
+        selectedCandidate,
+        sortedCandidates,
+        selection,
+        profile,
+        selectedSafetyDebt
+    );
+    if (conversionLoopAlternative) return conversionLoopAlternative;
+
+    const lateConversionAlternative = findLateConversionAlternative(
+        selectedCandidate,
+        sortedCandidates,
+        selection,
+        profile,
+        selectedSafetyDebt
+    );
+    if (lateConversionAlternative) return lateConversionAlternative;
+
+    const catastrophicSafetyAlternative = findAlternativeForCatastrophicSafetyDebt(
+        selectedCandidate,
+        sortedCandidates,
+        selection,
+        profile,
+        selectedSafetyDebt
+    );
+    if (catastrophicSafetyAlternative) return catastrophicSafetyAlternative;
+
+    if (isCandidateCleanEnough(selectedCandidate, selection, profile)) {
+        return selectedCandidate;
+    }
+
     const cleanHighValueCapture = findCleanHighValueCapture(
         selectedCandidate,
         sortedCandidates,
@@ -294,11 +759,60 @@ function selectBestWithSafetyGuard(sortedCandidates, selection, profile) {
     if (!selection.avoidUnsafe || sortedCandidates.length <= 1) return bestCandidate;
     if (isTerminalWinCandidate(bestCandidate)) return bestCandidate;
 
+    const bestSafetyDebt = getCandidateSafetyDebt(bestCandidate, selection, profile);
+    if (isDefensiveDrawSave(bestCandidate)) {
+        return bestCandidate;
+    }
+
+    const threefoldVetoAlternative = findThreefoldVetoAlternative(
+        bestCandidate,
+        sortedCandidates,
+        selection,
+        profile,
+        bestSafetyDebt
+    );
+    if (threefoldVetoAlternative) return threefoldVetoAlternative;
+
+    const stalemateAlternative = findAlternativeForStalemateWin(
+        bestCandidate,
+        sortedCandidates,
+        selection,
+        profile,
+        bestSafetyDebt
+    );
+    if (stalemateAlternative) return stalemateAlternative;
+
+    const conversionLoopAlternative = findConversionLoopAlternative(
+        bestCandidate,
+        sortedCandidates,
+        selection,
+        profile,
+        bestSafetyDebt
+    );
+    if (conversionLoopAlternative) return conversionLoopAlternative;
+
+    const lateConversionAlternative = findLateConversionAlternative(
+        bestCandidate,
+        sortedCandidates,
+        selection,
+        profile,
+        bestSafetyDebt
+    );
+    if (lateConversionAlternative) return lateConversionAlternative;
+
+    const catastrophicSafetyAlternative = findAlternativeForCatastrophicSafetyDebt(
+        bestCandidate,
+        sortedCandidates,
+        selection,
+        profile,
+        bestSafetyDebt
+    );
+    if (catastrophicSafetyAlternative) return catastrophicSafetyAlternative;
+
     if (isCandidateCleanEnough(bestCandidate, selection, profile)) {
         return bestCandidate;
     }
 
-    const bestSafetyDebt = getCandidateSafetyDebt(bestCandidate, selection, profile);
     const unsafeScoreTolerance = getUnsafeScoreTolerance(selection, bestSafetyDebt, profile);
     const candidatesInRange = sortedCandidates.filter((candidate) => (
         candidate !== bestCandidate

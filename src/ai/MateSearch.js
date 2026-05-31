@@ -94,7 +94,7 @@ function resolveTerminalWinner(state) {
 export function isPositionMateSearchEligible(state, perspectiveColor) {
     if (!state?.board?.pieces) return false;
     const pieces = state.board.pieces;
-    if (pieces.length > 9) return false;
+    if (pieces.length > 14) return false;
 
     let ownNonRoyals = 0;
     let opponentNonRoyals = 0;
@@ -116,10 +116,11 @@ export function isPositionMateSearchEligible(state, perspectiveColor) {
  */
 function getMaxMateSearchDepth(state) {
     const totalPieces = state.board.pieces.length;
-    if (totalPieces <= 4) return 16; // K+X vs K needs a real mating net.
-    if (totalPieces <= 5) return 14;
-    if (totalPieces <= 7) return 12;
-    return 10;
+    if (totalPieces <= 4) return 20; // K+X vs K needs a real mating net.
+    if (totalPieces <= 6) return 16;
+    if (totalPieces <= 9) return 14;
+    if (totalPieces <= 12) return 10;
+    return 8;
 }
 
 /**

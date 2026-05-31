@@ -73,13 +73,43 @@ test('dort ve bes yildiz botlar ayni hard tabandan farkli guc seviyesine ayrisir
     assert.ok(levelFifteen.decisionStyle.precision > levelTen.decisionStyle.precision);
 });
 
+test('ust seviye botlar ve hesapci persona tekrar dongusune karsi daha kararlidir', () => {
+    const hard = getAIProfile('hard', 'timur');
+    const levelThirteen = getAIProfile('hard', 'timur', 'bot_13_timur');
+    const levelFifteen = getAIProfile('hard', 'timur', 'bot_15_aksak_demir');
+    const uluBey = getAIProfile('medium', 'ulu_bey');
+    const plainMedium = getAIProfile('medium');
+
+    assert.equal(hard.selection.avoidRepetition, true);
+    assert.equal(hard.selection.maxRepetitionSeverity, 0);
+    assert.equal(levelThirteen.selection.avoidRepetition, true);
+    assert.equal(levelThirteen.selection.maxRepetitionSeverity, 0);
+    assert.equal(levelFifteen.selection.avoidRepetition, true);
+    assert.equal(levelFifteen.selection.maxRepetitionSeverity, 0);
+    assert.ok(uluBey.decisionStyle.conversion > plainMedium.decisionStyle.conversion);
+    assert.ok(uluBey.decisionStyle.pressure > plainMedium.decisionStyle.pressure);
+    assert.ok(uluBey.selection.unsafeScoreTolerance <= plainMedium.selection.unsafeScoreTolerance);
+});
+
+test('ust seviye botlar uzun oyunlarda devam borcunu ve riskli acilisi daha sert sinirlar', () => {
+    const levelTen = getAIProfile('hard', 'timur', 'bot_10_demir_pence');
+    const levelFifteen = getAIProfile('hard', 'timur', 'bot_15_aksak_demir');
+
+    assert.ok(levelFifteen.selection.maxContinuationDebt <= 48);
+    assert.ok(levelFifteen.selection.maxOpeningDebt <= 64);
+    assert.ok(levelFifteen.decisionStyle.bookTrust <= 1);
+    assert.ok(levelFifteen.selection.maxContinuationDebt < levelTen.selection.maxContinuationDebt);
+    assert.ok(levelFifteen.selection.maxOpeningDebt < levelTen.selection.maxOpeningDebt);
+});
+
 test('zor profil daha derin arar ve guvenli adaya daha cok tolerans verir', () => {
     const medium = getAIProfile('medium');
     const hard = getAIProfile('hard');
 
     assert.ok(hard.depth.base >= medium.depth.base + 3);
-    assert.ok(hard.search.rootMoveLimit >= 36);
-    assert.ok(hard.search.branchMoveLimit >= 14);
+    assert.ok(hard.depth.base >= 6);
+    assert.ok(hard.search.rootMoveLimit <= 18);
+    assert.ok(hard.search.branchMoveLimit <= 9);
     assert.ok(hard.selection.maxReplyCaptureValue <= 16);
     assert.ok(hard.selection.unsafeScoreTolerance >= 45);
 });
@@ -88,11 +118,16 @@ test('kolay ve orta profil hata payini korurken dogru hamleye daha yakin durur',
     const easy = getAIProfile('easy');
     const medium = getAIProfile('medium');
 
+    assert.ok(easy.depth.base >= 2);
+    assert.ok(medium.depth.base >= 3);
+    assert.ok(medium.depth.sparseEndgame >= 5);
+    assert.ok(easy.search.rootMoveLimit < medium.search.rootMoveLimit);
+    assert.ok(medium.search.rootMoveLimit < getAIProfile('hard').search.rootMoveLimit);
     assert.equal(easy.selection.mode, 'biased');
-    assert.ok(easy.selection.preferBestProbability > 0.55);
+    assert.ok(easy.selection.preferBestProbability <= 0.6);
     assert.ok(easy.selection.preferBestProbability < medium.selection.preferBestProbability);
-    assert.ok(medium.selection.preferBestProbability >= 0.88);
-    assert.ok(medium.selection.scoreWindow < 8);
+    assert.ok(medium.selection.preferBestProbability >= 0.92);
+    assert.ok(medium.selection.scoreWindow <= 5);
 });
 
 test('zor profil kazanilan son oyunu kolay profilden daha sert puanlar', () => {
@@ -411,7 +446,7 @@ test('kolay profil en iyiye yakin ikinci hamleyi secebilir', () => {
             { score: 96, move: 'third' }
         ],
         getAIProfile('easy'),
-        0.85
+        0.64
     );
 
     assert.equal(choice.move, 'second');
@@ -535,6 +570,85 @@ test('zor profil daima en iyi hamleyi secer', () => {
     );
 
     assert.equal(choice.move, 'best');
+});
+
+test('zor profil gec oyunda tekrar dongusunu puan ustunlugu olsa bile birakir', () => {
+    const choice = selectMoveFromCandidates(
+        [
+            {
+                score: 260,
+                move: 'repeat-route-loop',
+                repetitionRisk: {
+                    severity: 1,
+                    repeatsRecentPosition: true,
+                    repeatsMoveRoute: true
+                },
+                tacticalRisk: { dangerLevel: 0 },
+                opponentReplyThreat: { bestCaptureValue: 0 },
+                staticExchange: { score: 0 }
+            },
+            {
+                score: 120,
+                move: 'new-progress-plan',
+                repetitionRisk: { severity: 0 },
+                tacticalRisk: { dangerLevel: 0 },
+                opponentReplyThreat: { bestCaptureValue: 0 },
+                staticExchange: { score: 0 }
+            }
+        ],
+        getAIProfile('hard'),
+        0.99
+    );
+
+    assert.equal(choice.move, 'new-progress-plan');
+});
+
+test('zor profil uzun oyunda temiz ama sessiz drift yerine zorlayici plani secer', () => {
+    const choice = selectMoveFromCandidates(
+        [
+            {
+                score: 260,
+                move: 'quiet-clean-drift',
+                repetitionRisk: { severity: 0 },
+                tacticalRisk: { dangerLevel: 0 },
+                opponentReplyThreat: { bestCaptureValue: 0 },
+                staticExchange: { score: 0, captureValue: 0, exchangeDebt: 0 },
+                opponentContinuationThreat: { penalty: 0 },
+                metadata: {
+                    moveCount: 260,
+                    captures: false,
+                    givesCheck: false,
+                    opponentMobility: 10,
+                    planProgress: 0,
+                    planDrift: 24,
+                    tempoLoss: 1
+                }
+            },
+            {
+                score: 124,
+                move: 'force-conversion-net',
+                repetitionRisk: { severity: 0 },
+                tacticalRisk: { dangerLevel: 0 },
+                opponentReplyThreat: { bestCaptureValue: 0 },
+                staticExchange: { score: 20, captureValue: 35, exchangeDebt: 0 },
+                opponentContinuationThreat: { penalty: 0 },
+                endgamePlan: { score: 180 },
+                metadata: {
+                    moveCount: 260,
+                    captures: true,
+                    givesCheck: true,
+                    opponentMobility: 2,
+                    planProgress: 24,
+                    planDrift: 0,
+                    tempoLoss: 0
+                }
+            }
+        ],
+        getAIProfile('hard'),
+        0.99
+    );
+
+    assert.equal(choice.move, 'force-conversion-net');
 });
 
 test('zor profil basit tas kaybettirecek riskli hamleyi puani az yuksek diye secmez', () => {
@@ -676,6 +790,157 @@ test('zor profil terminal kazanci guvenlik filtresi yuzunden birakmaz', () => {
     assert.equal(choice.move, 'mate-now');
 });
 
+test('zor profil pat kazanimi yerine yakin puanli mat agi planini tercih edebilir', () => {
+    const choice = selectMoveFromCandidates(
+        [
+            {
+                score: 380,
+                move: 'stalemate-now',
+                tacticalRisk: { dangerLevel: 0 },
+                opponentReplyThreat: { bestCaptureValue: 0 },
+                staticExchange: { score: 0 },
+                metadata: {
+                    terminalWin: true,
+                    terminalResultType: 'stalemate',
+                    moveCount: 228,
+                    opponentMobility: 0,
+                    givesCheck: false,
+                    captures: false
+                }
+            },
+            {
+                score: 340,
+                move: 'mate-net-next',
+                tacticalRisk: { dangerLevel: 0 },
+                opponentReplyThreat: { bestCaptureValue: 0 },
+                staticExchange: { score: 24, captureValue: 35 },
+                endgamePlan: { score: 300 },
+                metadata: {
+                    terminalWin: false,
+                    moveCount: 228,
+                    opponentMobility: 2,
+                    givesCheck: true,
+                    captures: true,
+                    planProgress: 26
+                }
+            }
+        ],
+        getAIProfile('hard', 'timur'),
+        0.99
+    );
+
+    assert.equal(choice.move, 'mate-net-next');
+});
+
+test('zor profil gec oyunda tekrar dongusu yerine aktif kapatma hamlesini secer', () => {
+    const choice = selectMoveFromCandidates(
+        [
+            {
+                score: 720,
+                move: 'high-score-route-loop',
+                repetitionRisk: {
+                    severity: 7,
+                    routeRepeatCount: 5,
+                    repeatsMoveRoute: true,
+                    repeatsRecentPosition: true,
+                    isImmediateReverse: true
+                },
+                tacticalRisk: { dangerLevel: 0 },
+                opponentReplyThreat: { bestCaptureValue: 0 },
+                opponentContinuationThreat: { penalty: 0 },
+                staticExchange: { score: 0, captureValue: 0, exchangeDebt: 0 },
+                metadata: {
+                    isWinningSide: true,
+                    moveCount: 244,
+                    captures: false,
+                    givesCheck: false,
+                    opponentMobility: 9,
+                    planProgress: 0,
+                    planDrift: 30,
+                    tempoLoss: 1
+                }
+            },
+            {
+                score: 270,
+                move: 'active-mate-net-break',
+                repetitionRisk: { severity: 0 },
+                tacticalRisk: { dangerLevel: 0 },
+                opponentReplyThreat: { bestCaptureValue: 0 },
+                opponentContinuationThreat: { penalty: 0 },
+                staticExchange: { score: 34, captureValue: 45, exchangeDebt: 0 },
+                endgamePlan: { score: 340 },
+                metadata: {
+                    isWinningSide: true,
+                    moveCount: 244,
+                    captures: true,
+                    givesCheck: true,
+                    opponentMobility: 2,
+                    planProgress: 34,
+                    planDrift: 0,
+                    tempoLoss: 0
+                }
+            }
+        ],
+        getAIProfile('hard', 'timur'),
+        0.99
+    );
+
+    assert.equal(choice.move, 'active-mate-net-break');
+});
+
+test('orta hesapci profil tekrarli rota yerine temiz ilerleme hamlesine doner', () => {
+    const choice = selectMoveFromCandidates(
+        [
+            {
+                score: 410,
+                move: 'medium-calculated-loop',
+                repetitionRisk: {
+                    severity: 5,
+                    routeRepeatCount: 4,
+                    repeatsMoveRoute: true,
+                    repeatsSearchHistory: true
+                },
+                tacticalRisk: { dangerLevel: 0 },
+                opponentReplyThreat: { bestCaptureValue: 0 },
+                opponentContinuationThreat: { penalty: 0 },
+                staticExchange: { score: 0, captureValue: 0, exchangeDebt: 0 },
+                metadata: {
+                    moveCount: 190,
+                    captures: false,
+                    givesCheck: false,
+                    opponentMobility: 8,
+                    planProgress: 0,
+                    planDrift: 24,
+                    tempoLoss: 1
+                }
+            },
+            {
+                score: 230,
+                move: 'medium-clean-progress',
+                repetitionRisk: { severity: 0 },
+                tacticalRisk: { dangerLevel: 0 },
+                opponentReplyThreat: { bestCaptureValue: 0 },
+                opponentContinuationThreat: { penalty: 0 },
+                staticExchange: { score: 22, captureValue: 35, exchangeDebt: 0 },
+                endgamePlan: { score: 160 },
+                metadata: {
+                    moveCount: 190,
+                    captures: true,
+                    givesCheck: false,
+                    opponentMobility: 3,
+                    planProgress: 24,
+                    planDrift: 0,
+                    tempoLoss: 0
+                }
+            }
+        ],
+        getAIProfile('medium', 'ulu_bey'),
+        0.99
+    );
+
+    assert.equal(choice.move, 'medium-clean-progress');
+});
+
 test('zor profil tempo kaybettiren sessiz hamleye stil cezasini sert uygular', () => {
     const hard = getAIProfile('hard');
     const safeTempo = scoreCandidateDecisionStyle({
@@ -708,4 +973,309 @@ test('zor profil tempo kaybettiren sessiz hamleye stil cezasini sert uygular', (
     }, hard);
 
     assert.ok(badTempo.score < safeTempo.score - 35);
+});
+
+test('hesapci hard persona gec oyunda sessiz drift yerine zorlayici kapanisi secer', () => {
+    for (const personaId of ['ulu_bey', 'saray_veziri']) {
+        const choice = selectMoveFromCandidates(
+            [
+                {
+                    score: 430,
+                    move: `${personaId}-quiet-clean-drift`,
+                    repetitionRisk: { severity: 0 },
+                    tacticalRisk: { dangerLevel: 0 },
+                    opponentReplyThreat: { bestCaptureValue: 0 },
+                    staticExchange: { score: 0, captureValue: 0, exchangeDebt: 0 },
+                    opponentContinuationThreat: { penalty: 0 },
+                    metadata: {
+                        moveCount: 260,
+                        captures: false,
+                        givesCheck: false,
+                        opponentMobility: 10,
+                        planProgress: 0,
+                        planDrift: 28,
+                        tempoLoss: 1
+                    }
+                },
+                {
+                    score: 150,
+                    move: `${personaId}-force-conversion-net`,
+                    repetitionRisk: { severity: 0 },
+                    tacticalRisk: { dangerLevel: 0 },
+                    opponentReplyThreat: { bestCaptureValue: 0 },
+                    staticExchange: { score: 30, captureValue: 45, exchangeDebt: 0 },
+                    opponentContinuationThreat: { penalty: 0 },
+                    endgamePlan: { score: 260 },
+                    metadata: {
+                        moveCount: 260,
+                        captures: true,
+                        givesCheck: true,
+                        opponentMobility: 2,
+                        planProgress: 32,
+                        planDrift: 0,
+                        tempoLoss: 0
+                    }
+                }
+            ],
+            getAIProfile('hard', personaId),
+            0.99
+        );
+
+        assert.equal(choice.move, `${personaId}-force-conversion-net`);
+    }
+});
+
+test('zor profil katastrofik takas borcunu puan farki buyuk olsa bile reddeder', () => {
+    const choice = selectMoveFromCandidates(
+        [
+            {
+                score: 960,
+                move: 'flashy-f7-e8-style-loss',
+                repetitionRisk: { severity: 0 },
+                tacticalRisk: { dangerLevel: 4 },
+                opponentReplyThreat: { bestCaptureValue: 10000 },
+                opponentContinuationThreat: { penalty: -900 },
+                staticExchange: {
+                    score: -10309,
+                    captureValue: 0,
+                    exchangeDebt: 10309,
+                    recaptureRisk: 10014,
+                    favorable: false
+                },
+                metadata: {
+                    moveCount: 315,
+                    captures: false,
+                    givesCheck: false,
+                    opponentMobility: 8,
+                    planProgress: 0,
+                    planDrift: 18,
+                    tempoLoss: 2
+                }
+            },
+            {
+                score: 260,
+                move: 'solid-keep-material',
+                repetitionRisk: { severity: 0 },
+                tacticalRisk: { dangerLevel: 0 },
+                opponentReplyThreat: { bestCaptureValue: 0 },
+                opponentContinuationThreat: { penalty: 0 },
+                staticExchange: {
+                    score: 0,
+                    captureValue: 0,
+                    exchangeDebt: 0,
+                    recaptureRisk: 0,
+                    favorable: true
+                },
+                metadata: {
+                    moveCount: 315,
+                    captures: false,
+                    givesCheck: false,
+                    opponentMobility: 6,
+                    planProgress: 8,
+                    planDrift: 0,
+                    tempoLoss: 0
+                }
+            }
+        ],
+        getAIProfile('hard', 'timur'),
+        0.99
+    );
+
+    assert.equal(choice.move, 'solid-keep-material');
+});
+
+test('zor profil ucuncu tekrar hamlesini buyuk skor farkinda bile yapisal ilerleme icin veto eder', () => {
+    const choice = selectMoveFromCandidates(
+        [
+            {
+                score: 1320,
+                move: 'force-third-repeat-loop',
+                repetitionRisk: {
+                    severity: 6,
+                    repeatsRecentPosition: true,
+                    repeatsSearchHistory: true,
+                    repeatsMoveRoute: true,
+                    routeRepeatCount: 5,
+                    wouldCauseThreefold: true
+                },
+                tacticalRisk: { dangerLevel: 0 },
+                opponentReplyThreat: { bestCaptureValue: 0 },
+                opponentContinuationThreat: { penalty: 0 },
+                staticExchange: { score: 0, captureValue: 0, exchangeDebt: 0 },
+                metadata: {
+                    moveCount: 226,
+                    materialBalanceForMover: 35,
+                    materialBalanceAbs: 35,
+                    captures: false,
+                    givesCheck: false,
+                    opponentMobility: 11,
+                    planProgress: 0,
+                    planDrift: 30,
+                    tempoLoss: 1
+                }
+            },
+            {
+                score: 230,
+                move: 'break-repeat-with-structure',
+                repetitionRisk: { severity: 0 },
+                tacticalRisk: { dangerLevel: 0 },
+                opponentReplyThreat: { bestCaptureValue: 0 },
+                opponentContinuationThreat: { penalty: 0 },
+                staticExchange: { score: 18, captureValue: 0, exchangeDebt: 0 },
+                metadata: {
+                    moveCount: 226,
+                    materialBalanceForMover: 35,
+                    materialBalanceAbs: 35,
+                    captures: false,
+                    givesCheck: false,
+                    opponentMobility: 7,
+                    ownMobilityBefore: 30,
+                    ownMobilityAfter: 36,
+                    planProgress: 34,
+                    planDrift: 0,
+                    pawnAdvance: 1,
+                    lineOpening: true,
+                    tempoLoss: 0
+                }
+            }
+        ],
+        getAIProfile('hard', 'timur'),
+        0.99
+    );
+
+    assert.equal(choice.move, 'break-repeat-with-structure');
+});
+
+test('zor profil ucuncu tekrar yerine zorlayici olmayan ama dongu kiran gelisimi secer', () => {
+    const choice = selectMoveFromCandidates(
+        [
+            {
+                score: 1600,
+                move: 'high-score-third-repeat',
+                repetitionRisk: {
+                    severity: 6,
+                    repeatsRecentPosition: true,
+                    repeatsSearchHistory: true,
+                    repeatsMoveRoute: true,
+                    routeRepeatCount: 5,
+                    wouldCauseThreefold: true
+                },
+                tacticalRisk: { dangerLevel: 0 },
+                opponentReplyThreat: { bestCaptureValue: 0 },
+                opponentContinuationThreat: { penalty: 0 },
+                staticExchange: { score: 0, captureValue: 0, exchangeDebt: 0 },
+                metadata: {
+                    moveCount: 232,
+                    materialBalanceForMover: 20,
+                    materialBalanceAbs: 20,
+                    captures: false,
+                    givesCheck: false,
+                    opponentMobility: 9,
+                    planProgress: 0,
+                    planDrift: 34,
+                    tempoLoss: 1
+                }
+            },
+            {
+                score: 320,
+                move: 'quiet-structural-loop-break',
+                repetitionRisk: { severity: 0 },
+                tacticalRisk: { dangerLevel: 0 },
+                opponentReplyThreat: { bestCaptureValue: 0 },
+                opponentContinuationThreat: { penalty: 0 },
+                staticExchange: { score: 8, captureValue: 0, exchangeDebt: 0 },
+                metadata: {
+                    moveCount: 232,
+                    materialBalanceForMover: 20,
+                    materialBalanceAbs: 20,
+                    captures: false,
+                    givesCheck: false,
+                    opponentMobility: 8,
+                    ownMobilityBefore: 28,
+                    ownMobilityAfter: 32,
+                    planProgress: 12,
+                    planDrift: 0,
+                    pawnAdvance: 1,
+                    lineOpening: true,
+                    tempoLoss: 0
+                }
+            }
+        ],
+        getAIProfile('hard', 'timur'),
+        0.99
+    );
+
+    assert.equal(choice.move, 'quiet-structural-loop-break');
+});
+
+test('zor profil kayip pozisyonda ucuncu tekrar ile beraberlik kurtarmayi korur', () => {
+    const choice = selectMoveFromCandidates(
+        [
+            {
+                score: 680,
+                move: 'save-lost-game-by-threefold',
+                repetitionRisk: {
+                    severity: 6,
+                    repeatsRecentPosition: true,
+                    repeatsSearchHistory: true,
+                    repeatsMoveRoute: true,
+                    routeRepeatCount: 5,
+                    wouldCauseThreefold: true
+                },
+                tacticalRisk: { dangerLevel: 0 },
+                opponentReplyThreat: { bestCaptureValue: 0 },
+                opponentContinuationThreat: { penalty: 0 },
+                staticExchange: { score: 0, captureValue: 0, exchangeDebt: 0 },
+                metadata: {
+                    moveCount: 210,
+                    materialBalanceForMover: -520,
+                    materialBalanceAbs: 520,
+                    isWinningSide: false,
+                    captures: false,
+                    givesCheck: true,
+                    opponentMobility: 4,
+                    planProgress: 10,
+                    planDrift: 0,
+                    tempoLoss: 0
+                }
+            },
+            {
+                score: 420,
+                move: 'continue-lost-position',
+                repetitionRisk: { severity: 0 },
+                tacticalRisk: { dangerLevel: 0 },
+                opponentReplyThreat: { bestCaptureValue: 0 },
+                opponentContinuationThreat: { penalty: 0 },
+                staticExchange: { score: 0, captureValue: 0, exchangeDebt: 0 },
+                metadata: {
+                    moveCount: 210,
+                    materialBalanceForMover: -520,
+                    materialBalanceAbs: 520,
+                    isWinningSide: false,
+                    captures: false,
+                    givesCheck: false,
+                    opponentMobility: 7,
+                    planProgress: 18,
+                    planDrift: 0,
+                    tempoLoss: 0
+                }
+            }
+        ],
+        getAIProfile('hard', 'timur'),
+        0.99
+    );
+
+    assert.equal(choice.move, 'save-lost-game-by-threefold');
+});
+
+test('seviye 15 bot seviye 10dan daha sik gec oyun kapanisina zorlar', () => {
+    const levelTen = getAIProfile('hard', 'timur', 'bot_10_demir_pence');
+    const levelFifteen = getAIProfile('hard', 'timur', 'bot_15_aksak_demir');
+
+    assert.ok(levelFifteen.selection.maxContinuationDebt < levelTen.selection.maxContinuationDebt);
+    assert.ok(levelFifteen.selection.maxOpeningDebt < levelTen.selection.maxOpeningDebt);
+    assert.ok(levelFifteen.weights.winningEndgame > levelTen.weights.winningEndgame);
+    assert.ok(levelFifteen.ordering.pressure > levelTen.ordering.pressure);
+    assert.ok(levelFifteen.decisionStyle.conversion > levelTen.decisionStyle.conversion);
+    assert.ok(levelFifteen.decisionStyle.bookTrust < levelTen.decisionStyle.bookTrust);
 });

@@ -55,8 +55,8 @@ test('5 dakika modu hard AI aramasini daha cevik hale getirir', () => {
     const state = makeState({ timeControl: TIME_CONTROL_IDS.FIVE_MINUTES, pieces: 20, moveCount: 18 });
     const plan = getTimeAdjustedSearchPlan(state, getAIProfile('hard'));
 
-    assert.equal(plan.baseDepth, 5);
-    assert.equal(plan.depth, 4);
+    assert.equal(plan.baseDepth, 6);
+    assert.equal(plan.depth, 5);
     assert.ok(plan.budget.maxThinkMs <= 520);
     assert.ok(plan.profile.search.branchMoveLimit < getAIProfile('hard').search.branchMoveLimit);
 });
@@ -65,7 +65,7 @@ test('30 dakika modu orta oyun sonunda daha derin dusunmeye izin verir', () => {
     const state = makeState({ timeControl: TIME_CONTROL_IDS.THIRTY_MINUTES, pieces: 6, moveCount: 42 });
     const plan = getTimeAdjustedSearchPlan(state, getAIProfile('medium'));
 
-    assert.equal(plan.baseDepth, 4);
+    assert.equal(plan.baseDepth, 5);
     assert.equal(plan.depth, 5);
     assert.ok(plan.budget.reasons.includes('endgame-precision'));
     assert.ok(plan.profile.search.branchMoveLimit > getAIProfile('medium').search.branchMoveLimit);
@@ -81,7 +81,7 @@ test('kritik kendi saatinde AI derinligi ve aday limitini kisar', () => {
     });
     const plan = getTimeAdjustedSearchPlan(state, getAIProfile('hard'));
 
-    assert.equal(plan.depth, 4);
+    assert.equal(plan.depth, 5);
     assert.equal(plan.budget.ownClockPressure, 'critical');
     assert.equal(plan.budget.opponentClockPressure, 'healthy');
     assert.ok(plan.budget.maxThinkMs < 500);
@@ -95,8 +95,8 @@ test('zaman baglami yoksa eski adaptif derinlik korunur', () => {
 
     const plan = getTimeAdjustedSearchPlan(state, getAIProfile('hard'));
 
-    assert.equal(plan.baseDepth, 5);
-    assert.equal(plan.depth, 5);
+    assert.equal(plan.baseDepth, 6);
+    assert.equal(plan.depth, 6);
 });
 
 test('acilista sure baglami varsa AI kitabi hizli takip edecek butce alir', () => {
@@ -148,7 +148,7 @@ test('zorluk sure zekasi kritik pozisyonda kademeli davranir', () => {
     const mediumPlan = getTimeAdjustedSearchPlan(makeDecisiveState({ difficulty: 'medium' }), getAIProfile('medium'));
     const hardPlan = getTimeAdjustedSearchPlan(makeDecisiveState({ difficulty: 'hard' }), getAIProfile('hard'));
 
-    assert.ok(easyPlan.depth <= 2);
+    assert.ok(easyPlan.depth <= 3);
     assert.ok(mediumPlan.depth > easyPlan.depth);
     assert.ok(hardPlan.depth > mediumPlan.depth);
     assert.ok(easyPlan.budget.reasons.includes('easy-limited-time-awareness'));

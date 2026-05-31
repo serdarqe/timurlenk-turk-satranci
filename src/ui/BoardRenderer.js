@@ -675,6 +675,19 @@ export class BoardRenderer {
                         resultType = 'citadel_draw';
                     }
 
+                    if (!resultType) {
+                        const ruleDraw = GameRules.resolveRuleDraw(this.gameState, {
+                            pendingMove: {
+                                piece: { typeBefore: movedPieceBefore?.type },
+                                capturedPiece: serializePiece(captured)
+                            }
+                        });
+                        if (ruleDraw) {
+                            audioManager.playGameOverSound();
+                            resultType = ruleDraw;
+                        }
+                    }
+
                     const movedPieceAfter =
                         postMoveEffects?.activePiece
                         || this.gameState.board.getPieceAt(row, col)

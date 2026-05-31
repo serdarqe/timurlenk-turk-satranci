@@ -23,16 +23,18 @@ function buildBotCalibration(bot) {
     const level = Number(bot.level) || 1;
     const progress = getBotLevelProgress(level);
     const isTrainingHardBot = bot.difficulty === 'hard' && level < 13;
+    const isEliteBot = level >= 13;
+    const isFinalBossBot = level >= 15;
     const depthBonus = level <= 2
         ? -1
-        : (level <= 8 ? 0 : (level <= 12 ? 1 : 2));
+        : (level <= 8 ? 0 : (level <= 12 ? 1 : (isFinalBossBot ? 3 : 2)));
 
     return Object.freeze({
         strengthScore: level * 100,
         search: Object.freeze({
             depthBonus,
-            rootMoveScale: roundTo(0.72 + (progress * 0.5)),
-            branchMoveScale: roundTo(0.62 + (progress * 0.58))
+            rootMoveScale: roundTo(0.72 + (progress * 0.5) + (isEliteBot ? 0.08 : 0)),
+            branchMoveScale: roundTo(0.62 + (progress * 0.58) + (isEliteBot ? 0.06 : 0))
         }),
         selection: Object.freeze({
             preferBestProbabilityDelta: roundTo(-0.18 + (progress * 0.25)),
@@ -48,14 +50,16 @@ function buildBotCalibration(bot) {
             poolSizeOverride: isTrainingHardBot ? 2 : null,
             preferBestProbabilityOverride: isTrainingHardBot
                 ? roundTo(clampNumber(0.9 + ((level - 10) * 0.03), 0.9, 0.97))
-                : null
+                : null,
+            maxContinuationDebtOverride: isEliteBot ? (isFinalBossBot ? 22 : 30) : (isTrainingHardBot ? 64 : null),
+            maxOpeningDebtOverride: isEliteBot ? (isFinalBossBot ? 26 : 34) : (isTrainingHardBot ? 84 : null)
         }),
         weights: Object.freeze({
-            endgameScale: roundTo(0.68 + (progress * 0.62)),
+            endgameScale: roundTo(0.68 + (progress * 0.68) + (isEliteBot ? 0.24 : 0) + (isFinalBossBot ? 0.14 : 0)),
             safetyScale: roundTo(0.72 + (progress * 0.5)),
             mobilityScale: roundTo(0.75 + (progress * 0.35)),
-            repetitionScale: roundTo(0.8 + (progress * 0.5)),
-            pressureScale: roundTo(0.76 + (progress * 0.5))
+            repetitionScale: roundTo(0.8 + (progress * 0.55) + (isEliteBot ? 0.26 : 0) + (isFinalBossBot ? 0.12 : 0)),
+            pressureScale: roundTo(0.76 + (progress * 0.56) + (isEliteBot ? 0.2 : 0) + (isFinalBossBot ? 0.12 : 0))
         })
     });
 }
@@ -256,7 +260,7 @@ export const AI_BOTS = Object.freeze([
             en: 'Focused on converting advantages.'
         },
         openingBookPreferences: ['timur_siege', 'rook_corridor', 'center_pawn'],
-        engineModifiers: { precision: 1.2, safety: 1.18, conversion: 1.2, bookTrust: 1.0 }
+        engineModifiers: { precision: 1.22, safety: 1.18, conversion: 1.28, pressure: 1.24, bookTrust: 0.96 }
     }),
     freezeBot({
         id: 'bot_14_cihan_fatihi',
@@ -270,7 +274,7 @@ export const AI_BOTS = Object.freeze([
             en: 'Deep calculation and pressure.'
         },
         openingBookPreferences: ['timur_siege', 'double_knight_pressure', 'rook_corridor'],
-        engineModifiers: { precision: 1.26, pressure: 1.24, safety: 1.2, bookTrust: 1.02 }
+        engineModifiers: { precision: 1.3, pressure: 1.32, safety: 1.18, conversion: 1.32, bookTrust: 0.94 }
     }),
     freezeBot({
         id: 'bot_15_aksak_demir',
@@ -284,7 +288,7 @@ export const AI_BOTS = Object.freeze([
             en: 'The hardest bot; rarely misses simple chances.'
         },
         openingBookPreferences: ['timur_siege', 'rook_corridor', 'active_camel'],
-        engineModifiers: { precision: 1.35, pressure: 1.28, safety: 1.25, conversion: 1.28, bookTrust: 1.04 }
+        engineModifiers: { precision: 1.42, pressure: 1.42, safety: 1.22, conversion: 1.48, bookTrust: 0.9 }
     })
 ]);
 

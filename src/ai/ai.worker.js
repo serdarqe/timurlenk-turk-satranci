@@ -25,6 +25,7 @@ import {
     storeTranspositionEntry as putTranspositionEntry
 } from './TranspositionTable.js';
 import {
+    analyzeMatingNetState,
     analyzeRepetitionRisk,
     buildPositionHash,
     getRecentPositionHashes,
@@ -293,6 +294,9 @@ function createSearchMemoryStats(memory) {
         lateMoveReductions: 0,
         lateMoveResearches: 0,
         searchExtensions: 0,
+        rootCandidateOriginalCount: 0,
+        rootCandidateLimit: 0,
+        rootCandidatePrunes: 0,
         futilityPrunes: 0,
         reverseFutilityPrunes: 0,
         futilityTacticalGuards: 0,
@@ -675,6 +679,25 @@ function mapBlackPerspectiveMoveToWhiteState(originalState, mirroredMove) {
     }
 }
 
+function mapBlackPerspectiveCandidateToWhiteState(originalState, candidate) {
+    if (!candidate) return candidate;
+    const mappedMove = mapBlackPerspectiveMoveToWhiteState(originalState, candidate.move);
+    return {
+        ...candidate,
+        move: mappedMove || candidate.move
+    };
+}
+
+function mapBlackPerspectiveSearchInfoToWhiteState(originalState, searchInfo) {
+    if (!searchInfo) return null;
+    return {
+        ...searchInfo,
+        candidates: Array.isArray(searchInfo.candidates)
+            ? searchInfo.candidates.map((candidate) => mapBlackPerspectiveCandidateToWhiteState(originalState, candidate))
+            : searchInfo.candidates
+    };
+}
+
 function withTurn(state, color, callback) {
     const previousTurn = state.currentTurn;
     state.currentTurn = color;
@@ -708,6 +731,21 @@ function getBoardCenterValue(row, col) {
 function getForwardDelta(piece, fromRow, toRow) {
     if (!piece || !Number.isFinite(fromRow) || !Number.isFinite(toRow)) return 0;
     return piece.color === COLORS.BLACK ? toRow - fromRow : fromRow - toRow;
+}
+
+function getSideNonRoyalMaterial(state, color) {
+    if (!state?.board?.pieces?.length || !color) return 0;
+    return state.board.pieces.reduce((total, piece) => (
+        piece.color === color && !GameRules.isRoyalType(piece.type)
+            ? total + (PIECE_VALUES[piece.type] || 0)
+            : total
+    ), 0);
+}
+
+function getMaterialBalanceForColor(state, color) {
+    if (!color) return 0;
+    const opponentColor = getOppositeColor(color);
+    return getSideNonRoyalMaterial(state, color) - getSideNonRoyalMaterial(state, opponentColor);
 }
 
 function isStrategicDevelopmentPiece(piece) {
@@ -752,7 +790,8 @@ function buildRootMovePlanMetrics(state, moveObj, appliedMove, context = {}) {
     const supportAfter = countPotentialSupportForSquare(state, toRow, toCol, piece?.color, piece);
     const edgeDrift = (toCol <= 0 || toCol >= 10 || toRow <= 0 || toRow >= 9) ? 1 : 0;
     const developmentGain = isStrategicDevelopmentPiece(piece) && !wasMovedBefore ? 8 : 0;
-    const pawnStructureGain = piece?.type === PIECE_TYPES.PAWN && forwardDelta > 0 ? Math.min(6, forwardDelta) * 1.4 : 0;
+    const pawnAdvance = piece?.type === PIECE_TYPES.PAWN ? Math.max(0, forwardDelta) : 0;
+    const pawnStructureGain = pawnAdvance > 0 ? Math.min(6, pawnAdvance) * 1.4 : 0;
     const safeCaptureGain = captures ? Math.max(0, Math.min(120, captureValue + staticExchangeScore)) * 0.06 : 0;
     const forcingGain = (givesCheck ? 6 : 0) + (terminalWin ? 24 : 0);
     const opponentRestrictionGain = Math.max(0, 12 - opponentMobility) * 1.2;
@@ -765,6 +804,13 @@ function buildRootMovePlanMetrics(state, moveObj, appliedMove, context = {}) {
         && forwardDelta <= 0
         && mobilityGain <= 0
         && developmentGain <= 0;
+    const lineOpening = !captures
+        && !terminalWin
+        && (
+            mobilityGain >= 4
+            || (isStrategicDevelopmentPiece(piece) && centerGain > 0 && supportAfter >= 2)
+            || (pawnAdvance > 0 && supportAfter >= 2)
+        );
 
     const planProgress = (
         Math.max(0, centerGain) * 4.2
@@ -793,7 +839,9 @@ function buildRootMovePlanMetrics(state, moveObj, appliedMove, context = {}) {
         planDrift: clampFinite(planDrift, 0, 180),
         planCenterGain: clampFinite(centerGain, -12, 12),
         planMobilityGain: clampFinite(mobilityGain, -80, 80),
-        planSupportAfter: clampFinite(supportAfter, 0, 12)
+        planSupportAfter: clampFinite(supportAfter, 0, 12),
+        pawnAdvance: clampFinite(pawnAdvance, 0, 6),
+        lineOpening
     };
 }
 
@@ -837,8 +885,10 @@ export function scoreTerminalStateForBlack(state, profile = null, depthRemaining
     if (!state || state.status !== 'game_over') return null;
 
     const depthBonus = Math.max(0, depthRemaining || 0) * 750;
-    if (state.winner === COLORS.BLACK) return 120000 + depthBonus;
-    if (state.winner === COLORS.WHITE) return -120000 - depthBonus;
+    const isStalemate = state.resultType === 'stalemate' || state.stalemate;
+    const winScore = isStalemate ? 52000 : 120000;
+    if (state.winner === COLORS.BLACK) return winScore + depthBonus;
+    if (state.winner === COLORS.WHITE) return -winScore - depthBonus;
     if (state.winner === 'Draw (Hisar)' || state.winner === 'draw' || state.isDraw) return 0;
 
     return 0;
@@ -963,6 +1013,123 @@ function limitSearchMoves(moves, profile, limitKey) {
     const limit = profile?.search?.[limitKey];
     if (!Number.isFinite(limit) || limit <= 0) return moves;
     return moves.slice(0, limit);
+}
+
+function isRootForcingSearchMove(state, moveObj) {
+    if (!state?.board || !moveObj?.piece || !moveObj?.move) return false;
+
+    const targetPiece = state.board.getPieceAt(moveObj.move.row, moveObj.move.col);
+    if (targetPiece && targetPiece.color !== moveObj.piece.color) return true;
+    if (moveObj.move.specialMove) return true;
+    if (
+        moveObj.piece.type === PIECE_TYPES.PAWN
+        && (
+            (moveObj.piece.color === COLORS.BLACK && moveObj.move.row >= 8)
+            || (moveObj.piece.color === COLORS.WHITE && moveObj.move.row <= 1)
+        )
+    ) {
+        return true;
+    }
+
+    let appliedMove = null;
+    const originalTurn = state.currentTurn;
+    try {
+        appliedMove = applySearchMove(state, moveObj);
+        const opponentColor = getOppositeColor(moveObj.piece.color);
+        state.currentTurn = opponentColor;
+        return withTurn(state, opponentColor, () => new MoveValidator(state).isCheck(opponentColor));
+    } catch {
+        return false;
+    } finally {
+        if (appliedMove) revertSearchMove(state, moveObj, appliedMove);
+        state.currentTurn = originalTurn;
+    }
+}
+
+export function limitRootSearchMovesForSearch(state, moves = [], budget = {}, profile = null) {
+    const limit = Math.max(0, Math.floor(Number.isFinite(budget?.limit) ? budget.limit : moves.length));
+    const primaryMoves = moves.slice(0, limit);
+    if (limit <= 0 || limit >= moves.length) return primaryMoves;
+
+    const baseId = profile?.baseId || String(profile?.id || 'medium').split(':')[0];
+    const protectedLimit = baseId === 'hard'
+        ? 6
+        : (baseId === 'medium' ? 4 : 2);
+    const seen = new Set(primaryMoves);
+    const protectedMoves = [];
+
+    for (const move of moves.slice(limit)) {
+        if (protectedMoves.length >= protectedLimit) break;
+        if (seen.has(move)) continue;
+        if (!isRootForcingSearchMove(state, move)) continue;
+        protectedMoves.push(move);
+        seen.add(move);
+    }
+
+    return [...primaryMoves, ...protectedMoves];
+}
+
+export function getRootCandidateBudgetForSearch({
+    profile = null,
+    maxThinkMs = Infinity,
+    moveCount = 0,
+    candidateCount = 0
+} = {}) {
+    const originalCount = Math.max(0, Math.floor(Number.isFinite(candidateCount) ? candidateCount : 0));
+    const profileLimit = profile?.search?.rootMoveLimit;
+    const cappedByProfile = Number.isFinite(profileLimit) && profileLimit > 0
+        ? Math.min(originalCount, Math.floor(profileLimit))
+        : originalCount;
+
+    if (cappedByProfile <= 0) {
+        return {
+            limit: 0,
+            originalCount,
+            pruned: 0,
+            reason: null
+        };
+    }
+
+    const baseId = profile?.baseId || String(profile?.id || 'medium').split(':')[0];
+    const timeMs = Number.isFinite(maxThinkMs) ? maxThinkMs : Infinity;
+    const movesPlayed = Number.isFinite(moveCount) ? moveCount : 0;
+    let dynamicLimit = cappedByProfile;
+    let reason = null;
+
+    if (timeMs <= 110) {
+        const fastLimit = baseId === 'hard'
+            ? (timeMs <= 75 ? 12 : 14)
+            : (baseId === 'medium' ? (timeMs <= 75 ? 10 : 12) : (timeMs <= 75 ? 8 : 10));
+        const lateReduction = movesPlayed >= 240
+            ? (baseId === 'hard' ? 4 : 2)
+            : (movesPlayed >= 160 ? (baseId === 'hard' ? 2 : 1) : 0);
+        const minimum = baseId === 'hard' ? 8 : (baseId === 'medium' ? 8 : 6);
+        dynamicLimit = Math.max(minimum, fastLimit - lateReduction);
+        reason = 'low_time_candidate_prune';
+    } else if (timeMs <= 180 && baseId === 'hard' && movesPlayed >= 160) {
+        dynamicLimit = 22;
+        reason = 'late_game_candidate_prune';
+    }
+
+    const limit = Math.min(cappedByProfile, dynamicLimit);
+    return {
+        limit,
+        originalCount: cappedByProfile,
+        pruned: Math.max(0, cappedByProfile - limit),
+        reason: limit < cappedByProfile ? reason : null
+    };
+}
+
+function recordRootCandidateBudget(searchContext, budget) {
+    if (!searchContext?.stats || !budget) return;
+    searchContext.stats.rootCandidateOriginalCount = Math.max(
+        searchContext.stats.rootCandidateOriginalCount || 0,
+        budget.originalCount || 0
+    );
+    searchContext.stats.rootCandidateLimit = budget.limit || 0;
+    if (budget.pruned > 0 && Number.isFinite(searchContext.stats.rootCandidatePrunes)) {
+        searchContext.stats.rootCandidatePrunes += budget.pruned;
+    }
 }
 
 function getSearchNow() {
@@ -1329,20 +1496,27 @@ export function buildSearchMoveRiskContext(state, appliedMove, moveObj, profile,
         move,
         searchHistoryHashes
     });
+    const isWinningSide = isWinningSideState(state, moveObj.piece.color);
+    const matingNet = (isWinningSide && repetitionRisk.severity > 0)
+        ? analyzeMatingNetState(state, moveObj.piece.color)
+        : null;
     const repetitionPenalty = scoreRepetitionPenalty({
         nextHash,
         recentPositionHashes: state.aiRecentPositionHashes,
         recentMoves: state.aiRecentMoves,
         move,
-        isWinningSide: isWinningSideState(state, moveObj.piece.color),
+        isWinningSide,
         searchHistoryHashes,
-        profile
+        profile,
+        risk: repetitionRisk,
+        matingNet
     }) * profile.weights.repetition;
 
     return {
         nextHash,
         move,
         repetitionRisk,
+        matingNet,
         repetitionPenalty
     };
 }
@@ -1429,6 +1603,29 @@ function resolveSearchProfile(profileInput = 'medium') {
 function getStaticExchangeRootWeight(profile) {
     const baseId = getProfileBaseId(profile);
     return STATIC_EXCHANGE_ROOT_WEIGHT[baseId] ?? STATIC_EXCHANGE_ROOT_WEIGHT.medium;
+}
+
+function scoreEndgameMaterialConversionMove(state, moveObj, {
+    captures = false,
+    captureValue = 0,
+    staticExchange = null,
+    terminalWin = false,
+    profile = null
+} = {}) {
+    if (!state?.board || !moveObj?.piece || !captures || terminalWin) return 0;
+    if ((state.board.pieces.length || 0) > 8) return 0;
+    if (!isWinningSideState(state, moveObj.piece.color)) return 0;
+    if (!Number.isFinite(captureValue) || captureValue <= 0) return 0;
+    if (GameRules.isRoyalType(moveObj.piece.type)) return 0;
+
+    const exchangeScore = Number.isFinite(staticExchange?.score) ? staticExchange.score : 0;
+    const exchangeDebt = Number.isFinite(staticExchange?.exchangeDebt) ? staticExchange.exchangeDebt : Math.max(0, -exchangeScore);
+    if (exchangeDebt > 0 || exchangeScore < -8) return 0;
+
+    const baseId = getProfileBaseId(profile || resolveSearchProfile(state.difficulty || 'hard'));
+    const difficultyScale = baseId === 'easy' ? 0.45 : (baseId === 'medium' ? 0.78 : 1);
+    const raw = captureValue * 90 + Math.max(0, exchangeScore) * 20;
+    return Math.min(1800, raw) * difficultyScale;
 }
 
 const ASPIRATION_WINDOW = Object.freeze({
@@ -2280,7 +2477,7 @@ function evaluateRootCandidates(
 ) {
     const rootPositionMemoryKey = buildSearchMemoryPositionKey(state, profile, true);
     const moveCount = getStateMoveCount(state);
-    const moves = limitSearchMoves(
+    const profileLimitedMoves = limitSearchMoves(
         sortMovesForSearch(state, collectMoves(state), true, profile, priorityMove, searchContext, {
             ply: 0,
             depth,
@@ -2290,6 +2487,14 @@ function evaluateRootCandidates(
         profile,
         'rootMoveLimit'
     );
+    const rootBudget = getRootCandidateBudgetForSearch({
+        profile,
+        maxThinkMs: searchDeadline?.maxThinkMs,
+        moveCount,
+        candidateCount: profileLimitedMoves.length
+    });
+    recordRootCandidateBudget(searchContext, rootBudget);
+    const moves = limitRootSearchMovesForSearch(state, profileLimitedMoves, rootBudget, profile);
     const candidates = [];
     const searchAlpha = Number.isFinite(searchBounds?.alpha) ? searchBounds.alpha : -Infinity;
     const searchBeta = Number.isFinite(searchBounds?.beta) ? searchBounds.beta : Infinity;
@@ -2309,6 +2514,7 @@ function evaluateRootCandidates(
         const staticExchange = evaluateStaticExchangeForMove(state, moveObj, profile);
         const tacticalMotifs = analyzeTacticalMotifsForMove(state, moveObj, profile);
         const middleGameMove = analyzeMiddleGameMove(state, moveObj, profile);
+        const materialBalanceForMover = getMaterialBalanceForColor(state, moveObj.piece.color);
         const rootExtensionBudget = getSearchExtensionBudget(profile);
         const extension = shouldExtendSearchMove(state, moveObj, profile, rootExtensionBudget) ? 1 : 0;
         const nextExtensionBudget = Math.max(0, rootExtensionBudget - extension);
@@ -2326,12 +2532,13 @@ function evaluateRootCandidates(
         const tracksTempo = getProfileBaseId(profile) !== 'easy';
         const wasMovedBefore = Boolean(moveObj.piece.hasMoved);
         const ownMobilityBefore = tracksTempo ? countLegalMovesForColor(state, moveObj.piece.color) : 0;
+        const ownInCheckBefore = withTurn(state, moveObj.piece.color, () => new MoveValidator(state).isCheck(moveObj.piece.color));
         const appliedMove = applySearchMove(state, moveObj);
         const originalTurn = state.currentTurn;
         state.currentTurn = originalTurn === COLORS.WHITE ? COLORS.BLACK : COLORS.WHITE;
         const terminalState = applySearchTerminalState(state, state.currentTurn);
 
-        const { nextHash, repetitionRisk, repetitionPenalty } = buildSearchMoveRiskContext(state, appliedMove, moveObj, profile);
+        const { nextHash, repetitionRisk, repetitionPenalty, matingNet } = buildSearchMoveRiskContext(state, appliedMove, moveObj, profile);
         const endgamePlan = analyzeEndgameMoveOutcome(state, moveObj, profile, terminalState);
         const endgameOutcomeScore = endgamePlan.score;
         const tacticalRisk = evaluateTacticalRisk(state, moveObj.piece.color, appliedMove.activePiece);
@@ -2348,6 +2555,13 @@ function evaluateRootCandidates(
         const givesCheck = withTurn(state, opponentColor, () => new MoveValidator(state).isCheck(opponentColor));
         const opponentMobility = countLegalMovesForColor(state, opponentColor);
         const terminalWin = Boolean(terminalState?.resultType && state.winner === moveObj.piece.color);
+        const endgameMaterialConversion = scoreEndgameMaterialConversionMove(state, moveObj, {
+            captures,
+            captureValue,
+            staticExchange,
+            terminalWin,
+            profile
+        });
         const ownMobilityAfter = tracksTempo ? countLegalMovesForColor(state, moveObj.piece.color) : ownMobilityBefore;
         const quietMoveOpponentFreedom = (!captures && !givesCheck && !terminalWin)
             ? Math.max(0, opponentMobility - 16) * 0.35
@@ -2417,6 +2631,7 @@ function evaluateRootCandidates(
                     + opponentContinuationThreat.penalty
                     + clockPressure.bonus
                     + staticExchange.score * getStaticExchangeRootWeight(profile)
+                    + endgameMaterialConversion
                     + tacticalMotifs.score
                     + middleGameMove.score
                 );
@@ -2460,6 +2675,7 @@ function evaluateRootCandidates(
             + opponentContinuationThreat.penalty
             + clockPressure.bonus
             + staticExchange.score * getStaticExchangeRootWeight(profile)
+            + endgameMaterialConversion
             + tacticalMotifs.score
             + middleGameMove.score
         );
@@ -2477,9 +2693,19 @@ function evaluateRootCandidates(
             clockPressure,
             metadata: {
                 isWinningSide: isWinningSideState(state, moveObj.piece.color),
+                materialBalanceForMover,
+                materialBalanceAbs: Math.abs(materialBalanceForMover),
+                matingNetActive: Boolean(matingNet?.active),
+                matingNetScore: matingNet?.score || 0,
+                matingNetReasons: matingNet?.reasons || [],
                 moveCount,
                 captures,
                 givesCheck,
+                criticalReplyCheck: (
+                    getProfileBaseId(profile) === 'hard'
+                    || (getProfileBaseId(profile) === 'medium' && moveCount >= 120)
+                ),
+                ownInCheckBefore,
                 opponentMobility,
                 ownMobilityBefore,
                 ownMobilityAfter,
@@ -2585,9 +2811,9 @@ function evaluateRootCandidatesIteratively(
 }
 
 const OPENING_BOOK_SCORE_WINDOW = Object.freeze({
-    easy: 72,
-    medium: 40,
-    hard: 70
+    easy: 64,
+    medium: 34,
+    hard: 34
 });
 
 const OPENING_BOOK_TACTICAL_WINDOW = Object.freeze({
@@ -2597,15 +2823,33 @@ const OPENING_BOOK_TACTICAL_WINDOW = Object.freeze({
 });
 
 const OPENING_BOOK_REPLY_RISK_LIMIT = Object.freeze({
-    easy: 110,
-    medium: 58,
-    hard: 24
+    easy: 96,
+    medium: 38,
+    hard: 12
 });
 
 const OPENING_BOOK_EXCHANGE_DEBT_LIMIT = Object.freeze({
-    easy: 70,
-    medium: 34,
-    hard: 12
+    easy: 56,
+    medium: 20,
+    hard: 4
+});
+
+const OPENING_BOOK_DATA_SCORE_LIMIT = Object.freeze({
+    easy: 0.22,
+    medium: 0.38,
+    hard: 0.58
+});
+
+const OPENING_BOOK_STYLE_DEBT_LIMIT = Object.freeze({
+    easy: 180,
+    medium: 76,
+    hard: 32
+});
+
+const OPENING_BOOK_REPETITION_LIMIT = Object.freeze({
+    easy: 2,
+    medium: 1,
+    hard: 0
 });
 
 function getProfileBaseId(profile) {
@@ -2651,6 +2895,10 @@ export function selectOpeningCandidateIfSafe(candidates = [], openingMove = null
     const bookConfidence = clampOpeningTrust(openingMove.openingConfidence, 1);
     const transitionTrust = openingMove.openingTransition ? 0.55 : 1;
     const openingTrust = Math.max(0.25, Math.min(1.15, bookConfidence * transitionTrust));
+    const dataScore = Number.isFinite(openingMove.openingDataScore) ? openingMove.openingDataScore : null;
+    const dataScoreLimit = OPENING_BOOK_DATA_SCORE_LIMIT[baseId] ?? OPENING_BOOK_DATA_SCORE_LIMIT.medium;
+    if (dataScore != null && dataScore < dataScoreLimit) return null;
+
     const scoreWindowFloor = baseId === 'hard' ? 6 : (baseId === 'medium' ? 12 : 18);
     const scoreWindow = openingMove.openingTransition && bookConfidence < 0.6
         ? scoreWindowFloor
@@ -2676,6 +2924,10 @@ export function selectOpeningCandidateIfSafe(candidates = [], openingMove = null
     const dangerLevel = openingCandidate.tacticalRisk?.dangerLevel ?? 0;
     if (dangerLevel > maxDangerLevel) return null;
 
+    const repetitionSeverity = openingCandidate.repetitionRisk?.severity ?? 0;
+    const maxOpeningRepetition = OPENING_BOOK_REPETITION_LIMIT[baseId] ?? OPENING_BOOK_REPETITION_LIMIT.medium;
+    if (repetitionSeverity > maxOpeningRepetition) return null;
+
     const replyRiskLimit = Math.min(
         Number.isFinite(profile?.selection?.maxReplyCaptureValue)
             ? profile.selection.maxReplyCaptureValue
@@ -2687,6 +2939,10 @@ export function selectOpeningCandidateIfSafe(candidates = [], openingMove = null
     const exchangeDebt = openingCandidate.staticExchange?.exchangeDebt ?? Math.max(0, -(openingCandidate.staticExchange?.score ?? 0));
     if (openingCandidate.staticExchange?.favorable === false && exchangeDebt > exchangeDebtLimit) return null;
     if (replyCaptureValue > replyRiskLimit && exchangeDebt > exchangeDebtLimit) return null;
+
+    const styleOpeningDebt = Math.max(0, -(openingCandidate.styleAdjustment?.components?.opening ?? 0));
+    const styleDebtLimit = OPENING_BOOK_STYLE_DEBT_LIMIT[baseId] ?? OPENING_BOOK_STYLE_DEBT_LIMIT.medium;
+    if (styleOpeningDebt > styleDebtLimit) return null;
 
     return {
         ...openingCandidate,
@@ -2733,7 +2989,7 @@ function selectBlackMoveAnalysisForState(gameState, options = {}) {
         const mateDeadline = mateNow() + mateBudget;
         const mateResult = findForcedMate(gameState, COLORS.BLACK, {
             deadline: mateDeadline,
-            maxDepth: 16,
+            maxDepth: 20,
             maxNodes: 1_400_000,
             now: mateNow
         });
@@ -2830,7 +3086,7 @@ export function selectAiMoveAnalysisForState(gameState, options = {}) {
         const mirroredAnalysis = selectBlackMoveAnalysisForState(mirroredState, options);
         return {
             move: mapBlackPerspectiveMoveToWhiteState(gameState, mirroredAnalysis?.move),
-            searchInfo: mirroredAnalysis?.searchInfo || null
+            searchInfo: mapBlackPerspectiveSearchInfoToWhiteState(gameState, mirroredAnalysis?.searchInfo)
         };
     }
 

@@ -3,9 +3,9 @@ import { getAdaptiveSearchDepth } from './AiStrategy.js';
 import { calculateAIPositionCriticality } from './AIPositionCriticality.js';
 
 const PROFILE_DEPTH_LIMITS = Object.freeze({
-    easy: Object.freeze({ min: 1, max: 2 }),
+    easy: Object.freeze({ min: 1, max: 3 }),
     medium: Object.freeze({ min: 1, max: 5 }),
-    hard: Object.freeze({ min: 2, max: 7 })
+    hard: Object.freeze({ min: 2, max: 8 })
 });
 
 const TIME_MODE_BUDGETS = Object.freeze({
@@ -31,7 +31,7 @@ const TIME_MODE_BUDGETS = Object.freeze({
         maxThinkMs: Object.freeze({ easy: 210, medium: 620, hard: 1200 }),
         depthDelta: 1,
         rootScale: 1.05,
-        branchScale: 1.08
+        branchScale: 1.12
     })
 });
 

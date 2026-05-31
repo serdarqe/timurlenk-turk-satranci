@@ -7,9 +7,11 @@ import { COLORS } from '../src/utils/constants.js';
 import { getAIProfile } from '../src/ai/AIProfiles.js';
 import {
     analyzeRepetitionRisk,
+    analyzeMatingNetState,
     buildPositionHash,
     evaluateWinningEndgame,
     getAdaptiveSearchDepth,
+    isInMatingNet,
     scoreRepetitionPenalty
 } from '../src/ai/AiStrategy.js';
 
@@ -134,6 +136,85 @@ test('scoreRepetitionPenalty kazanan hard taraf icin rota tekrarini agir cezalan
     });
 
     assert.ok(penalty <= -360);
+});
+
+test('analyzeMatingNetState rakip sahi kenarda ve dusuk mobilitede mat agi sayar', () => {
+    const netState = new GameState();
+    netState.currentTurn = COLORS.BLACK;
+    netState.board.setPiece(0, 0, new King(COLORS.WHITE, 0, 0));
+    netState.board.setPiece(0, 2, new Rook(COLORS.BLACK, 0, 2));
+    netState.board.setPiece(2, 1, new King(COLORS.BLACK, 2, 1));
+
+    const openState = new GameState();
+    openState.currentTurn = COLORS.BLACK;
+    openState.board.setPiece(4, 5, new King(COLORS.WHITE, 4, 5));
+    openState.board.setPiece(0, 2, new Rook(COLORS.BLACK, 0, 2));
+    openState.board.setPiece(2, 1, new King(COLORS.BLACK, 2, 1));
+
+    const net = analyzeMatingNetState(netState, COLORS.BLACK);
+    const open = analyzeMatingNetState(openState, COLORS.BLACK);
+
+    assert.equal(net.active, true);
+    assert.equal(isInMatingNet(netState, COLORS.BLACK), true);
+    assert.equal(open.active, false);
+    assert.ok(net.score > open.score);
+    assert.ok(net.reasons.includes('edge-box') || net.reasons.includes('corner-box'));
+});
+
+test('scoreRepetitionPenalty mat aginda tekrar cezasini kontrollu yumusatir', () => {
+    const params = {
+        nextHash: 'fresh-hash',
+        recentPositionHashes: ['fresh-hash'],
+        recentMoves: [
+            { color: COLORS.BLACK, fromRow: 0, fromCol: 2, toRow: 0, toCol: 5 },
+            { color: COLORS.BLACK, fromRow: 0, fromCol: 5, toRow: 0, toCol: 2 },
+            { color: COLORS.BLACK, fromRow: 0, fromCol: 2, toRow: 0, toCol: 5 },
+            { color: COLORS.BLACK, fromRow: 0, fromCol: 5, toRow: 0, toCol: 2 }
+        ],
+        move: { fromRow: 0, fromCol: 2, toRow: 0, toCol: 5, color: COLORS.BLACK },
+        isWinningSide: true,
+        profile: getAIProfile('hard')
+    };
+
+    const normalPenalty = scoreRepetitionPenalty(params);
+    const matingNetPenalty = scoreRepetitionPenalty({
+        ...params,
+        inMatingNet: true,
+        matingNet: {
+            active: true,
+            score: 520,
+            opponentMobility: 1
+        }
+    });
+
+    assert.ok(normalPenalty < -1000);
+    assert.ok(matingNetPenalty > normalPenalty);
+    assert.ok(matingNetPenalty >= -70);
+});
+
+test('scoreRepetitionPenalty mat aginda agir rota dongusunu tamamen bedava birakmaz', () => {
+    const penalty = scoreRepetitionPenalty({
+        nextHash: 'loop-hash',
+        recentPositionHashes: ['loop-hash'],
+        recentMoves: [
+            { color: COLORS.BLACK, fromRow: 0, fromCol: 2, toRow: 0, toCol: 5 },
+            { color: COLORS.BLACK, fromRow: 0, fromCol: 5, toRow: 0, toCol: 2 },
+            { color: COLORS.BLACK, fromRow: 0, fromCol: 2, toRow: 0, toCol: 5 },
+            { color: COLORS.BLACK, fromRow: 0, fromCol: 5, toRow: 0, toCol: 2 },
+            { color: COLORS.BLACK, fromRow: 0, fromCol: 2, toRow: 0, toCol: 5 }
+        ],
+        move: { fromRow: 0, fromCol: 2, toRow: 0, toCol: 5, color: COLORS.BLACK },
+        isWinningSide: true,
+        profile: getAIProfile('hard'),
+        matingNet: {
+            active: true,
+            score: 260,
+            opponentMobility: 5
+        }
+    });
+
+    assert.ok(penalty < 0);
+    assert.ok(penalty >= -180);
 });
 
 test('evaluateWinningEndgame rakibi kenara ve hareketsizlige iten pozisyonu odullendirir', () => {

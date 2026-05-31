@@ -49,3 +49,16 @@ test('personalar ayni zorlukta hamle secim risklerini de ayristirir', () => {
     assert.ok(sarayVeziri.selection.unsafeScoreTolerance > beyazid.selection.unsafeScoreTolerance);
     assert.equal(hardBeyazid.selection.maxDangerLevel, 0);
 });
+
+test('Timur persona ham saldiri yerine guvenli kazanc donusumunu temsil eder', () => {
+    const base = getAIProfile('medium');
+    const timur = getAIProfile('medium', 'timur');
+    const beyazid = getAIProfile('medium', 'beyazid');
+
+    assert.ok(timur.ordering.pressure < beyazid.ordering.pressure);
+    assert.ok(timur.weights.material > base.weights.material);
+    assert.ok(timur.weights.royalSafety > base.weights.royalSafety);
+    assert.ok(timur.decisionStyle.safety > base.decisionStyle.safety);
+    assert.ok(timur.decisionStyle.riskTolerance < beyazid.decisionStyle.riskTolerance);
+    assert.ok(timur.selection.unsafeScoreTolerance <= 4);
+});

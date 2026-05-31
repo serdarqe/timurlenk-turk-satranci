@@ -48,6 +48,24 @@ test('oyun sonu motoru sah veren mat agini sessiz oyalanmadan cok daha degerli g
     assert.ok(checkingPlan.reasons.includes('check-pressure'));
 });
 
+test('oyun sonu motoru rakip kraliyeti koseye sikistiran hamleyi odullendirir', () => {
+    const cornerState = new GameState('hard');
+    cornerState.board.setPiece(1, 1, new King(COLORS.WHITE, 1, 1));
+    cornerState.board.setPiece(8, 8, new King(COLORS.BLACK, 8, 8));
+    cornerState.board.setPiece(3, 0, new Rook(COLORS.BLACK, 3, 0));
+
+    const distantState = new GameState('hard');
+    distantState.board.setPiece(1, 1, new King(COLORS.WHITE, 1, 1));
+    distantState.board.setPiece(8, 8, new King(COLORS.BLACK, 8, 8));
+    distantState.board.setPiece(3, 0, new Rook(COLORS.BLACK, 3, 0));
+
+    const cornerPlan = applyAndAnalyze(cornerState, 3, 0, 1, 0);
+    const distantPlan = applyAndAnalyze(distantState, 3, 0, 6, 0);
+
+    assert.ok(cornerPlan.components.kingToCorner > distantPlan.components.kingToCorner);
+    assert.ok(cornerPlan.reasons.includes('king-to-corner'));
+});
+
 test('oyun sonu motoru rakip kraliyetin hisar kacisini ciddi risk sayar', () => {
     const state = new GameState('hard');
     state.board.setPiece(1, 0, new King(COLORS.WHITE, 1, 0));

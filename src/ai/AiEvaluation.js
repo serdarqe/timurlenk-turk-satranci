@@ -667,6 +667,154 @@ function scoreOverloadedDefenders(state, attackedTargets, defenderColor) {
     };
 }
 
+function findRoyalLineThreatsForPiece(state, piece) {
+    if (!piece || piece.type !== PIECE_TYPES.ROOK) {
+        return {
+            threats: [],
+            score: 0
+        };
+    }
+
+    const opponentColor = getOppositeColor(piece.color);
+    const threats = [];
+
+    for (const royal of state.board.pieces.filter((candidate) => (
+        candidate.color === opponentColor && GameRules.isRoyalType(candidate.type)
+    ))) {
+        const sameLine = piece.row === royal.row || piece.col === royal.col;
+        if (!sameLine || !isClearOrthogonalPath(state, piece.row, piece.col, royal.row, royal.col)) continue;
+
+        const distance = Math.max(1, Math.abs(piece.row - royal.row) + Math.abs(piece.col - royal.col));
+        const edgePressure = (
+            royal.row === 0
+            || royal.row === 9
+            || royal.col === 0
+            || royal.col === 10
+        ) ? 1 : 0;
+        const cornerPressure = (
+            (royal.row === 0 || royal.row === 9)
+            && (royal.col === 0 || royal.col === 10)
+        ) ? 1 : 0;
+        const escapePressure = Math.max(0, 4 - countSafeRoyalEscapes(state, royal, piece.color));
+        const rowStep = Math.sign(royal.row - piece.row);
+        const colStep = Math.sign(royal.col - piece.col);
+        let skewerValue = 0;
+        let skewerVictim = null;
+        let scanRow = royal.row + rowStep;
+        let scanCol = royal.col + colStep;
+
+        while (state.board.isValidCoord(scanRow, scanCol)) {
+            const candidate = state.board.getPieceAt(scanRow, scanCol);
+            if (candidate) {
+                if (candidate.color === opponentColor && !GameRules.isRoyalType(candidate.type)) {
+                    skewerVictim = candidate;
+                    skewerValue = getPieceExchangeValue(candidate);
+                }
+                break;
+            }
+
+            scanRow += rowStep;
+            scanCol += colStep;
+        }
+
+        const score = (
+            360
+            + Math.max(0, 9 - distance) * 38
+            + edgePressure * 95
+            + cornerPressure * 85
+            + escapePressure * 70
+            + (skewerValue > 0 ? Math.min(620, 260 + skewerValue * 3.2) : 0)
+        );
+
+        threats.push({
+            royalType: royal.type,
+            row: royal.row,
+            col: royal.col,
+            distance,
+            escapePressure,
+            skewerValue,
+            skewerVictim: skewerVictim ? {
+                type: skewerVictim.type,
+                row: skewerVictim.row,
+                col: skewerVictim.col
+            } : null,
+            score
+        });
+    }
+
+    return {
+        threats,
+        score: threats.reduce((total, threat) => total + threat.score, 0)
+    };
+}
+
+function getRoyalTrapSummary(state, defenderColor, attackerColor) {
+    const royals = state.board.pieces.filter((piece) => (
+        piece.color === defenderColor && GameRules.isRoyalType(piece.type)
+    ));
+
+    let safeEscapes = 0;
+    let edgeRoyals = 0;
+    let cornerRoyals = 0;
+    let attackedRoyals = 0;
+    let closestRoyalDistance = 99;
+
+    for (const royal of royals) {
+        const escapes = countSafeRoyalEscapes(state, royal, attackerColor);
+        safeEscapes += escapes;
+
+        const onEdge = royal.row === 0 || royal.row === 9 || royal.col === 0 || royal.col === 10;
+        const inCorner = (royal.row === 0 || royal.row === 9) && (royal.col === 0 || royal.col === 10);
+        if (onEdge) edgeRoyals += 1;
+        if (inCorner) cornerRoyals += 1;
+        if (isSquareAttackedByPotential(state.board, royal.row, royal.col, attackerColor)) attackedRoyals += 1;
+        closestRoyalDistance = Math.min(
+            closestRoyalDistance,
+            getClosestEnemyDistance(state, royal, attackerColor)
+        );
+    }
+
+    return {
+        royalCount: royals.length,
+        safeEscapes,
+        edgeRoyals,
+        cornerRoyals,
+        attackedRoyals,
+        closestRoyalDistance
+    };
+}
+
+function scoreRoyalTrapProgress(before, after, totalPieces, hasDirectRoyalPressure) {
+    if (!before.royalCount || !after.royalCount) return 0;
+
+    const escapeReduction = Math.max(0, before.safeEscapes - after.safeEscapes);
+    const trappedRoyalBonus = after.safeEscapes <= 2 ? (3 - after.safeEscapes) * 155 : 0;
+    const edgeBonus = Math.max(0, after.edgeRoyals - before.edgeRoyals) * 85;
+    const cornerBonus = Math.max(0, after.cornerRoyals - before.cornerRoyals) * 120;
+    const checkPressureBonus = Math.max(0, after.attackedRoyals - before.attackedRoyals) * 210;
+    const closeSupportBonus = after.closestRoyalDistance <= 3 ? (4 - after.closestRoyalDistance) * 45 : 0;
+
+    const hasTrapSignal = escapeReduction > 0
+        || trappedRoyalBonus > 0
+        || edgeBonus > 0
+        || cornerBonus > 0
+        || checkPressureBonus > 0
+        || hasDirectRoyalPressure;
+
+    if (!hasTrapSignal) return 0;
+
+    const phaseMultiplier = totalPieces <= 6 ? 1.25 : totalPieces <= 10 ? 0.95 : 0.35;
+    return (
+        escapeReduction * 150
+        + trappedRoyalBonus
+        + edgeBonus
+        + cornerBonus
+        + checkPressureBonus
+        + closeSupportBonus
+        + (hasDirectRoyalPressure ? 80 : 0)
+    ) * phaseMultiplier;
+}
+
 function getTacticalMotifWeight(profile) {
     const baseId = getProfileBaseId(profile);
     if (baseId === 'hard') return 1.25;
@@ -684,11 +832,14 @@ export function analyzeTacticalMotifsForMove(state, moveObj, profileInput = 'med
             forkTargets: [],
             newTargets: [],
             overloadedDefenders: [],
-            royalPressure: false
+            royalPressure: false,
+            royalLineThreats: [],
+            royalTrapScore: 0
         };
     }
 
     const beforeTargets = getLegalEnemyTargetMap(state, piece.color);
+    const royalTrapBefore = getRoyalTrapSummary(state, getOppositeColor(piece.color), piece.color);
     const appliedMove = applyEvaluationMove(state, piece, move.row, move.col);
     if (!appliedMove) {
         return {
@@ -696,13 +847,16 @@ export function analyzeTacticalMotifsForMove(state, moveObj, profileInput = 'med
             forkTargets: [],
             newTargets: [],
             overloadedDefenders: [],
-            royalPressure: false
+            royalPressure: false,
+            royalLineThreats: [],
+            royalTrapScore: 0
         };
     }
 
     try {
         const activePiece = appliedMove.activePiece || state.board.getPieceAt(move.row, move.col);
         const activeTargets = getLegalEnemyTargetsForPiece(state, activePiece);
+        const royalTargets = activeTargets.filter((target) => target.isRoyal);
         const nonRoyalActiveTargets = activeTargets.filter((target) => !target.isRoyal && target.value > 0);
         const forkTargets = nonRoyalActiveTargets
             .sort((a, b) => b.value - a.value)
@@ -710,17 +864,35 @@ export function analyzeTacticalMotifsForMove(state, moveObj, profileInput = 'med
         const afterTargets = [...getLegalEnemyTargetMap(state, piece.color).values()];
         const newTargets = afterTargets.filter((target) => !beforeTargets.has(target.key) && !target.isRoyal && target.value > 0);
         const overload = scoreOverloadedDefenders(state, afterTargets, getOppositeColor(piece.color));
-        const royalPressure = activeTargets.some((target) => target.isRoyal);
+        const royalPressure = royalTargets.length > 0;
+        const royalLinePressure = findRoyalLineThreatsForPiece(state, activePiece);
+        const royalTrapAfter = getRoyalTrapSummary(state, getOppositeColor(piece.color), piece.color);
 
         const forkValue = forkTargets.length >= 2
             ? forkTargets.slice(0, 2).reduce((total, target) => total + target.value, 0)
             : 0;
+        const royalForkValue = royalPressure && forkTargets.length
+            ? Math.min(560, 260 + forkTargets[0].value * 2.4)
+            : 0;
+        const materialForkValue = forkTargets.length >= 2
+            ? Math.min(680, 180 + forkValue * 1.45)
+            : 0;
         const newTargetValue = newTargets.reduce((total, target) => total + target.value, 0);
+        const royalTrapScore = scoreRoyalTrapProgress(
+            royalTrapBefore,
+            royalTrapAfter,
+            state.board.pieces.length,
+            royalPressure || royalLinePressure.threats.length > 0
+        );
         const rawScore = (
-            forkValue * 0.32
-            + newTargetValue * 0.14
-            + overload.value * 0.18
-            + (royalPressure ? 52 : 0)
+            forkValue * 0.72
+            + materialForkValue
+            + royalForkValue
+            + newTargetValue * 0.18
+            + overload.value * 0.22
+            + (royalPressure ? 420 : 0)
+            + royalLinePressure.score
+            + royalTrapScore
         );
         const score = rawScore * getTacticalMotifWeight(profile);
 
@@ -729,7 +901,9 @@ export function analyzeTacticalMotifsForMove(state, moveObj, profileInput = 'med
             forkTargets,
             newTargets,
             overloadedDefenders: overload.overloadedDefenders,
-            royalPressure
+            royalPressure,
+            royalLineThreats: royalLinePressure.threats,
+            royalTrapScore
         };
     } finally {
         revertEvaluationMove(state, appliedMove);
@@ -1027,12 +1201,29 @@ function scorePawnStructure(state, profile) {
             const promotionDistance = getPawnPromotionDistance(pawn);
             const promotionUrgency = Math.max(0, 7 - promotionDistance);
             const passedPawn = isPassedPawn(state, pawn);
+            const sameFilePawnAhead = pawns.some((other) => (
+                other !== pawn
+                && other.col === pawn.col
+                && (pawn.color === COLORS.BLACK ? other.row > pawn.row : other.row < pawn.row)
+            ));
+            const cleanPromotionLane = passedPawn && !sameFilePawnAhead && (fileCounts.get(pawn.col) || 0) === 1;
+            const directPromotionUrgency = promotionDistance === 1
+                ? 400
+                : promotionDistance === 2
+                    ? 200
+                    : promotionDistance === 3
+                        ? 100
+                        : 0;
             colorScore += Math.pow(promotionUrgency, 1.65) * 1.25 * profile.weights.pawnAdvance * endgamePawnMultiplier;
-            if (passedPawn) {
-                colorScore += Math.pow(promotionUrgency + 1, 2) * 1.55 * profile.weights.pawnAdvance * endgamePawnMultiplier;
+            if (directPromotionUrgency && cleanPromotionLane) {
+                colorScore += directPromotionUrgency * profile.weights.pawnAdvance * endgamePawnMultiplier;
             }
-            if (promotionDistance <= 2) {
-                colorScore += (3 - promotionDistance) * 60 * profile.weights.pawnAdvance * endgamePawnMultiplier;
+            if (cleanPromotionLane) {
+                colorScore += Math.pow(promotionUrgency + 1, 2) * 1.55 * profile.weights.pawnAdvance * endgamePawnMultiplier;
+                colorScore += directPromotionUrgency * 0.65 * profile.weights.pawnAdvance * endgamePawnMultiplier;
+            }
+            if (promotionDistance <= 2 && cleanPromotionLane) {
+                colorScore += (3 - promotionDistance) * 110 * profile.weights.pawnAdvance * endgamePawnMultiplier;
             }
 
             const hasLeftNeighbor = fileCounts.has(pawn.col - 1);
@@ -1043,11 +1234,6 @@ function scorePawnStructure(state, profile) {
             const doubledCount = fileCounts.get(pawn.col) || 0;
             if (doubledCount > 1) colorScore -= (doubledCount - 1) * 4.5 * profile.weights.pawnAdvance;
 
-            const sameFilePawnAhead = pawns.some((other) => (
-                other !== pawn
-                && other.col === pawn.col
-                && (pawn.color === COLORS.BLACK ? other.row > pawn.row : other.row < pawn.row)
-            ));
             if (sameFilePawnAhead) {
                 colorScore -= Math.pow(promotionUrgency + 1, 2) * 5 * profile.weights.pawnAdvance * endgamePawnMultiplier;
             }
@@ -1456,14 +1642,21 @@ export function scoreMoveHeuristicForBlack(state, moveObj, profileInput = 'mediu
         piece.type === PIECE_TYPES.PAWN
         && ((piece.color === COLORS.BLACK && move.row === 9) || (piece.color === COLORS.WHITE && move.row === 0))
     ) {
-        score += 1400 * profile.ordering.promotion;
+        score += 2200 * profile.ordering.promotion;
     } else if (piece.type === PIECE_TYPES.PAWN) {
         const beforeDistance = getPawnPromotionDistance(piece);
         const afterDistance = getPawnPromotionDistance(piece, move.row);
         if (afterDistance < beforeDistance) {
             const endgameBoost = totalPieces <= 10 ? 1.7 : 0.7;
             const urgency = Math.max(0, 7 - afterDistance);
-            score += (urgency * urgency * 22 + (afterDistance <= 2 ? (3 - afterDistance) * 260 : 0))
+            const directPromotionUrgency = afterDistance === 1
+                ? 520
+                : afterDistance === 2
+                    ? 260
+                    : afterDistance === 3
+                        ? 130
+                        : 0;
+            score += (urgency * urgency * 26 + directPromotionUrgency + (afterDistance <= 2 ? (3 - afterDistance) * 360 : 0))
                 * profile.ordering.promotion
                 * endgameBoost;
         }

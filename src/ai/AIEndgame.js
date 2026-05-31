@@ -476,8 +476,14 @@ export function analyzeEndgameWdl(state, rootColor, profile) {
 function scoreTerminalEndgame(state, movingColor, terminalState) {
     const opponentColor = getOppositeColor(movingColor);
     const winner = state.winner;
+    const stalemateWinScore = 52000;
 
     if (!terminalState?.resultType) return null;
+    if (terminalState.resultType === 'stalemate') {
+        if (winner === movingColor) return stalemateWinScore;
+        if (winner === opponentColor) return -stalemateWinScore;
+        return 0;
+    }
     if (winner === movingColor) return 120000;
     if (winner === 'Draw (Hisar)' && isWinningSideState(state, movingColor)) return -90000;
     if (winner === opponentColor) return -120000;
@@ -1122,6 +1128,49 @@ function scorePromotionPlan({ state, movingColor, movedPiece, moveObj, profile }
     return score * (profile.weights?.winningEndgame || 1);
 }
 
+function scoreKingToCornerPressure({
+    state,
+    movingColor,
+    movedPiece,
+    opponentRoyals,
+    ownPieces,
+    opponentMobility,
+    opponentInCheck,
+    profile
+}) {
+    if (!opponentRoyals.length || !ownPieces.length) return 0;
+
+    const scale = profile.weights?.winningEndgame || 1;
+    let score = 0;
+
+    for (const royal of opponentRoyals) {
+        const edgeDistance = getEdgeDistance(royal);
+        const cornerDistance = getCornerDistance(royal);
+        const teamDistance = getClosestDistanceToRoyals(ownPieces, [royal]);
+        const movedDistance = getClosestDistanceToRoyals([movedPiece].filter(Boolean), [royal]);
+
+        score += Math.max(0, 5 - edgeDistance) * 540;
+        score += Math.max(0, 9 - cornerDistance) * 190;
+        score += Math.max(0, 12 - opponentMobility) * 210;
+        score += Math.max(0, 10 - teamDistance) * 120;
+        score += Math.max(0, 9 - movedDistance) * 95;
+
+        if (edgeDistance <= 1) score += 900;
+        if (cornerDistance <= 2) score += 1800;
+        if (opponentInCheck && opponentMobility <= 3) score += 2100;
+
+        if (
+            movedPiece?.type === PIECE_TYPES.ROOK
+            && (movedPiece.row === royal.row || movedPiece.col === royal.col)
+            && isLineClearBetween(state, movedPiece, royal)
+        ) {
+            score += 1700;
+        }
+    }
+
+    return score * scale;
+}
+
 export function selectMiniTablebaseMove(state, movingColor, profile) {
     if (!state?.board || !movingColor || state.board.pieces.length > ENDGAME_SOLVER_PIECE_LIMIT) return null;
     if (!isWinningSideState(state, movingColor)) return null;
@@ -1379,8 +1428,9 @@ function scoreStalemateAndConversion({ state, movingColor, opponentColor, oppone
     const opponentMaterial = getMaterialForColor(state, opponentColor);
     const materialLead = Math.max(0, ownMaterial - opponentMaterial);
 
-    if (!opponentInCheck && opponentMobility <= 1) score += 1400;
-    if (opponentMobility <= 3) score += 420;
+    if (!opponentInCheck && opponentMobility === 0) score -= 2600;
+    else if (!opponentInCheck && opponentMobility === 1) score += 520;
+    if (opponentMobility <= 3) score += opponentInCheck ? 620 : 180;
     if (ownMobility <= 2) score -= 900;
     score += Math.min(materialLead, 220) * 1.15;
 
@@ -1402,6 +1452,7 @@ export function analyzeEndgameMoveOutcome(state, moveObj, profile, terminalState
             tacticalSafety: 0,
             miniTablebase: 0,
             promotionPlan: 0,
+            kingToCorner: 0,
             distanceToWin: 0,
             distanceToDraw: 0,
             conversionPlan: 0,
@@ -1482,6 +1533,16 @@ export function analyzeEndgameMoveOutcome(state, moveObj, profile, terminalState
         profile
     });
     const promotionPlan = scorePromotionPlan({ state, movingColor, movedPiece, moveObj, profile });
+    const kingToCorner = scoreKingToCornerPressure({
+        state,
+        movingColor,
+        movedPiece,
+        opponentRoyals,
+        ownPieces,
+        opponentMobility,
+        opponentInCheck,
+        profile
+    });
 
     const components = {
         terminal: 0,
@@ -1494,6 +1555,7 @@ export function analyzeEndgameMoveOutcome(state, moveObj, profile, terminalState
         tacticalSafety,
         miniTablebase,
         promotionPlan,
+        kingToCorner,
         distanceToWin: exactEndgame.components.distanceToWin,
         distanceToDraw: exactEndgame.components.distanceToDraw,
         conversionPlan: exactEndgame.components.conversionPlan || 0,
@@ -1505,10 +1567,12 @@ export function analyzeEndgameMoveOutcome(state, moveObj, profile, terminalState
     addReason(reasons, 'mate-net', mateNet >= 1800);
     addReason(reasons, 'promotion-plan', promotionPlan >= 900);
     addReason(reasons, 'citadel-risk', citadelRisk <= -1000);
-    addReason(reasons, 'stalemate-net', !opponentInCheck && opponentMobility <= 1);
+    addReason(reasons, 'stalemate-risk', !opponentInCheck && opponentMobility === 0);
+    addReason(reasons, 'tight-net', !opponentInCheck && opponentMobility === 1);
     addReason(reasons, 'royal-hunt', royalHunt >= 500);
     addReason(reasons, 'tactical-risk', tacticalSafety <= -1000);
     addReason(reasons, 'mini-tablebase', miniTablebase >= 3000);
+    addReason(reasons, 'king-to-corner', kingToCorner >= 1800);
     addReason(reasons, 'conversion-plan', (exactEndgame.components.conversionPlan || 0) > 0);
     addReason(reasons, 'resistance-plan', (exactEndgame.components.resistancePlan || 0) > 0);
 

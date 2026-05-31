@@ -6,13 +6,13 @@ const AI_PROFILES = Object.freeze({
         id: 'easy',
         label: 'Kolay',
         depth: Object.freeze({
-            base: 1,
+            base: 2,
             narrowEndgame: 2,
-            sparseEndgame: 2
+            sparseEndgame: 3
         }),
         search: Object.freeze({
-            rootMoveLimit: 18,
-            branchMoveLimit: 8
+            rootMoveLimit: 10,
+            branchMoveLimit: 5
         }),
         weights: Object.freeze({
             material: 1.15,
@@ -32,49 +32,49 @@ const AI_PROFILES = Object.freeze({
             center: 0.95
         }),
         decisionStyle: Object.freeze({
-            precision: 0.45,
-            riskTolerance: 0.85,
-            pressure: 0.65,
+            precision: 0.42,
+            riskTolerance: 0.92,
+            pressure: 0.62,
             conversion: 0.55,
-            safety: 0.55,
+            safety: 0.52,
             tempo: 0.9,
             bookTrust: 0.78
         }),
         selection: Object.freeze({
             alwaysPickBest: false,
             mode: 'biased',
-            scoreWindow: 16,
-            poolSize: 2,
-            preferBestProbability: 0.64,
+            scoreWindow: 28,
+            poolSize: 3,
+            preferBestProbability: 0.58,
             avoidRepetition: true,
             maxRepetitionSeverity: 1,
             avoidUnsafe: true,
-            maxDangerLevel: 2,
-            maxReplyCaptureValue: 75,
-            unsafeScoreTolerance: 4
+            maxDangerLevel: 3,
+            maxReplyCaptureValue: 92,
+            unsafeScoreTolerance: 32
         })
     }),
     medium: Object.freeze({
         id: 'medium',
         label: 'Orta',
         depth: Object.freeze({
-            base: 2,
-            narrowEndgame: 3,
-            sparseEndgame: 4
+            base: 3,
+            narrowEndgame: 4,
+            sparseEndgame: 5
         }),
         search: Object.freeze({
-            rootMoveLimit: 24,
-            branchMoveLimit: 10
+            rootMoveLimit: 14,
+            branchMoveLimit: 6
         }),
         weights: Object.freeze({
             material: 1.0,
             center: 1.0,
             pawnAdvance: 1.0,
             citadel: 1.0,
-            mobility: 0.95,
+            mobility: 1.0,
             royalSafety: 1.0,
-            winningEndgame: 1.0,
-            repetition: 1.0
+            winningEndgame: 1.12,
+            repetition: 1.15
         }),
         ordering: Object.freeze({
             capture: 1.05,
@@ -84,39 +84,39 @@ const AI_PROFILES = Object.freeze({
             center: 1.0
         }),
         decisionStyle: Object.freeze({
-            precision: 0.75,
-            riskTolerance: 0.35,
+            precision: 0.92,
+            riskTolerance: 0.24,
             pressure: 0.9,
-            conversion: 0.9,
-            safety: 0.85,
-            tempo: 0.75,
-            bookTrust: 0.9
+            conversion: 1.1,
+            safety: 1.02,
+            tempo: 0.82,
+            bookTrust: 0.88
         }),
         selection: Object.freeze({
             alwaysPickBest: false,
             mode: 'biased',
-            scoreWindow: 6,
+            scoreWindow: 5,
             poolSize: 2,
-            preferBestProbability: 0.9,
+            preferBestProbability: 0.93,
             avoidRepetition: true,
-            maxRepetitionSeverity: 2,
+            maxRepetitionSeverity: 1,
             avoidUnsafe: true,
             maxDangerLevel: 1,
-            maxReplyCaptureValue: 45,
-            unsafeScoreTolerance: 14
+            maxReplyCaptureValue: 32,
+            unsafeScoreTolerance: 10
         })
     }),
     hard: Object.freeze({
         id: 'hard',
         label: 'Zor',
         depth: Object.freeze({
-            base: 5,
-            narrowEndgame: 6,
-            sparseEndgame: 7
+            base: 6,
+            narrowEndgame: 7,
+            sparseEndgame: 8
         }),
         search: Object.freeze({
-            rootMoveLimit: 36,
-            branchMoveLimit: 14
+            rootMoveLimit: 18,
+            branchMoveLimit: 8
         }),
         weights: Object.freeze({
             material: 1.0,
@@ -149,9 +149,13 @@ const AI_PROFILES = Object.freeze({
             mode: 'best',
             scoreWindow: 0,
             poolSize: 1,
+            avoidRepetition: true,
+            maxRepetitionSeverity: 0,
             avoidUnsafe: true,
             maxDangerLevel: 0,
             maxReplyCaptureValue: 12,
+            maxContinuationDebt: 72,
+            maxOpeningDebt: 96,
             unsafeScoreTolerance: 70
         })
     })
@@ -286,6 +290,8 @@ function applyBotCalibration(profile, bot) {
     applySelectionOverride(selection, 'scoreWindow', selectionCalibration.scoreWindowOverride, 0, 36);
     applySelectionOverride(selection, 'poolSize', selectionCalibration.poolSizeOverride, 1, 4);
     applySelectionOverride(selection, 'preferBestProbability', selectionCalibration.preferBestProbabilityOverride, 0, 1);
+    applySelectionOverride(selection, 'maxContinuationDebt', selectionCalibration.maxContinuationDebtOverride, 24, 240);
+    applySelectionOverride(selection, 'maxOpeningDebt', selectionCalibration.maxOpeningDebtOverride, 24, 160);
 
     if (typeof selectionCalibration.alwaysPickBest === 'boolean') {
         selection.alwaysPickBest = selectionCalibration.alwaysPickBest;

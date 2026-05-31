@@ -23,9 +23,19 @@ function getProfileBaseId(profile) {
 
 function getRepetitionDifficultyMultiplier(profile) {
     const baseId = getProfileBaseId(profile);
-    if (baseId === 'hard') return 1.45;
+    if (baseId === 'hard') return 1.65;
     if (baseId === 'easy') return 0.75;
-    return 1;
+    return 1.15;
+}
+
+function getProgressiveRepetitionPenalty(severity, isWinningSide) {
+    if (!Number.isFinite(severity) || severity <= 0) return 0;
+
+    const balancedScale = isWinningSide ? 1 : 0.55;
+    if (severity === 1) return -30 * balancedScale;
+    if (severity === 2) return -200 * balancedScale;
+    if (severity === 3) return -1500 * balancedScale;
+    return (-3000 - Math.max(0, severity - 4) * 500) * balancedScale;
 }
 
 function getRouteKey(move) {
@@ -146,6 +156,99 @@ export function isWinningSideState(state, color) {
     return materialAdvantage >= 40 || (opponent.nonRoyals.length <= 1 && own.material > opponent.material);
 }
 
+function createInactiveMatingNet(overrides = {}) {
+    return {
+        active: false,
+        score: 0,
+        reasons: [],
+        materialAdvantage: 0,
+        opponentMobility: 99,
+        opponentEdgeDistance: 9,
+        opponentCornerDistance: 99,
+        ownRoyalDistance: 99,
+        ownAttackDistance: 99,
+        opponentNonRoyalCount: 99,
+        ...overrides
+    };
+}
+
+export function analyzeMatingNetState(state, perspectiveColor) {
+    if (!state?.board?.pieces?.length || !perspectiveColor) {
+        return createInactiveMatingNet({ reasons: ['missing-state'] });
+    }
+
+    const own = getSideSummary(state, perspectiveColor);
+    const opponentColor = getOppositeColor(perspectiveColor);
+    const opponent = getSideSummary(state, opponentColor);
+    if (!own.royals.length || !opponent.royals.length) {
+        return createInactiveMatingNet({ reasons: ['missing-royal'] });
+    }
+
+    const materialAdvantage = own.material - opponent.material;
+    const totalPieces = own.pieceCount + opponent.pieceCount;
+    const opponentMobility = countLegalMovesForColor(state, opponentColor);
+    const opponentEdgeDistance = Math.min(...opponent.royals.map(getEdgeDistance));
+    const opponentCornerDistance = Math.min(...opponent.royals.map(getCornerDistance));
+    const ownRoyalDistance = getClosestDistanceToRoyals(own.royals, opponent.royals);
+    const ownAttackDistance = getClosestDistanceToRoyals(
+        own.nonRoyals.length ? own.nonRoyals : own.royals,
+        opponent.royals
+    );
+    const opponentNonRoyalCount = opponent.nonRoyals.length;
+
+    const enoughForce = (
+        materialAdvantage >= 80
+        || (opponentNonRoyalCount <= 1 && own.material > opponent.material)
+        || (totalPieces <= 6 && own.material > opponent.material)
+    );
+    const boardBoxed = (
+        opponentMobility <= 5
+        || opponentEdgeDistance <= 2
+        || opponentCornerDistance <= 4
+    );
+    const ownNetClose = (
+        ownAttackDistance <= 5
+        || ownRoyalDistance <= 4
+        || (own.nonRoyals.length >= 2 && opponentMobility <= 7)
+    );
+
+    const score = (
+        Math.max(0, materialAdvantage) * 0.7
+        + Math.max(0, 8 - opponentMobility) * 58
+        + Math.max(0, 4 - opponentEdgeDistance) * 82
+        + Math.max(0, 8 - opponentCornerDistance) * 42
+        + Math.max(0, 7 - ownAttackDistance) * 36
+        + Math.max(0, 6 - ownRoyalDistance) * 18
+        + Math.max(0, 2 - opponentNonRoyalCount) * 54
+    );
+
+    const active = enoughForce && boardBoxed && ownNetClose && score >= 190;
+    const reasons = [];
+    if (enoughForce) reasons.push('material-force');
+    if (opponentMobility <= 5) reasons.push('low-mobility');
+    if (opponentEdgeDistance <= 2) reasons.push('edge-box');
+    if (opponentCornerDistance <= 4) reasons.push('corner-box');
+    if (ownNetClose) reasons.push('net-contact');
+    if (!active) reasons.push('not-mating-net');
+
+    return {
+        active,
+        score,
+        reasons,
+        materialAdvantage,
+        opponentMobility,
+        opponentEdgeDistance,
+        opponentCornerDistance,
+        ownRoyalDistance,
+        ownAttackDistance,
+        opponentNonRoyalCount
+    };
+}
+
+export function isInMatingNet(state, perspectiveColor) {
+    return analyzeMatingNetState(state, perspectiveColor).active;
+}
+
 export function scoreRepetitionPenalty({
     nextHash,
     recentPositionHashes = [],
@@ -153,9 +256,12 @@ export function scoreRepetitionPenalty({
     move,
     isWinningSide = false,
     searchHistoryHashes = [],
-    profile = null
+    profile = null,
+    risk: providedRisk = null,
+    inMatingNet = false,
+    matingNet = null
 }) {
-    const risk = analyzeRepetitionRisk({
+    const risk = providedRisk || analyzeRepetitionRisk({
         nextHash,
         recentPositionHashes,
         recentMoves,
@@ -165,22 +271,55 @@ export function scoreRepetitionPenalty({
 
     let penalty = 0;
     const difficultyMultiplier = getRepetitionDifficultyMultiplier(profile);
+    const matingNetActive = Boolean(isWinningSide && (inMatingNet || matingNet?.active));
+    const matingNetIsForcing = Boolean(
+        matingNetActive
+        && (
+            risk.severity <= 2
+            || (matingNet?.opponentMobility ?? 99) <= 2
+            || (matingNet?.score ?? 0) >= 420
+        )
+    );
+    const matingNetPenaltyScale = matingNetActive
+        ? (matingNetIsForcing ? 0.04 : 0.14)
+        : 1;
 
     if (risk.repeatsRecentPosition) {
-        penalty -= (isWinningSide ? 240 : 90) * difficultyMultiplier;
+        penalty -= (isWinningSide ? 240 : 90) * difficultyMultiplier * matingNetPenaltyScale;
     }
 
     if (risk.repeatsSearchHistory) {
-        penalty -= (isWinningSide ? 180 : 70) * difficultyMultiplier;
+        penalty -= (isWinningSide ? 180 : 70) * difficultyMultiplier * matingNetPenaltyScale;
     }
 
     if (risk.isImmediateReverse) {
-        penalty -= (isWinningSide ? 160 : 60) * difficultyMultiplier;
+        penalty -= (isWinningSide ? 160 : 60) * difficultyMultiplier * matingNetPenaltyScale;
     }
 
     if (risk.repeatsMoveRoute) {
-        const routePenalty = (isWinningSide ? 190 : 70) + Math.max(0, risk.routeRepeatCount - 2) * 35;
-        penalty -= routePenalty * difficultyMultiplier;
+        const routePenalty = (isWinningSide ? 330 : 115) + Math.max(0, risk.routeRepeatCount - 2) * (isWinningSide ? 120 : 55);
+        penalty -= routePenalty * difficultyMultiplier * matingNetPenaltyScale;
+
+        if (risk.routeRepeatCount >= 3) {
+            penalty -= (isWinningSide ? 260 : 90) * difficultyMultiplier * matingNetPenaltyScale;
+        }
+
+        if (risk.routeRepeatCount >= 4) {
+            penalty -= (isWinningSide ? 520 : 170) * difficultyMultiplier * matingNetPenaltyScale;
+        }
+    }
+
+    const progressivePenalty = getProgressiveRepetitionPenalty(risk.severity, isWinningSide)
+        * difficultyMultiplier
+        * matingNetPenaltyScale;
+    if (progressivePenalty < penalty) penalty = progressivePenalty;
+
+    if (matingNetActive) {
+        const baseId = getProfileBaseId(profile);
+        const cap = matingNetIsForcing
+            ? (baseId === 'hard' ? -70 : (baseId === 'medium' ? -52 : -36))
+            : (baseId === 'hard' ? -180 : (baseId === 'medium' ? -130 : -90));
+        penalty = Math.max(penalty, cap);
     }
 
     return penalty;
@@ -243,7 +382,7 @@ export function evaluateWinningEndgame(state, perspectiveColor) {
 
     const opponentMobility = countLegalMovesForColor(state, opponentColor);
     const edgePressure = opponent.royals.reduce((sum, royal) => sum + (4 - getEdgeDistance(royal)), 0);
-    const cornerPressure = opponent.royals.reduce((sum, royal) => sum + Math.max(0, 8 - getCornerDistance(royal)), 0);
+    const cornerPressure = opponent.royals.reduce((sum, royal) => sum + Math.max(0, 10 - getCornerDistance(royal)), 0);
     const ownRoyalDistance = getClosestDistanceToRoyals(own.royals, opponent.royals);
     const ownAttackDistance = getClosestDistanceToRoyals(
         own.nonRoyals.length ? own.nonRoyals : own.royals,
@@ -257,9 +396,9 @@ export function evaluateWinningEndgame(state, perspectiveColor) {
 
     return (
         Math.min(materialAdvantage, 180) * 0.8
-        + Math.max(0, 14 - opponentMobility) * 14
-        + edgePressure * 18
-        + cornerPressure * 10
+        + Math.max(0, 14 - opponentMobility) * 18
+        + edgePressure * 26
+        + cornerPressure * 18
         + simplificationBonus
         + cleanUpBonus
         + royalNetBonus

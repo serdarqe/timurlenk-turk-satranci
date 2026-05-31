@@ -24,16 +24,19 @@ export const AI_PERSONAS = Object.freeze({
         },
         style: 'conqueror',
         modifiers: {
-            pressure: 1.18,
-            conversion: 1.16,
-            repetition: 1.12,
-            material: 1.0
+            pressure: 1.06,
+            conversion: 1.24,
+            repetition: 1.22,
+            material: 1.06,
+            royalSafety: 1.08,
+            mobility: 1.04
         },
         decisionStyleModifiers: {
-            pressure: 1.18,
-            conversion: 1.18,
-            safety: 1.02,
-            riskTolerance: 0.9
+            pressure: 1.08,
+            conversion: 1.24,
+            safety: 1.12,
+            precision: 1.1,
+            riskTolerance: 0.72
         },
         timeStyle: {
             profile: 'conqueror',
@@ -43,7 +46,8 @@ export const AI_PERSONAS = Object.freeze({
         },
         selectionModifiers: {
             maxRepetitionSeverityDelta: -1,
-            unsafeScoreToleranceDelta: -2
+            unsafeScoreToleranceDelta: -8,
+            preferBestProbabilityDelta: 0.04
         }
     }),
     beyazid: freezePersona({
@@ -57,17 +61,17 @@ export const AI_PERSONAS = Object.freeze({
         },
         style: 'bold_attacker',
         modifiers: {
-            pressure: 1.2,
-            material: 0.96,
-            royalSafety: 0.95,
-            mobility: 1.1
+            pressure: 1.12,
+            material: 1.0,
+            royalSafety: 0.98,
+            mobility: 1.08
         },
         decisionStyleModifiers: {
-            pressure: 1.28,
-            tempo: 1.18,
-            riskTolerance: 1.35,
-            safety: 0.88,
-            precision: 0.96,
+            pressure: 1.16,
+            tempo: 1.08,
+            riskTolerance: 0.78,
+            safety: 1.02,
+            precision: 1.06,
             bookTrust: 0.94
         },
         timeStyle: {
@@ -77,9 +81,9 @@ export const AI_PERSONAS = Object.freeze({
             tacticalBranchScale: 1.03
         },
         selectionModifiers: {
-            maxDangerLevelDelta: 1,
-            unsafeScoreToleranceDelta: -6,
-            preferBestProbabilityDelta: 0.04
+            maxDangerLevelDelta: 0,
+            unsafeScoreToleranceDelta: -8,
+            preferBestProbabilityDelta: 0.06
         }
     }),
     ulu_bey: freezePersona({
@@ -94,16 +98,19 @@ export const AI_PERSONAS = Object.freeze({
         style: 'calculated',
         modifiers: {
             royalSafety: 1.15,
-            repetition: 1.08,
+            repetition: 1.22,
             material: 1.04,
-            pressure: 1.0
+            pressure: 1.1,
+            conversion: 1.26
         },
         decisionStyleModifiers: {
-            precision: 1.18,
+            precision: 1.24,
             safety: 1.12,
-            conversion: 1.08,
-            riskTolerance: 0.72,
-            bookTrust: 1.04
+            pressure: 1.12,
+            conversion: 1.32,
+            tempo: 1.02,
+            riskTolerance: 0.58,
+            bookTrust: 1.02
         },
         timeStyle: {
             profile: 'calculated',
@@ -113,8 +120,8 @@ export const AI_PERSONAS = Object.freeze({
         },
         selectionModifiers: {
             maxRepetitionSeverityDelta: -1,
-            unsafeScoreToleranceDelta: 4,
-            preferBestProbabilityDelta: 0.06
+            unsafeScoreToleranceDelta: -4,
+            preferBestProbabilityDelta: 0.08
         }
     }),
     saray_veziri: freezePersona({

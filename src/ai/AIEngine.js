@@ -264,6 +264,16 @@ export class AIEngine {
                     resultType = 'citadel_draw';
                 }
 
+                if (!resultType) {
+                    const ruleDraw = GameRules.resolveRuleDraw(gameState, {
+                        pendingMove: {
+                            piece: { typeBefore: movedPieceBefore?.type },
+                            capturedPiece: serializePiece(captured)
+                        }
+                    });
+                    if (ruleDraw) resultType = ruleDraw;
+                }
+
                 const movedPieceAfter =
                     serializePiece(postMoveEffects?.activePiece)
                     || gameState.board.getPieceAt(toRow, toCol)

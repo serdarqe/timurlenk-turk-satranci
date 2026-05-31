@@ -2,7 +2,9 @@
 import { Vizier, SeaMonster, General, Knight, Lion, Elephant, Camel, Dabbaba, Bull, Revealer, Giraffe, Picket, Rook, Prince, AdventitiousKing } from './PieceFactory.js';
 
 export class GameRules {
-    static FIFTY_MOVE_PLY_LIMIT = 100;
+    // Timur satranci genis tahta oldugu icin otomasyonda "ilerleme yok"
+    // beraberligini klasik 50 tam hamle yerine 75 yari hamlede kesiyoruz.
+    static FIFTY_MOVE_PLY_LIMIT = 75;
 
     static ROYAL_TYPES = new Set([
         PIECE_TYPES.KING,

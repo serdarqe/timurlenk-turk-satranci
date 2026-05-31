@@ -57,6 +57,24 @@ test('bot katalogu elo ve kalibrasyon verisini seviyeye gore artirir', () => {
     }
 });
 
+test('ust seviye botlar tekrar ve oyun sonu donusumunde daha sert kalibre edilir', () => {
+    const bot10 = getAIBot('bot_10_demir_pence');
+    const bot13 = getAIBot('bot_13_timur');
+    const bot15 = getAIBot('bot_15_aksak_demir');
+
+    assert.ok(bot13.calibration.weights.endgameScale > bot10.calibration.weights.endgameScale);
+    assert.ok(bot13.calibration.weights.repetitionScale > bot10.calibration.weights.repetitionScale);
+    assert.ok(bot15.calibration.search.depthBonus > bot13.calibration.search.depthBonus);
+    assert.ok(
+        bot15.calibration.selection.maxContinuationDebtOverride
+        < bot13.calibration.selection.maxContinuationDebtOverride
+    );
+    assert.ok(
+        bot15.calibration.selection.maxOpeningDebtOverride
+        < bot13.calibration.selection.maxOpeningDebtOverride
+    );
+});
+
 test('bot secim kartlari klasik mod ve 15 botu yerel metinlerle tasir', () => {
     const cards = getAIBotSelectionCards('tr');
 
