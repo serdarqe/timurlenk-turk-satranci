@@ -1,49 +1,29 @@
-# Source Distribution
+# Source Distribution Notice
 
-Bu proje GitHub'da kaynak kodu acik sekilde yayinlanacak sekilde hazirlanir.
+This repository is not the full Timurlenk Turkish Chess application source tree.
 
-## Dahil edilmesi gereken kaynaklar
+It is kept as a public license/source notice repository for GPL-related engine work and Fairy-Stockfish / WASM files used during engine integration experiments.
 
-- `src/` oyun, arayuz ve AI kaynak kodlari
-- `tests/` motor ve kural testleri
-- `scripts/` build, analiz ve readiness scriptleri
-- `android/` Capacitor Android proje dosyalari
-- `public/` statik assetler ve Fairy WebView test assetleri
-- `fairy-poc/` Fairy-Stockfish POC, variant dosyalari ve adapter kaynaklari
-- `package.json` ve `package-lock.json`
+## Included
+
 - `LICENSE`
+- `README.md`
 - `THIRD_PARTY_NOTICES.md`
+- Fairy-Stockfish / WASM files and attribution files
+- Timur chess variant configuration files used for engine experiments
 
-## Dahil edilmemesi gerekenler
+## Not Included
 
-- `.env`
-- `secrets/`
-- Firebase service account JSON dosyalari
-- Android keystore ve sifre dosyalari
-- Uretilmis `.apk`, `.aab`, `.apks` dosyalari
-- `dist/`, `node_modules/`, `android/app/build/`, `exports/`, `output/`
+- full game UI source
+- Android application source
+- private Firebase configuration
+- analytics/storage implementation
+- APK/AAB packages
+- local build output
+- signing keys, service accounts, secrets, or `.env` files
 
-Bu dosyalar `.gitignore` ile korunur. Yine de GitHub'a ilk gonderimden once `npm run release:gpl:check` calistirilmalidir.
+## GPL Note
 
-## Kaynaktan build
+Fairy-Stockfish is GPL licensed. If a distributed application build includes GPL engine components, the corresponding source obligations for that distributed build must be satisfied.
 
-Genel gelistirme build'i:
-
-```powershell
-npm install
-npm run build
-npx cap sync android
-```
-
-Android release bundle build'i icin yerel Android Studio/JDK ve imzalama ayarlari gerekir:
-
-```powershell
-cd android
-.\gradlew.bat :app:bundleRelease
-```
-
-## GPL notu
-
-Fairy-Stockfish GPL-3.0 lisanslidir. Bu yuzden Fairy motoru ile birlikte yayinlanan surumlerde kaynak kodun da ayni yayinla birlikte erisilebilir olmasi gerekir. Play Store'a yuklenen binary ile uyumlu kaynak kod icin GitHub commit/tag kullanilmalidir.
-
-Uygulama icinde ana menuden erisilen `Acik Kaynak ve Lisanslar` ekrani, Fairy-Stockfish attribution bilgisini ve kaynak kod yayin notunu kullaniciya gosterir. Bu ekran release oncesi korunmalidir.
+This repository alone should not be described as the full corresponding source for a distributed app build unless the published build actually matches the files provided here.

@@ -84,6 +84,26 @@ tests/game-record-validator.test.js
 Satrancı/
 Türk/
 
+# Private application source kept out of the public engine/license repository
+.env.example
+.firebaserc
+.github/
+android/
+src/
+tests/
+scripts/
+index.html
+package.json
+package-lock.json
+capacitor.config.json
+firebase.json
+firestore.rules
+public/fairy-smoke.html
+public/privacy-policy.html
+public/portraits/
+public/sounds/
+public/textures/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

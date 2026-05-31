@@ -1,36 +1,24 @@
 # Third Party Notices
 
-Bu dosya Timurlenk Turk Satranci icinde kullanilan onemli ucuncu taraf bilesenleri ve lisans notlarini ozetler.
+This file summarizes third-party components included in this public repository.
 
 ## Fairy-Stockfish / WASM-NNUE
 
-- Paket: `fairy-stockfish-nnue.wasm`
-- Lisans: GPL-3.0
-- Kaynak: https://github.com/fairy-stockfish/fairy-stockfish.wasm
-- Ilgili upstream proje: https://github.com/fairy-stockfish/Fairy-Stockfish
-- Projede kullanim: deneysel Fairy-Stockfish POC, debug/shadow motor, hibrit motor aday katmani ve WebView smoke test assetleri.
+- Package: `fairy-stockfish-nnue.wasm`
+- License: GPL-3.0
+- Source: https://github.com/fairy-stockfish/fairy-stockfish.wasm
+- Upstream project: https://github.com/fairy-stockfish/Fairy-Stockfish
+- Usage: engine experiment files for Timur chess compatibility work.
 
-Bu bilesenin lisansi GPL-3.0 oldugu icin proje, Fairy motoru ile birlikte yayinlandiginda GPL uyumlu acik kaynak yayin yolunu izler. Tam GPL lisans metni proje kokundeki `LICENSE` dosyasinda ve Fairy asset klasorlerindeki `Copying.txt` dosyalarinda bulunur.
+The full GPL license text is available in `LICENSE` and in the Fairy asset folders through their `Copying.txt` files.
 
-Ilgili dosyalar:
+Related folders:
 
 - `fairy-poc/vendor/fairy-stockfish-nnue.wasm/`
 - `fairy-poc/vendor/fairy-stockfish-singlethread.wasm/`
 - `public/fairy/`
 - `public/fairy-singlethread/`
 
-## Firebase ve Capacitor paketleri
+## Private App Files Not Included
 
-Proje Android paketleme, Firebase Analytics/Auth/Firestore ve AdMob entegrasyonlari icin npm paketleri kullanir. Paket listesi ve surumleri `package.json` ve `package-lock.json` icinde tutulur.
-
-## Gizli dosyalar dahil degildir
-
-Acil kaynak yayininda su dosyalar GitHub'a konulmamalidir:
-
-- `.env`
-- `secrets/`
-- Firebase service account JSON dosyalari
-- Keystore/imzalama anahtarlari
-- Uretilmis APK/AAB dosyalari
-- `dist/`, `android/app/build/`, `node_modules/`
-
+This repository intentionally does not include private app source, Firebase service accounts, signing keys, generated APK/AAB files, or local build output.
