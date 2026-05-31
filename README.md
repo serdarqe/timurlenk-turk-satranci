@@ -4,6 +4,29 @@ This repository contains a clean public engine package used for Timurlenk Turkis
 
 It does **not** contain the private game application source code, UI code, Android project, Firebase configuration, analytics code, signing keys, or generated APK/AAB builds.
 
+## Engine Status (Experimental / In Progress)
+
+**This engine is experimental and not shipped yet.** The Fairy-Stockfish–based engine in this
+repository is still in active testing and is **not** included in the current published Android
+build on Google Play. The live app currently runs on the project's own custom Timur
+rules-and-AI layer.
+
+The native Timur (Tamerlane) chess engine — both its **rules and its gameplay** — is being
+built from scratch and is **not finished yet**. The experimental engine already handles the
+larger board, the basic historical pieces, and core move generation natively, while several
+variant-specific rules are still in progress and are currently handled by the private rules
+layer, including:
+
+- the giraffe's full historical movement,
+- fortress/citadel draw and citadel-exchange handling,
+- royal swap (king–prince exchange),
+- the pawn-of-pawns promotion chain,
+- full prince / adventitious-king royal logic.
+
+Because the work is ongoing, the engine files here may change or be rebuilt until the
+integration is complete and validated. They are published for transparency and
+experimentation, not as a finished production component.
+
 ## Related Game
 
 This engine package is used alongside **Timurlenk Turkish Chess**, a mobile game about Tamerlane chess and historical Turkish chess culture.
