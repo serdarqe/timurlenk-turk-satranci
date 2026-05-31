@@ -1,0 +1,22 @@
+# Local files
+.DS_Store
+Thumbs.db
+*.log
+
+# Private app/build files must not be added here.
+src/
+android/
+tests/
+scripts/
+dist/
+node_modules/
+*.apk
+*.aab
+*.apks
+*.jks
+*.keystore
+.env
+secrets/
+*service-account*.json
+*firebase-admin*.json
+google-services.json

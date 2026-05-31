@@ -1,0 +1,12 @@
+* text=auto
+
+*.md text eol=lf
+*.json text eol=lf
+*.ini text eol=lf
+*.js text eol=lf
+
+*.wasm binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.zip binary
