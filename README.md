@@ -134,7 +134,11 @@ The following private application files are intentionally not part of this repos
 
 ## Engine Dependency
 
-The included engine files come from the Fairy-Stockfish WASM ecosystem:
+This repository includes **two separate engine packages**, and they are not the same kind of build.
+
+### 1. `engines/fairy-stockfish-nnue-wasm/` — upstream build (unmodified)
+
+This is the stock multi-threaded WebAssembly build taken directly from the Fairy-Stockfish WASM ecosystem, kept for engine experiments and comparison.
 
 - Package: `fairy-stockfish-nnue.wasm`
 - Version: `1.1.11`
@@ -142,7 +146,20 @@ The included engine files come from the Fairy-Stockfish WASM ecosystem:
 - Upstream WASM project: https://github.com/fairy-stockfish/fairy-stockfish.wasm
 - Upstream engine project: https://github.com/fairy-stockfish/Fairy-Stockfish
 
-This repository does not claim authorship of Fairy-Stockfish or Stockfish. It is a transparent packaging, attribution, and variant-configuration repository for Timurlenk Turkish Chess engine experiments.
+### 2. `engines/fairy-stockfish-singlethread-wasm/` — modified build
+
+This single-threaded build is **not** an unmodified upstream binary. It is compiled from the Fairy-Stockfish source tree (the same `1.1.11` line) with a **native `timur` (Tamerlane) chess variant added to the engine's `variant.cpp`**, then built to single-threaded WebAssembly with Emscripten for Android / WebView use.
+
+- Base: Fairy-Stockfish (`1.1.11` line)
+- Modification: native `timur` variant — larger board, historical pieces, and variant-specific rules
+- License: `GPL-3.0`
+- Status: experimental / in progress (see **Engine Status** above)
+
+> The `package.json`, `AUTHORS`, and `Copying.txt` files inside this folder are inherited from the upstream package and still carry upstream metadata; the `stockfish.wasm` itself is the modified build described here.
+
+Because this single-threaded build is a **modified version of GPL-3.0 software**, the complete corresponding source for the modification is available from the project maintainer on request, and will be published together with this package once the engine is integrated into a public release.
+
+This repository does not claim authorship of upstream Fairy-Stockfish or Stockfish. The multi-threaded package is redistributed as-is; the single-threaded build adds a Timur variant on top of that GPL-3.0 base.
 
 ## Timur Variant Configuration
 
