@@ -2,6 +2,7 @@
 .DS_Store
 Thumbs.db
 *.log
+reports/
 
 # Private app/build files must not be added here.
 TimurChessWeb/

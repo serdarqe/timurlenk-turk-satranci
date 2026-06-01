@@ -10,6 +10,7 @@
     "test:movement-edge": "node tests/timur-piece-edge-blocker-probe.js",
     "test:native-rules": "node tests/timur-native-rule-smoke.js",
     "test:app-parity": "node tests/timur-app-state-parity.js",
+    "test:js-replay": "node tests/timur-js-match-replay.js",
     "test:timur-rules": "node tests/run-timur-rules.js"
   }
 }
