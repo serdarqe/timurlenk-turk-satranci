@@ -148,6 +148,24 @@ const cases = [
     expected: "royal_swap:f10:e9@ransom: 1",
   },
   {
+    name: "picket diagonal check enables broad royal swap evasions",
+    fen: "ecd5dce/r1tz1kv3r/ppp2g4p/3pppp3t/4z6/6N2n1/2CPPPP4/PPP2G1PPPP/R1TZ2VZT1R/E1D1K3D1E w - - 5 17",
+    expected: "e1a1: 1",
+    forbidden: ["a3a4: 1"],
+  },
+  {
+    name: "white pawn-of-pawns enters promotion rank as pawn",
+    fen: "11/4P5/10k/11/11/11/11/11/11/K10 w - - 0 1",
+    expected: "e9e10: 1",
+    forbidden: ["e9e10z: 1", "e9e10t: 1", "e9e10q: 1"],
+  },
+  {
+    name: "black pawn-of-pawns enters promotion rank as pawn",
+    fen: "10k/11/11/11/11/11/11/10K/4p6/11 b - - 0 1",
+    expected: "e2e1: 1",
+    forbidden: ["e2e1z: 1", "e2e1t: 1", "e2e1q: 1"],
+  },
+  {
     name: "white pawn-of-pawns stage two token",
     fen: "4P6/10k/11/11/11/11/11/11/11/K10 w - - 0 1",
     expected: "pawn_cycle:e10:e3@stage2: 1",

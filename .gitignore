@@ -13,9 +13,9 @@ src/.depend
 src/*.o
 src/*.obj
 src/stockfish.js
+src/stockfish.wasm
 src/stockfish.worker.js
 src/emscripten/embedded_nnue.cpp
-src/emscripten/embedded_nnue.h
 *.apk
 *.aab
 *.apks

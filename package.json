@@ -11,6 +11,10 @@
     "test:native-rules": "node tests/timur-native-rule-smoke.js",
     "test:app-parity": "node tests/timur-app-state-parity.js",
     "test:js-replay": "node tests/timur-js-match-replay.js",
-    "test:timur-rules": "node tests/run-timur-rules.js"
+    "test:timur-rules": "node tests/run-timur-rules.js",
+    "test:wasm-ai": "npm run wasm-ai:smoke",
+    "wasm-ai:smoke": "node scripts/run-wasm-ai-vs-ai.mjs --preset smoke --max-moves 80 --opening-plies 2",
+    "wasm-ai:standard": "node scripts/run-wasm-ai-vs-ai.mjs --preset standard --max-moves 280 --opening-plies 2",
+    "wasm-ai:full": "node scripts/run-wasm-ai-vs-ai.mjs --preset full --max-moves 280 --opening-plies 3"
   }
 }

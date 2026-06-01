@@ -991,6 +991,21 @@ Bitboard Position::attackers_to(Square s, Bitboard occupied, Color c, Bitboard j
       PieceType pt = pop_lsb(ps);
       if (board_bb(c, pt) & s)
       {
+          if (is_timur_picket_piece(var, pt) || is_timur_giraffe_piece(var, pt))
+          {
+              Bitboard customAttackers = pieces(c, pt);
+              while (customAttackers)
+              {
+                  Square s2 = pop_lsb(customAttackers);
+                  Bitboard attacks = is_timur_picket_piece(var, pt)
+                      ? timur_picket_attacks_bb(s2, occupied, board_bb())
+                      : timur_giraffe_attacks_bb(s2, occupied, board_bb());
+                  if (attacks & s)
+                      b |= s2;
+              }
+              continue;
+          }
+
           PieceType move_pt = pt == KING ? king_type() : pt;
           // Consider asymmetrical moves (e.g., horse)
           if (AttackRiderTypes[move_pt] & ASYMMETRICAL_RIDERS)
@@ -2438,7 +2453,15 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
   st->key = k;
   // Calculate checkers bitboard (if move gives check)
   const Square theirRoyalSq = timur_effective_royal_square(*this, them);
-  st->checkersBB = givesCheck && theirRoyalSq != SQ_NONE ? attackers_to(theirRoyalSq, us) & pieces(us) : Bitboard(0);
+  if (var->variantTemplate == "timur" && theirRoyalSq != SQ_NONE)
+  {
+      // Timur uses native custom riders (Picket/Giraffe) whose checks are not
+      // always covered by the generic Stockfish check-info shortcut.
+      st->checkersBB = attackers_to(theirRoyalSq, us) & pieces(us);
+      givesCheck = bool(st->checkersBB);
+  }
+  else
+      st->checkersBB = givesCheck && theirRoyalSq != SQ_NONE ? attackers_to(theirRoyalSq, us) & pieces(us) : Bitboard(0);
   assert(givesCheck == bool(st->checkersBB));
 
   sideToMove = ~sideToMove;

@@ -109,7 +109,7 @@ namespace {
     if (!pos.variant() || pos.variant()->variantTemplate != "timur")
         return Bitboard(0);
 
-    Bitboard stagedDestinations = Bitboard(0);
+    Bitboard pawnOfPawnsDestinations = Bitboard(0);
     while (destinations)
     {
         Square to = pop_lsb(destinations);
@@ -118,11 +118,11 @@ namespace {
         if (pc != NO_PIECE
             && color_of(pc) == us
             && type_of(pc) == PAWN
-            && timur_pawn_of_pawns_native_stage(pos, from) > TIMUR_PAWN_OF_PAWNS_STAGE_INITIAL)
-            stagedDestinations |= square_bb(to);
+            && timur_is_pawn_of_pawns_promotion_rank(us, to))
+            pawnOfPawnsDestinations |= square_bb(to);
     }
 
-    return stagedDestinations;
+    return pawnOfPawnsDestinations;
   }
 
   template<Color Us, GenType Type>
@@ -187,9 +187,9 @@ namespace {
     Bitboard brcp = brc & standardPromotionZone;
     Bitboard blcp = blc & standardPromotionZone;
 
-    // Timur staged pawn-of-pawns must re-enter the promotion rank as a pawn.
+    // Timur pawn-of-pawns must enter/re-enter the promotion rank as a pawn.
     // Otherwise the generic mandatory-promotion path converts it to an ordinary
-    // promotion and loses the staged cycle state before the next repatriation.
+    // promotion and loses the historical pawn cycle before repatriation.
     Bitboard timurB1p = timur_staged_pawn_promotion_destinations<Up>(pos, Us, b1p);
     Bitboard timurB2p = timur_staged_pawn_promotion_destinations<Up+Up>(pos, Us, b2p);
     Bitboard timurB3p = timur_staged_pawn_promotion_destinations<Up+Up+Up>(pos, Us, b3p);
