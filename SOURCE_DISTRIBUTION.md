@@ -1,6 +1,6 @@
 # Source Distribution Notice
 
-This repository is a public source and license package for the Fairy-Stockfish engine files and Timur variant configuration experiments used by Timurlenk Turkish Chess.
+This repository is a public source and license package for the Fairy-Stockfish engine files and Timur variant experiments used by Timurlenk Turkish Chess.
 
 It is not the full source tree of the private game application.
 
@@ -8,6 +8,10 @@ It is not the full source tree of the private game application.
 
 - `engines/fairy-stockfish-nnue-wasm/`
 - `engines/fairy-stockfish-singlethread-wasm/`
+- `src/` - corresponding modified Fairy-Stockfish source for the single-thread Timur WASM build
+- `tests/` - movement, blocker, native special-rule, and app-state parity checks
+- `package.json` - local validation commands
+- `TIMUR_RULE_TEST_MATRIX.md`
 - `variants/timur-draft.variants.ini`
 - `variants/timur-piece-map.json`
 - `LICENSE`
@@ -26,6 +30,6 @@ It is not the full source tree of the private game application.
 
 ## GPL Note
 
-Fairy-Stockfish is GPL licensed. Anyone distributing a binary that includes GPL engine components should make sure the corresponding source obligations for that distributed binary are satisfied.
+Fairy-Stockfish is GPL licensed. The modified single-thread WASM binary in this repository is accompanied by its corresponding modified source under `src/`.
 
 This repository is designed to keep the open-source engine package separate from private application code.

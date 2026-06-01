@@ -1,0 +1,139 @@
+[
+  {
+    "id": "app_white_king_enters_black_citadel",
+    "source": "TimurChessWeb app snapshot parity fixture",
+    "appSnapshot": {
+      "currentTurn": "white",
+      "board": {
+        "pieces": [
+          { "type": "king", "color": "white", "row": 0, "col": 0 },
+          { "type": "king", "color": "black", "row": 1, "col": 10 }
+        ]
+      }
+    },
+    "expectedFen": "K10/10k/11/11/11/11/11/11/11/11 w - - 0 1",
+    "expectedNativeRootMoves": ["a10@blackcitadel"],
+    "forbiddenNativeRootMoves": ["k1@whitecitadel"]
+  },
+  {
+    "id": "app_white_citadel_exchange_with_prince_target",
+    "source": "TimurChessWeb app snapshot parity fixture",
+    "appSnapshot": {
+      "currentTurn": "white",
+      "citadelExchangeUsed": { "white": false, "black": false },
+      "board": {
+        "pieces": [
+          { "type": "king", "color": "white", "row": 0, "col": 0 },
+          { "type": "king", "color": "black", "row": 1, "col": 10 },
+          { "type": "prince", "color": "white", "row": 5, "col": 5 }
+        ]
+      }
+    },
+    "expectedFen": "K10/10k/11/11/11/5Q5/11/11/11/11 w - - 0 1",
+    "expectedNativeRootMoves": ["citadel_exchange:a10:f5@blackcitadel"]
+  },
+  {
+    "id": "app_white_royal_swap_when_shah_in_ransom_check",
+    "source": "TimurChessWeb app snapshot parity fixture",
+    "appSnapshot": {
+      "currentTurn": "white",
+      "ransomMoveUsed": { "white": false, "black": false },
+      "board": {
+        "pieces": [
+          { "type": "king", "color": "black", "row": 0, "col": 10 },
+          { "type": "prince", "color": "white", "row": 8, "col": 4 },
+          { "type": "rook", "color": "black", "row": 9, "col": 0 },
+          { "type": "king", "color": "white", "row": 9, "col": 5 }
+        ]
+      }
+    },
+    "expectedFen": "10k/11/11/11/11/11/11/11/4Q6/r4K5 w - - 0 1",
+    "expectedNativeRootMoves": ["royal_swap:f1:e2@ransom"]
+  },
+  {
+    "id": "app_white_pawn_of_pawns_first_repatriation",
+    "source": "TimurChessWeb app snapshot parity fixture",
+    "appSnapshot": {
+      "currentTurn": "white",
+      "board": {
+        "pieces": [
+          { "type": "pawn", "pawnType": "pawn_of_pawns", "color": "white", "row": 0, "col": 4 },
+          { "type": "king", "color": "black", "row": 1, "col": 10 },
+          { "type": "king", "color": "white", "row": 9, "col": 0 }
+        ]
+      }
+    },
+    "expectedFen": "4P6/10k/11/11/11/11/11/11/11/K10 w - - 0 1",
+    "expectedNativeRootMoves": ["pawn_cycle:e10:e3@stage2"]
+  },
+  {
+    "id": "app_white_pawn_of_pawns_full_cycle_to_adventitious",
+    "source": "TimurChessWeb app move-history parity fixture",
+    "appSnapshot": {
+      "currentTurn": "white",
+      "board": {
+        "pieces": [
+          { "type": "pawn", "pawnType": "pawn_of_pawns", "color": "white", "row": 0, "col": 4 },
+          { "type": "king", "color": "black", "row": 1, "col": 10 },
+          { "type": "king", "color": "white", "row": 9, "col": 0 }
+        ]
+      }
+    },
+    "moveHistoryUci": [
+      "e10e3", "k9k8",
+      "e3e4", "k8k9",
+      "e4e5", "k9k8",
+      "e5e6", "k8k9",
+      "e6e7", "k9k8",
+      "e7e8", "k8k9",
+      "e8e9", "k9k8",
+      "e9e10", "k8k9",
+      "e10e3", "k9k8",
+      "e3e4", "k8k9",
+      "e4e5", "k9k8",
+      "e5e6", "k8k9",
+      "e6e7", "k9k8",
+      "e7e8", "k8k9",
+      "e8e9", "k9k8",
+      "e9e10", "k8k9"
+    ],
+    "expectedFen": "4P6/10k/11/11/11/11/11/11/11/K10 w - - 0 1",
+    "expectedNativeRootMoves": ["e10e10"],
+    "forbiddenNativeRootMoves": ["e10e3"]
+  },
+  {
+    "id": "app_black_pawn_of_pawns_full_cycle_to_adventitious",
+    "source": "TimurChessWeb app move-history parity fixture",
+    "appSnapshot": {
+      "currentTurn": "black",
+      "board": {
+        "pieces": [
+          { "type": "king", "color": "black", "row": 0, "col": 10 },
+          { "type": "king", "color": "white", "row": 1, "col": 0 },
+          { "type": "pawn", "pawnType": "pawn_of_pawns", "color": "black", "row": 9, "col": 4 }
+        ]
+      }
+    },
+    "moveHistoryUci": [
+      "e1e8", "a9a8",
+      "e8e7", "a8a9",
+      "e7e6", "a9a8",
+      "e6e5", "a8a9",
+      "e5e4", "a9a8",
+      "e4e3", "a8a9",
+      "e3e2", "a9a8",
+      "e2e1", "a8a9",
+      "e1e8", "a9a8",
+      "e8e7", "a8a9",
+      "e7e6", "a9a8",
+      "e6e5", "a8a9",
+      "e5e4", "a9a8",
+      "e4e3", "a8a9",
+      "e3e2", "a9a8",
+      "e2e1", "a8a9"
+    ],
+    "expectedFen": "10k/K10/11/11/11/11/11/11/11/4p6 b - - 0 1",
+    "expectedNativeRootMoves": ["e1e1"],
+    "forbiddenNativeRootMoves": ["e1e8"]
+  }
+]

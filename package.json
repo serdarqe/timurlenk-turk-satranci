@@ -1,0 +1,15 @@
+{
+  "name": "timurlenk-turk-satranci-engine",
+  "version": "0.0.0",
+  "private": true,
+  "license": "GPL-3.0-only",
+  "description": "Public Timur chess Fairy-Stockfish fork rule validation harness.",
+  "scripts": {
+    "test": "npm run test:timur-rules",
+    "test:movement": "node tests/timur-piece-movement-probe.js",
+    "test:movement-edge": "node tests/timur-piece-edge-blocker-probe.js",
+    "test:native-rules": "node tests/timur-native-rule-smoke.js",
+    "test:app-parity": "node tests/timur-app-state-parity.js",
+    "test:timur-rules": "node tests/run-timur-rules.js"
+  }
+}

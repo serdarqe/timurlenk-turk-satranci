@@ -4,12 +4,17 @@ Thumbs.db
 *.log
 
 # Private app/build files must not be added here.
-src/
+TimurChessWeb/
 android/
-tests/
-scripts/
 dist/
 node_modules/
+src/.depend
+src/*.o
+src/*.obj
+src/stockfish.js
+src/stockfish.worker.js
+src/emscripten/embedded_nnue.cpp
+src/emscripten/embedded_nnue.h
 *.apk
 *.aab
 *.apks

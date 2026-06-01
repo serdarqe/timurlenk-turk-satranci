@@ -13,15 +13,17 @@ rules-and-AI layer.
 
 The native Timur (Tamerlane) chess engine — both its **rules and its gameplay** — is being
 built from scratch and is **not finished yet**. The experimental engine already handles the
-larger board, the basic historical pieces, and core move generation natively, while several
-variant-specific rules are still in progress and are currently handled by the private rules
-layer, including:
+larger board, the historical piece set, Picket and Giraffe move generation, core movement,
+and a growing set of Timur-specific rule hooks natively. Current native validation covers:
 
-- the giraffe's full historical movement,
-- fortress/citadel draw and citadel-exchange handling,
-- royal swap (king–prince exchange),
-- the pawn-of-pawns promotion chain,
-- full prince / adventitious-king royal logic.
+- fortress/citadel entry and citadel-exchange token handling,
+- royal swap (king–prince exchange) token handling,
+- the pawn-of-pawns staged repatriation and Adventitious King cycle,
+- prince / adventitious-king backup royal result gates,
+- threefold repetition, fifty-move draw, and stalemate-win rule settings.
+
+The private game rules layer still remains the production authority while the native engine
+is being validated against app-state parity fixtures and longer match replay tests.
 
 Because the work is ongoing, the engine files here may change or be rebuilt until the
 integration is complete and validated. They are published for transparency and
@@ -44,9 +46,11 @@ Timurlenk Turkish Chess explores Tamerlane chess, a historical chess variant wit
 This repository is intended to document and preserve:
 
 - Fairy-Stockfish WASM engine binaries and loaders.
+- Modified Fairy-Stockfish C++ source for the experimental native Timur build.
 - GPL license and attribution files.
 - Timur chess variant configuration experiments.
 - Checksum information for the included engine binaries.
+- A small movement probe that verifies every center-board Timur piece move.
 
 ## What Is Timur Chess?
 
@@ -113,6 +117,12 @@ variants/
   timur-draft.variants.ini
   timur-piece-map.json
 
+src/
+  Modified Fairy-Stockfish source used to build the experimental single-thread Timur WASM.
+
+tests/
+  timur-piece-movement-probe.js
+
 LICENSE
 THIRD_PARTY_NOTICES.md
 SOURCE_DISTRIBUTION.md
@@ -157,7 +167,7 @@ This single-threaded build is **not** an unmodified upstream binary. It is compi
 
 > The `package.json`, `AUTHORS`, and `Copying.txt` files inside this folder are inherited from the upstream package and still carry upstream metadata; the `stockfish.wasm` itself is the modified build described here.
 
-Because this single-threaded build is a **modified version of GPL-3.0 software**, the complete corresponding source for the modification is available from the project maintainer on request, and will be published together with this package once the engine is integrated into a public release.
+Because this single-threaded build is a **modified version of GPL-3.0 software**, the corresponding modified source is included in this repository under `src/`.
 
 This repository does not claim authorship of upstream Fairy-Stockfish or Stockfish. The multi-threaded package is redistributed as-is; the single-threaded build adds a Timur variant on top of that GPL-3.0 base.
 
@@ -166,6 +176,14 @@ This repository does not claim authorship of upstream Fairy-Stockfish or Stockfi
 The files in `variants/` are draft configuration files used to experiment with Timur chess compatibility in the Fairy-Stockfish ecosystem.
 
 They are not the full private game implementation. They are kept here so the engine-side work can be inspected independently.
+
+## Quick Verification
+
+The included movement probe loads the single-thread WASM package and checks the center-board legal moves for every Timur piece, including Picket and Giraffe:
+
+```bash
+node tests/timur-piece-movement-probe.js
+```
 
 ## License
 

@@ -23,4 +23,4 @@ This repository depends on open-source engine work maintained upstream.
 
 This repository is not an upstream replacement for Fairy-Stockfish or Stockfish.
 
-It is a downstream packaging and variant-configuration repository for Timurlenk Turkish Chess engine experiments.
+It is a downstream modified-source, packaging, and variant-experiment repository for Timurlenk Turkish Chess engine work.
