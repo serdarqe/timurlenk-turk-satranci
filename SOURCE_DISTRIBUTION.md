@@ -11,12 +11,9 @@ It is not the full source tree of the private game application.
 - `src/` - corresponding modified Fairy-Stockfish source for the single-thread Timur WASM build
 - `tests/` - movement, blocker, native special-rule, and app-state parity checks
 - `package.json` - local validation commands
-- `TIMUR_RULE_TEST_MATRIX.md`
 - `variants/timur-draft.variants.ini`
 - `variants/timur-piece-map.json`
 - `LICENSE`
-- `THIRD_PARTY_NOTICES.md`
-- `UPSTREAM.md`
 - `CHECKSUMS.sha256`
 
 ## Not Included

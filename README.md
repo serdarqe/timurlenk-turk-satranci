@@ -124,9 +124,7 @@ tests/
   timur-piece-movement-probe.js
 
 LICENSE
-THIRD_PARTY_NOTICES.md
 SOURCE_DISTRIBUTION.md
-UPSTREAM.md
 CHECKSUMS.sha256
 ```
 
@@ -189,4 +187,4 @@ node tests/timur-piece-movement-probe.js
 
 This repository is distributed under `GPL-3.0-only` because the included engine dependency is GPL licensed.
 
-See `LICENSE` and `THIRD_PARTY_NOTICES.md`.
+See `LICENSE` and `SOURCE_DISTRIBUTION.md`.
