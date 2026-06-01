@@ -1,8 +1,33 @@
 # Timurlenk Fairy-Stockfish Engine Pack
 
-This repository contains a clean public engine package used for Timurlenk Turkish Chess engine experiments.
+[![Timur engine validation](https://github.com/serdarqe/timurlenk-turk-satranci/actions/workflows/ci.yml/badge.svg)](https://github.com/serdarqe/timurlenk-turk-satranci/actions/workflows/ci.yml)
+
+This repository contains the public GPL source package for the experimental **Timur / Tamerlane Chess Fairy-Stockfish fork** used in Timurlenk Turkish Chess engine research.
+
+The project adds native 11x10 Timur chess support on top of Fairy-Stockfish, including custom historical pieces, fortress / citadel rule hooks, royal-swap handling, pawn-of-pawns behavior, JS-to-native parity tests, and WASM self-play validation.
 
 It does **not** contain the private game application source code, UI code, Android project, Firebase configuration, analytics code, signing keys, or generated APK/AAB builds.
+
+## Highlights
+
+- Native Fairy-Stockfish fork targeting **11x10 Tamerlane / Timur chess**.
+- Custom movement support for historical pieces, including Picket and Giraffe.
+- Native rule work for citadel exchange, royal swap, backup royal gates, pawn cycles, threefold repetition, fifty-move draw, and stalemate-win behavior.
+- Test harnesses that compare engine behavior against Timur rule fixtures and app-state parity cases.
+- WASM AI-vs-AI smoke automation that validates selected `bestmove` output against legal root moves.
+- Public source distribution prepared for GPL-3.0 compliance while keeping the private mobile game code out of this repository.
+
+## What Was Added In This Fork
+
+This is not a claim of authorship over Stockfish or Fairy-Stockfish. The upstream projects remain the foundation of the engine.
+
+The Timur-specific work in this repository is documented in [CONTRIBUTIONS.md](CONTRIBUTIONS.md). In short, this fork adds:
+
+- a native `timur` variant path in the Fairy-Stockfish source,
+- Timur-specific board, piece, and rule experiments,
+- custom Picket / Giraffe attack handling,
+- citadel, royal-swap, pawn-of-pawns, and backup-royal validation hooks,
+- Node-based rule, parity, replay, and WASM self-play validation tools.
 
 ## Engine Status (Experimental / In Progress)
 
@@ -50,7 +75,7 @@ This repository is intended to document and preserve:
 - GPL license and attribution files.
 - Timur chess variant configuration experiments.
 - Checksum information for the included engine binaries.
-- A small movement probe that verifies every center-board Timur piece move.
+- Rule, parity, replay, and self-play validation tools.
 
 ## What Is Timur Chess?
 
@@ -121,9 +146,15 @@ src/
   Modified Fairy-Stockfish source used to build the experimental single-thread Timur WASM.
 
 tests/
+  run-timur-rules.js
+  timur-native-rule-smoke.js
   timur-piece-movement-probe.js
 
+scripts/
+  run-wasm-ai-vs-ai.mjs
+
 LICENSE
+CONTRIBUTIONS.md
 SOURCE_DISTRIBUTION.md
 CHECKSUMS.sha256
 ```
@@ -177,11 +208,27 @@ They are not the full private game implementation. They are kept here so the eng
 
 ## Quick Verification
 
-The included movement probe loads the single-thread WASM package and checks the center-board legal moves for every Timur piece, including Picket and Giraffe:
+This package uses Node.js scripts for validation. No private game source is required.
+
+Run the full Timur rule validation suite:
+
+```bash
+npm test
+```
+
+Run the movement probe directly:
 
 ```bash
 node tests/timur-piece-movement-probe.js
 ```
+
+Run a short WASM self-play smoke test:
+
+```bash
+npm run test:wasm-ai
+```
+
+The smoke test writes local reports under `reports/`. Those reports are ignored by git and are not part of the source distribution.
 
 ## License
 

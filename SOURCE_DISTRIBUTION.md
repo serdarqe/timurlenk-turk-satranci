@@ -10,7 +10,9 @@ It is not the full source tree of the private game application.
 - `engines/fairy-stockfish-singlethread-wasm/`
 - `src/` - corresponding modified Fairy-Stockfish source for the single-thread Timur WASM build
 - `tests/` - movement, blocker, native special-rule, and app-state parity checks
+- `scripts/` - public WASM AI-vs-AI smoke validation tooling
 - `package.json` - local validation commands
+- `CONTRIBUTIONS.md`
 - `variants/timur-draft.variants.ini`
 - `variants/timur-piece-map.json`
 - `LICENSE`

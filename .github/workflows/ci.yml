@@ -1,0 +1,32 @@
+name: Timur engine validation
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Rule and WASM smoke validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Show runtime versions
+        run: |
+          node --version
+          npm --version
+
+      - name: Run Timur rule validation suite
+        run: npm test
+
+      - name: Run WASM self-play smoke test
+        run: npm run test:wasm-ai
