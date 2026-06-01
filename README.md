@@ -119,6 +119,30 @@ The private game implementation contains the full playable rules. This repositor
 
 Because of these rule differences, the app keeps a custom Timur rules layer privately, while this public repository focuses on the open-source Fairy-Stockfish engine package and draft variant configuration work.
 
+## Architecture Overview
+
+The current engine work is intentionally hybrid while the native Timur implementation is being validated.
+
+```text
+Private Android game
+  -> private Timur rules / UI / analytics layer
+  -> JS rule fixtures and historical match data
+  -> public Fairy-Stockfish fork validation package
+       -> modified C++ native Timur rules in src/
+       -> WASM engine builds in engines/
+       -> Node.js parity, replay, and self-play tests
+```
+
+The private game remains the production authority today. This public repository is the GPL-compatible engine source package used to move more Timur rules into native Fairy-Stockfish safely.
+
+The validation strategy is:
+
+- native rule smoke tests for special Timur rules,
+- movement and blocker probes for unusual historical pieces,
+- app-state parity fixtures against selected private-rule positions,
+- JS match replay checks for compatibility with older recorded games,
+- WASM self-play smoke tests that reject illegal `bestmove` output.
+
 ## What Is Included
 
 ```text
@@ -229,6 +253,44 @@ npm run test:wasm-ai
 ```
 
 The smoke test writes local reports under `reports/`. Those reports are ignored by git and are not part of the source distribution.
+
+## Build From Source
+
+The included single-thread WASM engine is a modified Fairy-Stockfish build. The corresponding source is under `src/`.
+
+### Native build
+
+From the repository root:
+
+```bash
+cd src
+make build
+```
+
+The exact native compiler target depends on the host platform and the standard Fairy-Stockfish / Stockfish `src/Makefile` options.
+
+### WASM build with Emscripten
+
+Install and activate Emscripten first:
+
+```bash
+source /path/to/emsdk/emsdk_env.sh
+```
+
+Then build the single-thread WASM package:
+
+```bash
+cd src/emscripten
+make -C .. emscripten_build_singlethread ARCH=wasm
+```
+
+The Emscripten build writes generated engine files such as `stockfish.js` and `stockfish.wasm`. The public distributed build is copied into:
+
+```text
+engines/fairy-stockfish-singlethread-wasm/
+```
+
+For upstream Emscripten notes, see `src/emscripten/README.md`.
 
 ## License
 

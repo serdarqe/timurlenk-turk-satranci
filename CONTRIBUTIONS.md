@@ -21,15 +21,26 @@ Important areas:
 - `src/variant.cpp` and `src/variant.h`
   - Adds the experimental native `timur` variant path.
   - Models the larger Timur board and variant-specific piece/rule configuration.
+  - Key symbols include `timur_variant()` and the registered `timur` / `timur_poc` variants.
 
 - `src/position.cpp` and `src/position.h`
   - Adds Timur-specific position-state hooks used by special rule validation.
   - Adds custom attacker/checker handling required by Timur pieces such as Picket and Giraffe.
   - Supports citadel, royal-swap, backup-royal, repetition, and rule-state experiments.
+  - Key custom movement helpers include `timur_giraffe_attacks_bb()` and `timur_picket_attacks_bb()`.
+  - Key attack/check integration points include `Position::attackers_to()` and the `checkersBB` recomputation path after moves.
+  - Key citadel helpers include `timur_try_make_citadel_special_move()`, `timur_try_make_citadel_exchange_plan()`, `timur_try_make_citadel_exchange_native_plan()`, and `timur_citadel_exchange_native_perft_root_token()`.
+  - Key royal-swap helpers include `timur_try_make_royal_swap_native_plan()`, `timur_make_royal_swap_native_move()`, and `timur_royal_swap_native_perft_root_token()`.
+  - Key pawn-of-pawns helpers include `timur_try_make_pawn_of_pawns_cycle_plan()`, `timur_try_make_pawn_of_pawns_cycle_native_plan()`, and `timur_pawn_of_pawns_cycle_native_perft_root_token()`.
+  - Key backup-royal helpers include `timur_has_backup_royal()`, `timur_has_any_royal()`, `timur_effective_royal_piece_type()`, `timur_effective_royal_square()`, and `timur_multi_royal_native_perft_root_token()`.
 
 - `src/movegen.cpp` and `src/movegen.h`
   - Adds or adjusts Timur movement handling where native move generation needs special behavior.
   - Includes pawn-of-pawns cycle handling used by the experimental Timur rules path.
+
+- `src/search.cpp`
+  - Exposes special Timur root channels for perft/search validation.
+  - Emits special bestmove forms such as `citadel_exchange:...`, `royal_swap:...`, and `pawn_cycle:...` when the position requires a native special-rule action.
 
 - `src/types.h`
   - Carries shared type-level support needed by the custom variant and piece model.
