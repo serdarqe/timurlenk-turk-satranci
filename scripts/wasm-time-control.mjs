@@ -6,25 +6,25 @@ export const LEVELS = {
 
 const PHASE_MOVETIMES = {
   easy: {
-    opening: 24,
-    middlegame: 38,
-    late_middlegame: 55,
-    endgame: 90,
-    critical_endgame: 140,
+    opening: 20,
+    middlegame: 30,
+    late_middlegame: 45,
+    endgame: 70,
+    critical_endgame: 100,
   },
   medium: {
-    opening: 55,
-    middlegame: 95,
-    late_middlegame: 135,
-    endgame: 240,
-    critical_endgame: 380,
+    opening: 45,
+    middlegame: 80,
+    late_middlegame: 120,
+    endgame: 180,
+    critical_endgame: 300,
   },
   hard: {
-    opening: 90,
-    middlegame: 170,
-    late_middlegame: 260,
-    endgame: 480,
-    critical_endgame: 680,
+    opening: 70,
+    middlegame: 200,
+    late_middlegame: 320,
+    endgame: 800,
+    critical_endgame: 1200,
   },
 };
 
