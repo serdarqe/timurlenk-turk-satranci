@@ -11,9 +11,9 @@ const Stockfish = require(path.join(engineDir, "stockfish.js"));
 const wasmBinary = fs.readFileSync(path.join(engineDir, "stockfish.wasm"));
 
 const LEVELS = {
-  easy: { label: "easy", depth: 1, movetime: 0 },
-  medium: { label: "medium", depth: 2, movetime: 0 },
-  hard: { label: "hard", depth: 3, movetime: 0 },
+  easy: { label: "easy", depth: 1, movetime: 30 },
+  medium: { label: "medium", depth: 2, movetime: 80 },
+  hard: { label: "hard", depth: 3, movetime: 150 },
 };
 
 function parseArgs(argv) {
@@ -24,7 +24,7 @@ function parseArgs(argv) {
     openingPlies: 2,
     depth: 0,
     movetime: 0,
-    hash: 0,
+    hash: 256,
     outDir: "",
     trackKeys: true,
     stopOnOptionalDraw: true,
