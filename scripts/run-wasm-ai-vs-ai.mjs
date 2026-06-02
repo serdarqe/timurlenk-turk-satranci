@@ -27,7 +27,7 @@ function parseArgs(argv) {
     hash: 256,
     outDir: "",
     trackKeys: true,
-    stopOnOptionalDraw: true,
+    stopOnOptionalDraw: false,
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -42,6 +42,7 @@ function parseArgs(argv) {
     else if (arg === "--out") args.outDir = argv[++i] || "";
     else if (arg === "--no-track-keys") args.trackKeys = false;
     else if (arg === "--play-optional-draws") args.stopOnOptionalDraw = false;
+    else if (arg === "--stop-on-optional-draw") args.stopOnOptionalDraw = true;
     else if (arg === "--help" || arg === "-h") {
       printUsage();
       process.exit(0);
@@ -66,6 +67,7 @@ What it validates:
   - WASM bestmove is legal at every ply via native perft-1 root moves.
   - Special Timur channels are normalized for play: citadel_exchange, royal_swap, pawn_cycle.
   - Draw endings are separated: threefold, fifty_move, citadel_draw, stalemate, max_moves.
+  - Optional citadel draws are played through by default for AI-quality testing.
   - Performance is recorded per move: elapsed ms, root move count, search score/depth/nodes.
 `);
 }
@@ -124,6 +126,56 @@ function parseDump(lines) {
   };
 }
 
+function countPiecesFromFen(fen) {
+  const placement = String(fen || "").split(/\s+/)[0] || "";
+  let white = 0;
+  let black = 0;
+  for (const ch of placement) {
+    if (/[A-Z]/.test(ch)) white += 1;
+    else if (/[a-z]/.test(ch)) black += 1;
+  }
+  return { white, black, total: white + black };
+}
+
+function finishModeConfig(baseConfig, dump, ply) {
+  const pieces = countPiecesFromFen(dump?.fen || "");
+  const halfmoveClock = Number(dump?.halfmoveClock || 0);
+  const endgame = pieces.total > 0 && pieces.total <= 12;
+  const criticalEndgame = pieces.total > 0 && pieces.total <= 8;
+  const lateGame = ply >= 220;
+  const lowProgress = halfmoveClock >= 60;
+
+  if (!endgame && !criticalEndgame && !lateGame && !lowProgress) {
+    return { ...baseConfig, finishMode: false, pieces };
+  }
+
+  const levelFloor = {
+    easy: criticalEndgame ? 60 : 45,
+    medium: criticalEndgame ? 160 : 120,
+    hard: criticalEndgame ? 300 : 220,
+  };
+  const floor = levelFloor[baseConfig.label] || baseConfig.movetime || 0;
+  const lateBonus = lateGame ? 40 : 0;
+  const progressBonus = lowProgress ? 40 : 0;
+  const movetime = baseConfig.movetime > 0
+    ? Math.min(420, Math.max(baseConfig.movetime, floor + lateBonus + progressBonus))
+    : 0;
+
+  return {
+    ...baseConfig,
+    movetime,
+    depth: baseConfig.depth + (criticalEndgame ? 2 : endgame ? 1 : 0),
+    finishMode: true,
+    finishReasons: {
+      endgame,
+      criticalEndgame,
+      lateGame,
+      lowProgress,
+    },
+    pieces,
+  };
+}
+
 function normalizeSpecialBestMove(bestmove) {
   let match = bestmove.match(/^citadel_exchange:([^:]+):([^@]+)@/);
   if (match) return `${match[1]}${match[2]}`.toLowerCase();
@@ -151,6 +203,15 @@ function chooseOpeningMove(rootMoves, gameIndex, ply) {
   const playable = rootMoves.filter((move) => !move.includes("@") || move.startsWith("citadel_exchange:") || move.startsWith("royal_swap:") || move.startsWith("pawn_cycle:"));
   if (!playable.length) return "";
   return playable[(gameIndex + ply) % playable.length];
+}
+
+function chooseDrawAvoidanceMove(rootMoves, gameIndex, ply) {
+  const playable = rootMoves.filter((move) => {
+    if (move === "a10@blackcitadel" || move === "k1@whitecitadel") return false;
+    return !move.includes("@") || move.startsWith("citadel_exchange:") || move.startsWith("royal_swap:") || move.startsWith("pawn_cycle:");
+  });
+  if (!playable.length) return "";
+  return playable[(gameIndex * 7 + ply) % playable.length];
 }
 
 function sideConfig(scenario, color, args) {
@@ -292,8 +353,9 @@ async function playGame(engine, scenario, gameIndex, args) {
 
   for (let ply = 0; ply < args.maxMoves; ply += 1) {
     const color = ply % 2 === 0 ? "white" : "black";
-    const config = sideConfig(scenario, color, args);
+    const baseConfig = sideConfig(scenario, color, args);
     const dump = args.trackKeys ? await engine.dump(appliedMoves) : null;
+    const config = finishModeConfig(baseConfig, dump, ply);
 
     if (dump?.key) {
       const count = (keyCounts.get(dump.key) || 0) + 1;
@@ -348,6 +410,23 @@ async function playGame(engine, scenario, gameIndex, args) {
       bestmove = search.bestmove;
     }
 
+    let drawAvoidanceFallback = false;
+    if ((!bestmove || bestmove === "(none)" || bestmove === "0000") && citadelToken && !args.stopOnOptionalDraw) {
+      const fallbackMove = chooseDrawAvoidanceMove(rootMoves, gameIndex + scenario.openingOffset, ply);
+      if (fallbackMove) {
+        bestmove = fallbackMove;
+        drawAvoidanceFallback = true;
+        search = {
+          ...search,
+          bestmove,
+          info: {
+            ...(search?.info || {}),
+            raw: "draw-avoidance fallback after optional citadel bestmove none",
+          },
+        };
+      }
+    }
+
     if (!bestmove || bestmove === "(none)" || bestmove === "0000") {
       const noMove = classifyNoMove(dump || {});
       resultType = citadelToken ? "citadel_draw" : noMove.resultType;
@@ -379,6 +458,11 @@ async function playGame(engine, scenario, gameIndex, args) {
       ply: ply + 1,
       color,
       level: config.label,
+      finishMode: config.finishMode,
+      finishReasons: config.finishReasons || null,
+      pieces: config.pieces || null,
+      optionalDrawAvailable: citadelToken || "",
+      drawAvoidanceFallback,
       bestmove,
       appendMove,
       rootMoveCount: rootMoves.length,
