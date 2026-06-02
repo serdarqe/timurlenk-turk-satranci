@@ -3,18 +3,13 @@ import path from "node:path";
 import { createRequire } from "node:module";
 import { performance } from "node:perf_hooks";
 import { fileURLToPath } from "node:url";
+import { LEVELS, selectTimeControl } from "./wasm-time-control.mjs";
 
 const require = createRequire(import.meta.url);
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const engineDir = path.join(repoRoot, "engines", "fairy-stockfish-singlethread-wasm");
 const Stockfish = require(path.join(engineDir, "stockfish.js"));
 const wasmBinary = fs.readFileSync(path.join(engineDir, "stockfish.wasm"));
-
-const LEVELS = {
-  easy: { label: "easy", depth: 1, movetime: 30 },
-  medium: { label: "medium", depth: 2, movetime: 80 },
-  hard: { label: "hard", depth: 3, movetime: 150 },
-};
 
 function parseArgs(argv) {
   const args = {
@@ -126,56 +121,6 @@ function parseDump(lines) {
   };
 }
 
-function countPiecesFromFen(fen) {
-  const placement = String(fen || "").split(/\s+/)[0] || "";
-  let white = 0;
-  let black = 0;
-  for (const ch of placement) {
-    if (/[A-Z]/.test(ch)) white += 1;
-    else if (/[a-z]/.test(ch)) black += 1;
-  }
-  return { white, black, total: white + black };
-}
-
-function finishModeConfig(baseConfig, dump, ply) {
-  const pieces = countPiecesFromFen(dump?.fen || "");
-  const halfmoveClock = Number(dump?.halfmoveClock || 0);
-  const endgame = pieces.total > 0 && pieces.total <= 12;
-  const criticalEndgame = pieces.total > 0 && pieces.total <= 8;
-  const lateGame = ply >= 220;
-  const lowProgress = halfmoveClock >= 60;
-
-  if (!endgame && !criticalEndgame && !lateGame && !lowProgress) {
-    return { ...baseConfig, finishMode: false, pieces };
-  }
-
-  const levelFloor = {
-    easy: criticalEndgame ? 60 : 45,
-    medium: criticalEndgame ? 160 : 120,
-    hard: criticalEndgame ? 300 : 220,
-  };
-  const floor = levelFloor[baseConfig.label] || baseConfig.movetime || 0;
-  const lateBonus = lateGame ? 40 : 0;
-  const progressBonus = lowProgress ? 40 : 0;
-  const movetime = baseConfig.movetime > 0
-    ? Math.min(420, Math.max(baseConfig.movetime, floor + lateBonus + progressBonus))
-    : 0;
-
-  return {
-    ...baseConfig,
-    movetime,
-    depth: baseConfig.depth + (criticalEndgame ? 2 : endgame ? 1 : 0),
-    finishMode: true,
-    finishReasons: {
-      endgame,
-      criticalEndgame,
-      lateGame,
-      lowProgress,
-    },
-    pieces,
-  };
-}
-
 function normalizeSpecialBestMove(bestmove) {
   let match = bestmove.match(/^citadel_exchange:([^:]+):([^@]+)@/);
   if (match) return `${match[1]}${match[2]}`.toLowerCase();
@@ -214,12 +159,10 @@ function chooseDrawAvoidanceMove(rootMoves, gameIndex, ply) {
   return playable[(gameIndex * 7 + ply) % playable.length];
 }
 
-function sideConfig(scenario, color, args) {
+function sideConfig(scenario, color) {
   const config = scenario[color];
   return {
     ...config,
-    depth: args.depth > 0 ? args.depth : config.depth,
-    movetime: args.movetime > 0 ? args.movetime : config.movetime,
   };
 }
 
@@ -353,9 +296,17 @@ async function playGame(engine, scenario, gameIndex, args) {
 
   for (let ply = 0; ply < args.maxMoves; ply += 1) {
     const color = ply % 2 === 0 ? "white" : "black";
-    const baseConfig = sideConfig(scenario, color, args);
+    const baseConfig = sideConfig(scenario, color);
     const dump = args.trackKeys ? await engine.dump(appliedMoves) : null;
-    const config = finishModeConfig(baseConfig, dump, ply);
+    const config = selectTimeControl(baseConfig, {
+      fen: dump?.fen || "",
+      ply,
+      maxMoves: args.maxMoves,
+      halfmoveClock: dump?.halfmoveClock || 0,
+      checkers: dump?.checkers || "",
+      movetimeOverride: args.movetime,
+      depthOverride: args.depth,
+    });
 
     if (dump?.key) {
       const count = (keyCounts.get(dump.key) || 0) + 1;
@@ -458,6 +409,7 @@ async function playGame(engine, scenario, gameIndex, args) {
       ply: ply + 1,
       color,
       level: config.label,
+      phase: config.phase,
       finishMode: config.finishMode,
       finishReasons: config.finishReasons || null,
       pieces: config.pieces || null,
@@ -503,6 +455,7 @@ function summarize(games) {
   const resultTypes = {};
   const winners = {};
   const levels = {};
+  const phases = {};
   let illegalBestmoves = 0;
   let totalMoves = 0;
   let totalMs = 0;
@@ -522,12 +475,23 @@ function summarize(games) {
       levels[level].searchMs += move.elapsedMs || 0;
       levels[level].nodes += move.nodes || 0;
       levels[level].depth += move.depth || 0;
+      const phase = move.phase || "unknown";
+      phases[phase] ||= { moves: 0, searchMs: 0, nodes: 0, depth: 0 };
+      phases[phase].moves += 1;
+      phases[phase].searchMs += move.elapsedMs || 0;
+      phases[phase].nodes += move.nodes || 0;
+      phases[phase].depth += move.depth || 0;
       totalNodes += move.nodes || 0;
       totalDepth += move.depth || 0;
     }
   }
 
   for (const stats of Object.values(levels)) {
+    stats.averageSearchMs = stats.moves ? Math.round(stats.searchMs / stats.moves) : 0;
+    stats.averageNodes = stats.moves ? Math.round(stats.nodes / stats.moves) : 0;
+    stats.averageDepth = stats.moves ? Number((stats.depth / stats.moves).toFixed(2)) : 0;
+  }
+  for (const stats of Object.values(phases)) {
     stats.averageSearchMs = stats.moves ? Math.round(stats.searchMs / stats.moves) : 0;
     stats.averageNodes = stats.moves ? Math.round(stats.nodes / stats.moves) : 0;
     stats.averageDepth = stats.moves ? Number((stats.depth / stats.moves).toFixed(2)) : 0;
@@ -551,6 +515,7 @@ function summarize(games) {
     averageDepth: totalMoves ? Number((totalDepth / totalMoves).toFixed(2)) : 0,
     averageNodes: totalMoves ? Math.round(totalNodes / totalMoves) : 0,
     levels,
+    phases,
     qualityFlags,
   };
 }
@@ -620,6 +585,11 @@ function writeOutputs(outDir, games, summary, args) {
       "",
       "## Level Performance",
       ...Object.entries(summary.levels).map(
+        ([key, value]) => `- ${key}: ${value.moves} moves, ${value.averageSearchMs} ms/move, depth ${value.averageDepth}, nodes ${value.averageNodes}`
+      ),
+      "",
+      "## Phase Performance",
+      ...Object.entries(summary.phases).map(
         ([key, value]) => `- ${key}: ${value.moves} moves, ${value.averageSearchMs} ms/move, depth ${value.averageDepth}, nodes ${value.averageNodes}`
       ),
       "",
