@@ -1,6 +1,6 @@
 {
   "purpose": "Fairy-Stockfish WebView smoke test assets. Not wired into production AI.",
-  "generatedAt": "2026-05-19T19:23:02.372Z",
+  "generatedAt": "2026-06-23T22:47:07.187Z",
   "bundle": "singlethread",
   "source": "fairy-poc/vendor/fairy-stockfish-singlethread.wasm",
   "variant": "fairy-poc/timur-draft.variants.ini",
@@ -15,11 +15,11 @@
   "artifacts": [
     {
       "name": "stockfish.js",
-      "bytes": 47313
+      "bytes": 47491
     },
     {
       "name": "stockfish.wasm",
-      "bytes": 48267326
+      "bytes": 48352518
     },
     {
       "name": "uci.js",

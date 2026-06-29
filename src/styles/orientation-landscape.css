@@ -1,0 +1,2647 @@
+/* ================================================================
+   ORIENTATION: LANDSCAPE (Yatay Mod) — Faz 4
+   Tarih: 2026-05-26
+   ================================================================
+   AMAÇ:
+   - Kullanıcı yatay modu seçtiğinde aktif olur
+   - data-orientation="landscape" attribute ile aktifleşir
+   - SIFIRDAN tasarlanmış custom layout (CSS rotation DEĞİL)
+   - Faz 4: Ana menü yatay (45/55 split)
+
+   ÖNEMLİ: Otomatik @media (orientation: landscape) KULLANILMAZ.
+   Sadece data-attribute kontrolü — kullanıcı tercihi belirler.
+   ================================================================ */
+
+/* ----------------------------------------------------------------
+   GENEL — Yatay modda body
+   ---------------------------------------------------------------- */
+:root[data-orientation="landscape"] {
+    --landscape-ad-reserve: 0px;
+    --landscape-ad-gap: 0px;
+    --landscape-safe-left: env(safe-area-inset-left, 0px);
+    --landscape-safe-right: env(safe-area-inset-right, 0px);
+    --landscape-safe-inline-gap: 8px;
+    --landscape-safe-width: calc(
+        100dvw - var(--landscape-safe-left) - var(--landscape-safe-right) -
+        var(--landscape-safe-inline-gap) - var(--landscape-safe-inline-gap)
+    );
+    --landscape-bottom-safe: env(safe-area-inset-bottom, 0px);
+    --landscape-safe-height: calc(100dvh - var(--landscape-ad-reserve) - var(--landscape-ad-gap));
+}
+
+:root[data-orientation="landscape"].ad-banner-active,
+:root[data-orientation="landscape"][data-ad-banner="active"] {
+    --landscape-ad-reserve: clamp(50px, 13dvh, 72px);
+    --landscape-ad-gap: 4px;
+    --landscape-bottom-safe: calc(env(safe-area-inset-bottom, 0px) + var(--landscape-ad-reserve) + var(--landscape-ad-gap));
+}
+
+:root[data-orientation="landscape"] body {
+    overflow: hidden;
+    width: 100dvw;
+    max-width: 100dvw;
+    padding: 0 !important;
+    align-items: stretch;
+    justify-content: flex-start;
+}
+
+:root[data-orientation="landscape"] #app {
+    width: 100dvw;
+    max-width: 100dvw;
+    min-width: 0;
+    overflow: hidden;
+}
+
+/* Overlay container: yatay modda padding küçük */
+:root[data-orientation="landscape"] .overlay-container {
+    align-items: center;
+    width: 100dvw;
+    max-width: 100dvw;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: var(--landscape-bottom-safe);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+}
+
+/* ----------------------------------------------------------------
+   ANA MENÜ — Yatay Layout (Saray Salonu 45/55 split)
+   ---------------------------------------------------------------- */
+
+/* Modal container — geniş, yatay */
+:root[data-orientation="landscape"] #main-menu .menu-box {
+    display: grid;
+    grid-template-columns: 45% 55%;
+    grid-template-areas:
+        "header header"
+        "logo   menu"
+        "footer footer";
+    grid-template-rows: auto 1fr auto;
+    grid-column-gap: var(--space-xl, 2.5rem);
+    grid-row-gap: var(--space-sm, 0.5rem);
+    max-width: 920px;
+    width: 95vw;
+    max-height: 92vh;
+    height: auto;
+    padding: var(--space-lg, 1.75rem);
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Ana menü yön toggle — yatayda bağımsız orta kapsül yerine sol üstte durur. */
+:root[data-orientation="landscape"] .orientation-toggle {
+    top: max(8px, calc(env(safe-area-inset-top, 0px) + 6px));
+    left: max(10px, calc(env(safe-area-inset-left, 0px) + 10px));
+    right: auto;
+    transform: none;
+}
+
+:root[data-orientation="landscape"] .orientation-toggle:active {
+    transform: scale(0.96);
+}
+
+/* Logo + slogan — sol panel */
+:root[data-orientation="landscape"] #main-menu .game-title {
+    grid-area: logo;
+    align-self: center;
+    justify-self: center;
+    font-size: 2.4rem;
+    line-height: 1.1;
+    text-align: center;
+    margin: 0;
+    padding: 0 var(--space-md, 1rem);
+    max-width: 100%;
+}
+
+/* Dil seçici — logo altında */
+:root[data-orientation="landscape"] #main-menu .language-selector {
+    grid-area: logo;
+    align-self: end;
+    justify-self: center;
+    margin: 0 0 var(--space-md, 1rem) 0;
+    padding-bottom: var(--space-md, 1rem);
+}
+
+/* Menü butonları — sağ panel */
+:root[data-orientation="landscape"] #main-menu .menu-options {
+    grid-area: menu;
+    align-self: center;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    max-height: 75vh;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+/* Butonlar — daha kompakt yatayda */
+:root[data-orientation="landscape"] #main-menu .menu-options .btn {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 11px 16px;
+    font-size: var(--fs-small, 0.875rem);
+}
+
+:root[data-orientation="landscape"] #main-menu .menu-options .btn i,
+:root[data-orientation="landscape"] #main-menu .menu-options .btn .fas {
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+/* Decor line — gizle yatayda (yer kazanmak için) */
+:root[data-orientation="landscape"] #main-menu .decor-line {
+    display: none;
+}
+
+/* Footer — alt çubuk (yatayda kompakt 2 satır: links + meta) */
+:root[data-orientation="landscape"] #main-menu .menu-footer {
+    grid-area: footer;
+    text-align: center;
+    margin-top: 0;
+    padding-top: var(--space-sm, 0.5rem);
+    padding-bottom: 0;
+    border-top: 1px solid rgba(201, 162, 75, 0.2);
+    gap: 4px;
+}
+
+:root[data-orientation="landscape"] #main-menu .menu-footer-links {
+    flex-wrap: nowrap;
+    gap: 10px;
+}
+
+:root[data-orientation="landscape"] #main-menu .menu-footer-meta {
+    font-size: 0.65rem;
+    gap: 5px;
+}
+
+:root[data-orientation="landscape"] #main-menu .policy-link {
+    font-size: 0.72rem;
+    white-space: nowrap;
+}
+
+/* Logo'nun ۞ süslerini yatayda daha küçük tut */
+:root[data-historical-theme="on"][data-orientation="landscape"] #main-menu .game-title::before,
+:root[data-historical-theme="on"][data-orientation="landscape"] #main-menu .game-title::after {
+    font-size: 1.1rem;
+    margin: 4px auto;
+}
+
+
+/* ----------------------------------------------------------------
+   KISA EKRANLAR (yatay) — Min height < 500px için scale
+   ---------------------------------------------------------------- */
+@media (max-height: 500px) {
+    :root[data-orientation="landscape"] #main-menu .menu-box {
+        padding: var(--space-md, 1rem);
+        grid-row-gap: 0;
+    }
+
+    :root[data-orientation="landscape"] #main-menu .game-title {
+        font-size: 1.8rem;
+    }
+
+    :root[data-orientation="landscape"] #main-menu .menu-options .btn {
+        padding: 9px 14px;
+        font-size: 0.85rem;
+    }
+}
+
+
+/* ----------------------------------------------------------------
+   KOMUTAN KONSEYİ — Yatay Layout (Faz 5)
+   formation-menu ekranı yatayda 2-satır grid:
+     Satır 1: Bot menu entry (full-width)
+     Satır 2: 5 grup yan yana — Diziliş / Zorluk / Renk / Karakter / Süre
+     Satır 3: Aksiyon barı (Geri + Sefere Başla)
+   Hedef: tek ekrana sığar, dikey scroll yok.
+   ---------------------------------------------------------------- */
+:root[data-orientation="landscape"] #formation-menu .menu-box {
+    max-width: 1100px;
+    width: 96vw;
+    max-height: 94vh;
+    height: auto;
+    padding: var(--space-md, 1rem) var(--space-lg, 1.75rem);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 6px;
+    border-radius: 16px;
+}
+
+/* Bot girişi tam genişlik */
+:root[data-orientation="landscape"] #formation-menu .bot-menu-entry-btn {
+    width: 100%;
+    margin-bottom: 6px;
+}
+
+/* 5 grup yan yana — display: grid wrapper kullanmıyoruz çünkü
+   yapı düz akış. Bunun yerine her başlık + kart-listesi çiftini
+   inline-flex column kolonlarına dönüştürüyoruz. */
+:root[data-orientation="landscape"] #formation-menu h2 {
+    font-size: 0.85rem !important;
+    margin: 4px 0 2px !important;
+    text-align: center;
+}
+
+/* Kartların gruplarını flex column halinde yapıştır:
+   Bunun için sayfada başlık -> kart-listesi sırasıyla
+   ardışık bloklara grid template uygula */
+:root[data-orientation="landscape"] #formation-menu .formation-cards,
+:root[data-orientation="landscape"] #formation-menu .difficulty-cards,
+:root[data-orientation="landscape"] #formation-menu .player-color-cards,
+:root[data-orientation="landscape"] #formation-menu .ai-persona-cards,
+:root[data-orientation="landscape"] #formation-menu .time-control-cards {
+    padding: 4px 2px !important;
+    margin-bottom: 0 !important;
+    gap: 6px !important;
+    justify-content: center !important;
+    overflow-x: auto;
+}
+
+/* Yatayda kartları daha kompakt yap */
+:root[data-orientation="landscape"] #formation-menu .card {
+    flex: 0 0 86px !important;
+    width: 86px !important;
+    min-width: 86px !important;
+    min-height: 78px !important;
+    padding: 7px 4px !important;
+}
+
+:root[data-orientation="landscape"] #formation-menu .formation-card,
+:root[data-orientation="landscape"] #formation-menu .player-color-card,
+:root[data-orientation="landscape"] #formation-menu .ai-persona-card {
+    min-height: 92px !important;
+}
+
+:root[data-orientation="landscape"] #formation-menu .difficulty-card,
+:root[data-orientation="landscape"] #formation-menu .time-control-card {
+    min-height: 70px !important;
+}
+
+/* Persona portresi yatayda biraz daha küçük */
+:root[data-orientation="landscape"] #formation-menu .ai-persona-card .persona-portrait {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 2px;
+}
+
+:root[data-orientation="landscape"] #formation-menu .card-icon {
+    font-size: 1.1rem !important;
+    margin-bottom: 4px !important;
+}
+
+:root[data-orientation="landscape"] #formation-menu .card h3 {
+    font-size: 0.72rem !important;
+    line-height: 1.06;
+    margin: 0;
+}
+
+:root[data-orientation="landscape"] #formation-menu .card p {
+    font-size: 0.56rem !important;
+    line-height: 1.08;
+    margin: 1px 0 0;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+}
+
+/* Aksiyon barı kompakt */
+:root[data-orientation="landscape"] #formation-menu .menu-actions {
+    margin-top: 6px !important;
+    gap: 10px;
+}
+
+:root[data-orientation="landscape"] #formation-menu .menu-actions .btn {
+    padding: 8px 18px !important;
+    font-size: 0.85rem !important;
+}
+
+/* Card seal yatayda biraz küçülsün — köşeye sığması için */
+:root[data-orientation="landscape"][data-historical-theme="on"] #formation-menu .card-seal {
+    top: 4px;
+    right: 4px;
+    width: 12px;
+    height: 12px;
+    font-size: 9px;
+}
+
+
+/* ----------------------------------------------------------------
+   BOT MENU — Yatay layout (Faz 5 bonus)
+   ---------------------------------------------------------------- */
+:root[data-orientation="landscape"] #bot-menu .menu-box {
+    max-width: 1000px;
+    width: 95vw;
+    max-height: 92vh;
+    padding: var(--space-md, 1rem) var(--space-lg, 1.75rem);
+    overflow-y: auto;
+}
+
+:root[data-orientation="landscape"] #bot-menu .ai-bot-list {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+
+/* ----------------------------------------------------------------
+   OYUN TAHTASI — Yatay masa düzeni
+   ----------------------------------------------------------------
+   Sol: taş bilgisi
+   Orta: tam yükseklik oyun tahtası
+   Sağ üst/alt: kompakt rakip ve oyuncu kartları
+   ---------------------------------------------------------------- */
+
+:root[data-orientation="landscape"] #game-view {
+    display: grid;
+    grid-template-columns:
+        clamp(132px, 17vw, 190px)
+        minmax(0, 1fr)
+        clamp(148px, 18vw, 210px);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+        "info board header"
+        "info board ."
+        "info board footer";
+    gap: 0;
+    position: relative;
+    height: var(--landscape-safe-height);
+    max-height: var(--landscape-safe-height);
+    padding-left: max(2px, env(safe-area-inset-left, 0px));
+    padding-right: max(2px, env(safe-area-inset-right, 0px));
+    padding-bottom: 0;
+    overflow: hidden;
+}
+
+/* Rakip kartı ve oyun kontrolleri sağ üst köşede kalır. */
+:root[data-orientation="landscape"] #game-view .game-header {
+    grid-area: header;
+    align-self: start;
+    justify-self: stretch;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(44px, 1fr));
+    grid-template-areas:
+        "opponent opponent"
+        "history pause";
+    gap: 4px;
+    width: calc(100% - 8px);
+    min-height: 0;
+    max-height: none;
+    margin: 4px;
+    padding: 5px;
+    border: 1px solid rgba(201, 162, 75, 0.5);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Oyuncu kartı sağ alt köşede kalır. */
+:root[data-orientation="landscape"] #game-view .game-footer {
+    grid-area: footer;
+    align-self: end;
+    justify-self: stretch;
+    display: block;
+    width: calc(100% - 8px);
+    min-height: 0;
+    max-height: none;
+    margin: 4px;
+    padding: 6px;
+    border: 1px solid rgba(201, 162, 75, 0.5);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Tahta üst ve alt HUD satırlarından bağımsız olarak tam yüksekliği kullanır. */
+:root[data-orientation="landscape"] #game-view .board-container {
+    grid-area: board;
+    min-width: 0;
+    min-height: 0;
+    width: 100%;
+    height: 100%;
+    padding: 2px;
+    overflow: hidden;
+}
+
+/* Hamle geçmişi alan ayırmaz; butonla açılan sağ çekmece olarak çalışır. */
+:root[data-orientation="landscape"] #game-view .move-log-panel {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    bottom: 6px;
+    width: clamp(210px, 27vw, 250px);
+    max-height: none;
+    height: auto;
+    margin: 0;
+    z-index: 180;
+    transform: none;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    overflow: hidden;
+}
+
+/* Kapalıyken çekmece layout alanı tüketmez. */
+:root[data-orientation="landscape"] #game-view .move-log-panel.hidden {
+    display: none !important;
+}
+
+/* Taş bilgi paneli sol rayda, tahtadan bağımsız sabit bir karttır. */
+:root[data-orientation="landscape"] #game-view .piece-info-panel {
+    position: relative;
+    grid-area: info;
+    align-self: start;
+    width: calc(100% - 8px);
+    height: auto;
+    min-height: 76px;
+    max-height: 116px;
+    margin: 4px;
+    padding: 7px;
+    font-size: 0.7rem;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+:root[data-orientation="landscape"] #game-view .piece-info-summary {
+    align-items: flex-start;
+    gap: 6px;
+}
+
+:root[data-orientation="landscape"] #game-view .piece-info-panel.showing-detail .piece-info-detail {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr);
+    grid-template-areas:
+        "preview text"
+        "diagram diagram";
+    gap: 5px 7px;
+}
+
+:root[data-orientation="landscape"] #game-view .piece-info-panel .info-piece-preview {
+    grid-area: preview;
+    width: 32px;
+    height: 32px;
+}
+
+:root[data-orientation="landscape"] #game-view .piece-info-panel .info-piece-text {
+    grid-area: text;
+}
+
+:root[data-orientation="landscape"] #game-view .piece-info-panel .info-piece-desc {
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+}
+
+:root[data-orientation="landscape"] #game-view .piece-info-panel .info-move-diagram {
+    grid-area: diagram;
+    justify-self: end;
+    width: 38px;
+    height: 38px;
+}
+
+/* Sağ üst rakip kartının iç düzeni. */
+:root[data-orientation="landscape"] #game-view .game-header .top-player {
+    grid-area: opponent;
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr);
+    grid-template-areas:
+        "avatar details"
+        "captured captured";
+    gap: 3px 6px;
+    width: 100%;
+}
+
+:root[data-orientation="landscape"] #game-view .game-header .top-player > .avatar {
+    grid-area: avatar;
+}
+
+:root[data-orientation="landscape"] #game-view .game-header .top-player > .details {
+    grid-area: details;
+    min-width: 0;
+}
+
+:root[data-orientation="landscape"] #game-view .game-header .top-player > .captured-pieces {
+    grid-area: captured;
+}
+
+:root[data-orientation="landscape"] #game-view #btn-toggle-log {
+    grid-area: history;
+    justify-self: end;
+}
+
+:root[data-orientation="landscape"] #game-view #btn-game-menu {
+    grid-area: pause;
+    justify-self: start;
+    margin: 0 !important;
+}
+
+/* Sağ alt oyuncu kartının iç düzeni. */
+:root[data-orientation="landscape"] #game-view .bottom-player {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3px;
+    width: 100%;
+}
+
+:root[data-orientation="landscape"] #game-view .bottom-player .details {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+        "name clock"
+        "turn turn";
+    align-items: center;
+    gap: 2px 5px;
+    width: 100%;
+}
+
+:root[data-orientation="landscape"] #game-view .bottom-player .name {
+    grid-area: name;
+}
+
+:root[data-orientation="landscape"] #game-view .bottom-player .player-clock {
+    grid-area: clock;
+}
+
+/* Sıra göstergesi artık tahtayı örten yüzen bir rozet değildir. */
+:root[data-orientation="landscape"] #game-view .turn-indicator {
+    position: static;
+    grid-area: turn;
+    width: fit-content;
+    min-height: 0;
+    transform: none;
+    font-size: 0.56rem;
+    line-height: 1;
+    letter-spacing: 0.05em;
+    padding: 3px 7px;
+    box-shadow: none;
+}
+
+/* Player info — yatayda kompakt, isim ön planda. */
+:root[data-orientation="landscape"] #game-view .player-info {
+    gap: 4px;
+}
+
+:root[data-orientation="landscape"] #game-view .avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+}
+
+:root[data-orientation="landscape"] #game-view .details .name {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 0.74rem;
+    line-height: 1.05;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+:root[data-orientation="landscape"] #game-view .details .status {
+    overflow: hidden;
+    font-size: 0.58rem;
+    line-height: 1.05;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+:root[data-orientation="landscape"] #game-view .player-clock {
+    margin-top: 0;
+    font-size: 0.64rem;
+    line-height: 1;
+    padding: 2px 6px;
+}
+
+/* Alınan taşlar chess.com benzeri tek satır, hafif üst üste binen ikonlardır. */
+:root[data-orientation="landscape"] #game-view .captured-pieces {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    width: 100%;
+    max-width: 100%;
+    height: 18px;
+    min-height: 18px;
+    margin: 0;
+    padding: 1px 5px;
+    gap: 0;
+    overflow: hidden;
+    border-radius: 9px;
+}
+
+:root[data-orientation="landscape"] #game-view .captured-pieces .piece {
+    flex: 0 0 16px;
+    width: 16px !important;
+    height: 16px !important;
+}
+
+:root[data-orientation="landscape"] #game-view .captured-pieces .piece + .piece {
+    margin-left: -4px;
+}
+
+/* İkincil paneller kullanıcı isteğiyle açılır; tahta varsayılan olarak temizdir. */
+:root[data-orientation="landscape"] #game-view #btn-toggle-log {
+    display: grid !important;
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+}
+
+:root[data-orientation="landscape"] #game-view #btn-game-menu {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+}
+
+@media (max-width: 760px) {
+    :root[data-orientation="landscape"] #game-view {
+        grid-template-columns: 124px minmax(0, 1fr) 140px;
+    }
+
+    :root[data-orientation="landscape"] #game-view .piece-info-panel {
+        min-height: 76px;
+        max-height: 100px;
+        padding: 6px;
+    }
+
+    :root[data-orientation="landscape"] #game-view .piece-info-panel .piece-info-summary .avatar {
+        width: 24px;
+        height: 24px;
+        font-size: 0.66rem;
+    }
+
+    :root[data-orientation="landscape"] #game-view .piece-info-panel .details .name {
+        display: -webkit-box;
+        overflow: hidden;
+        font-size: 0.63rem;
+        line-height: 1.05;
+        white-space: normal;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+    }
+
+    :root[data-orientation="landscape"] #game-view .piece-info-panel .details .status {
+        display: -webkit-box;
+        font-size: 0.5rem;
+        white-space: normal;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+    }
+
+    :root[data-orientation="landscape"] #game-view .piece-info-panel .info-move-diagram {
+        display: none;
+    }
+}
+
+@media (max-height: 340px) {
+    :root[data-orientation="landscape"] #game-view .piece-info-panel {
+        min-height: 62px;
+        max-height: 82px;
+    }
+
+    :root[data-orientation="landscape"] #game-view .piece-info-panel .info-piece-desc {
+        -webkit-line-clamp: 1;
+        line-clamp: 1;
+    }
+
+    :root[data-orientation="landscape"] #game-view .game-header,
+    :root[data-orientation="landscape"] #game-view .game-footer {
+        padding: 4px;
+    }
+}
+
+/* Avantaj barı tahta alanını daraltmasın veya hücreleri örtmesin. */
+:root[data-orientation="landscape"] #game-view .advantage-meter {
+    display: none !important;
+}
+
+/* Sağ panel sefer defteri başlık kompakt */
+:root[data-orientation="landscape"] #game-view .log-header {
+    padding: 8px 10px;
+    margin-bottom: 6px;
+}
+
+:root[data-orientation="landscape"] #game-view .log-header h3 {
+    font-size: 0.95rem;
+}
+
+/* Çekmece kullanıcı tarafından kapatılabilir. */
+:root[data-orientation="landscape"] #game-view #btn-close-log {
+    display: grid !important;
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+}
+
+/* Coach overlay'ları yatayda board üstünde değil, sağ panele yakın */
+:root[data-orientation="landscape"] #game-view .scripted-tutorial-coach,
+:root[data-orientation="landscape"] #game-view .analysis-practice-explanation {
+    max-width: 280px;
+    font-size: 0.82rem;
+}
+
+/* Reduced motion: yatay geçişlerde transition kaldır */
+@media (prefers-reduced-motion: reduce) {
+    :root[data-orientation="landscape"] #game-view .move-log-panel {
+        transition: none;
+    }
+}
+
+
+/* ----------------------------------------------------------------
+   OYUN MENÜSÜ OVERLAY'LARI — Yatay layout (Faz 6 bonus)
+   game-settings, game-end-result, analysis overlay'leri yatayda
+   ekranı taşmamalı
+   ---------------------------------------------------------------- */
+:root[data-orientation="landscape"] #game-settings-overlay .menu-box,
+:root[data-orientation="landscape"] #game-analysis-overlay .menu-box {
+    max-width: min(900px, 95vw);
+    max-height: 92vh;
+    overflow-y: auto;
+}
+
+
+/* ----------------------------------------------------------------
+   SEFER SONU FERMAN — Yatay 2-sütun Layout (Faz 7-C)
+   Sol: badge + başlık + açıklama (sonuç)
+   Sağ: meta + komutan mührü + aksiyon butonları
+   ---------------------------------------------------------------- */
+:root[data-orientation="landscape"] #game-end-result-overlay .ferman-box {
+    max-width: min(820px, 92vw);
+    width: 820px;
+    max-height: 88vh;
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    /* satırlar: border-top, header, meta, seal, actions, border-bot */
+    grid-template-rows: auto auto auto 1fr auto auto;
+    column-gap: var(--space-lg, 1.75rem);
+    row-gap: var(--space-xs, 0.5rem);
+    overflow: hidden;
+}
+
+/* Üst tezhip — tam genişlik (her iki kolon) */
+:root[data-orientation="landscape"] #game-end-result-overlay .ferman-border-top {
+    grid-column: 1 / -1;
+    grid-row: 1;
+}
+
+/* Header — tam genişlik */
+:root[data-orientation="landscape"] #game-end-result-overlay .game-end-result-header {
+    grid-column: 1 / -1;
+    grid-row: 2;
+}
+
+/* Sol kolon: sonuç body (badge + başlık + açıklama)
+   3 satırı kaplar — meta/seal/actions ile aynı boyda */
+:root[data-orientation="landscape"] #game-end-result-overlay .game-end-result-body {
+    grid-column: 1;
+    grid-row: 3 / 6;
+    align-self: center;
+    text-align: center;
+    padding: var(--space-sm, 0.5rem) 0;
+}
+
+/* Sağ kolon — meta (üst) */
+:root[data-orientation="landscape"] #game-end-result-overlay .game-end-result-meta {
+    grid-column: 2;
+    grid-row: 3;
+    align-self: start;
+    flex-direction: column;
+    gap: var(--space-xs, 0.5rem);
+    margin-top: 0;
+}
+
+:root[data-orientation="landscape"] #game-end-result-overlay .game-end-result-meta span {
+    width: 100%;
+    text-align: center;
+    padding: 8px 14px;
+    font-size: 0.84rem;
+}
+
+/* Sağ kolon — komutan mührü (orta) */
+:root[data-orientation="landscape"] #game-end-result-overlay .ferman-seal {
+    grid-column: 2;
+    grid-row: 4;
+    align-self: center;
+    justify-self: center;
+    margin: var(--space-sm, 0.5rem) auto;
+}
+
+/* Sağ kolon — aksiyon butonları (alt) */
+:root[data-orientation="landscape"] #game-end-result-overlay .game-end-result-actions {
+    grid-column: 2;
+    grid-row: 5;
+    align-self: end;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 0;
+}
+
+:root[data-orientation="landscape"] #game-end-result-overlay .game-end-result-actions .btn {
+    width: 100%;
+    padding: 10px 16px;
+    font-size: 0.9rem;
+}
+
+/* Alt tezhip — tam genişlik */
+:root[data-orientation="landscape"] #game-end-result-overlay .ferman-border-bottom {
+    grid-column: 1 / -1;
+    grid-row: 6;
+}
+
+/* Body içindeki başlık biraz büyük */
+:root[data-orientation="landscape"] #game-end-result-overlay .game-end-result-body h2 {
+    font-size: clamp(1.8rem, 4vw, 2.4rem);
+}
+
+/* Default (non-historical) tema yatayda eski single-column akış */
+:root[data-orientation="landscape"]:not([data-historical-theme="on"]) #game-end-result-overlay .ferman-box {
+    display: flex;
+    flex-direction: column;
+    max-width: min(560px, 95vw);
+    width: auto;
+}
+
+
+/* ----------------------------------------------------------------
+   YATAY GEÇİŞ İNDİKATÖRÜ — kullanıcı yatay modda iken yön gösterir
+   ---------------------------------------------------------------- */
+:root[data-orientation="landscape"] .orientation-toggle::after {
+    content: '🔒';
+    margin-left: 6px;
+    font-size: 11px;
+    opacity: 0.6;
+}
+
+
+/* ================================================================
+   FAZ 3 — ANA MENU, MOD SECIMI VE BOT MENU
+   Kisa yatay ekranlarda ana aksiyonlari sabit tutar; sadece gercek
+   icerik alanlari gerektiğinde kayar.
+   ================================================================ */
+
+/* Ana menu: marka solda, tum komutlar ve footer sagda. */
+:root[data-orientation="landscape"] #main-menu {
+    padding: 8px max(10px, env(safe-area-inset-right, 0px)) 8px
+        max(10px, env(safe-area-inset-left, 0px));
+    width: 100dvw;
+    max-width: 100dvw;
+}
+
+:root[data-orientation="landscape"] #main-menu .menu-box {
+    width: min(920px, var(--landscape-safe-width));
+    max-width: none;
+    height: calc(100dvh - 16px);
+    max-height: calc(100dvh - 16px);
+    padding: 14px 18px;
+    display: grid;
+    grid-template-columns: minmax(210px, 0.82fr) minmax(360px, 1.18fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-areas:
+        "brand menu"
+        "brand footer";
+    column-gap: clamp(20px, 4vw, 42px);
+    row-gap: 8px;
+    overflow: hidden;
+}
+
+:root[data-orientation="landscape"] #main-menu .game-title {
+    grid-area: brand;
+    align-self: center;
+    justify-self: stretch;
+    font-size: clamp(1.65rem, 4.5vw, 2.45rem);
+    padding: 0 10px 38px;
+}
+
+:root[data-orientation="landscape"] #main-menu .language-selector {
+    grid-area: brand;
+    align-self: end;
+    justify-self: center;
+    margin: 0 0 12px;
+    padding: 0;
+    z-index: 2;
+}
+
+:root[data-orientation="landscape"] #main-menu .menu-options {
+    grid-area: menu;
+    align-self: center;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: minmax(44px, 1fr);
+    gap: 8px;
+    width: 100%;
+    max-height: none;
+    overflow: visible;
+    padding: 0;
+}
+
+:root[data-orientation="landscape"] #main-menu .menu-options .btn {
+    min-width: 0;
+    min-height: 44px;
+    height: 100%;
+    padding: 8px 12px;
+    justify-content: flex-start;
+    font-size: clamp(0.72rem, 1.8vw, 0.88rem);
+    line-height: 1.1;
+}
+
+:root[data-orientation="landscape"] #main-menu .menu-footer {
+    grid-area: footer;
+    align-self: end;
+    min-width: 0;
+    margin: 0;
+    padding: 6px 0 0;
+}
+
+:root[data-orientation="landscape"] #main-menu .menu-footer-links,
+:root[data-orientation="landscape"] #main-menu .menu-footer-meta {
+    justify-content: center;
+}
+
+/* Mod secimi: bes karar grubu ayni anda gorunur. */
+:root[data-orientation="landscape"] #formation-menu {
+    padding: 8px max(10px, env(safe-area-inset-right, 0px)) 8px
+        max(10px, env(safe-area-inset-left, 0px));
+    width: 100dvw;
+    max-width: 100dvw;
+}
+
+:root[data-orientation="landscape"] #formation-menu .menu-box {
+    width: min(1100px, var(--landscape-safe-width));
+    max-width: none;
+    height: calc(100dvh - 16px);
+    max-height: calc(100dvh - 16px);
+    padding: 10px 14px;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-rows: 44px 22px minmax(0, 1fr) 46px;
+    column-gap: 7px;
+    row-gap: 5px;
+    overflow: hidden;
+}
+
+:root[data-orientation="landscape"] #formation-menu .bot-menu-entry-btn {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    width: 100%;
+    min-height: 44px;
+    height: 44px;
+    margin: 0;
+    padding: 5px 12px;
+    border-radius: 10px;
+}
+
+:root[data-orientation="landscape"] #formation-menu .bot-menu-entry-icon {
+    width: 30px;
+    height: 30px;
+}
+
+:root[data-orientation="landscape"] #formation-menu .bot-menu-entry-copy strong {
+    font-size: 0.78rem;
+}
+
+:root[data-orientation="landscape"] #formation-menu .bot-menu-entry-copy small {
+    font-size: 0.6rem;
+}
+
+:root[data-orientation="landscape"] #formation-menu h2 {
+    grid-row: 2;
+    align-self: center;
+    margin: 0 !important;
+    font-size: clamp(0.62rem, 1.35vw, 0.78rem) !important;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+:root[data-orientation="landscape"] #formation-menu h2:nth-of-type(1) { grid-column: 1; }
+:root[data-orientation="landscape"] #formation-menu h2:nth-of-type(2) { grid-column: 2; }
+:root[data-orientation="landscape"] #formation-menu h2:nth-of-type(3) { grid-column: 3; }
+:root[data-orientation="landscape"] #formation-menu h2:nth-of-type(4) { grid-column: 4; }
+:root[data-orientation="landscape"] #formation-menu h2:nth-of-type(5) { grid-column: 5; }
+
+:root[data-orientation="landscape"] #formation-menu .formation-cards,
+:root[data-orientation="landscape"] #formation-menu .difficulty-cards,
+:root[data-orientation="landscape"] #formation-menu .player-color-cards,
+:root[data-orientation="landscape"] #formation-menu .ai-persona-cards,
+:root[data-orientation="landscape"] #formation-menu .time-control-cards {
+    grid-row: 3;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: grid !important;
+    gap: 4px !important;
+    overflow: hidden;
+    align-content: stretch;
+}
+
+:root[data-orientation="landscape"] #formation-menu .formation-cards {
+    grid-column: 1;
+    grid-template-rows: repeat(3, minmax(0, 1fr));
+}
+
+:root[data-orientation="landscape"] #formation-menu .difficulty-cards {
+    grid-column: 2;
+    grid-template-rows: repeat(3, minmax(0, 1fr));
+}
+
+:root[data-orientation="landscape"] #formation-menu .player-color-cards {
+    grid-column: 3;
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+:root[data-orientation="landscape"] #formation-menu .ai-persona-cards {
+    grid-column: 4;
+    grid-template-rows: repeat(4, minmax(0, 1fr));
+}
+
+:root[data-orientation="landscape"] #formation-menu .time-control-cards {
+    grid-column: 5;
+    grid-template-rows: repeat(4, minmax(0, 1fr));
+}
+
+:root[data-orientation="landscape"] #formation-menu .card,
+:root[data-orientation="landscape"] #formation-menu .formation-card,
+:root[data-orientation="landscape"] #formation-menu .difficulty-card,
+:root[data-orientation="landscape"] #formation-menu .player-color-card,
+:root[data-orientation="landscape"] #formation-menu .ai-persona-card,
+:root[data-orientation="landscape"] #formation-menu .time-control-card {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    padding: 3px 5px !important;
+    gap: 1px;
+    border-radius: 8px;
+    justify-content: center;
+    overflow: hidden;
+}
+
+:root[data-orientation="landscape"] #formation-menu .card-icon {
+    margin: 0 !important;
+    font-size: clamp(0.82rem, 1.8vw, 1.05rem) !important;
+    line-height: 1;
+}
+
+:root[data-orientation="landscape"] #formation-menu .card h3 {
+    margin: 0;
+    font-size: clamp(0.56rem, 1.25vw, 0.68rem) !important;
+    line-height: 1.02;
+    white-space: normal;
+}
+
+:root[data-orientation="landscape"] #formation-menu .card p,
+:root[data-orientation="landscape"] #formation-menu .persona-portrait,
+:root[data-orientation="landscape"] #formation-menu .card-seal {
+    display: none !important;
+}
+
+:root[data-orientation="landscape"] #formation-menu .persona-icon-fallback {
+    display: block !important;
+}
+
+:root[data-orientation="landscape"] #formation-menu .menu-actions {
+    grid-column: 1 / -1;
+    grid-row: 4;
+    align-self: stretch;
+    display: grid;
+    grid-template-columns: minmax(96px, 0.7fr) minmax(180px, 1.3fr);
+    gap: 8px;
+    width: min(430px, 100%);
+    height: 44px;
+    margin: 0 auto !important;
+    padding: 0 !important;
+}
+
+:root[data-orientation="landscape"] #formation-menu .menu-actions .btn {
+    width: 100%;
+    min-height: 44px;
+    height: 44px;
+    padding: 6px 14px !important;
+    font-size: 0.78rem !important;
+}
+
+/* Bot menu: bes yildiz seviyesi yatay sutun, her sutunda uc bot. */
+:root[data-orientation="landscape"] #bot-menu {
+    padding: 8px max(10px, env(safe-area-inset-right, 0px)) 8px
+        max(10px, env(safe-area-inset-left, 0px));
+    width: 100dvw;
+    max-width: 100dvw;
+}
+
+:root[data-orientation="landscape"] #bot-menu .menu-box {
+    width: min(1100px, var(--landscape-safe-width));
+    max-width: none;
+    height: calc(100dvh - 16px);
+    max-height: calc(100dvh - 16px);
+    padding: 10px 14px;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) 46px;
+    gap: 7px;
+    overflow: hidden;
+}
+
+:root[data-orientation="landscape"] #bot-menu .bot-menu-header {
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+}
+
+:root[data-orientation="landscape"] #bot-menu .bot-menu-eyebrow {
+    display: none;
+}
+
+:root[data-orientation="landscape"] #bot-menu .bot-menu-header h2 {
+    margin: 0;
+    font-size: clamp(1rem, 2.4vw, 1.25rem);
+    line-height: 1.05;
+}
+
+:root[data-orientation="landscape"] #bot-menu .bot-menu-header p:last-child {
+    margin: 2px 0 0;
+    font-size: 0.66rem;
+    line-height: 1.1;
+}
+
+:root[data-orientation="landscape"] #bot-menu .ai-bot-list {
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    padding: 0 2px 2px;
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(120px, 1fr));
+    gap: 6px !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+}
+
+:root[data-orientation="landscape"] #bot-menu .ai-bot-star-tier {
+    width: auto;
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-rows: 22px minmax(0, 1fr);
+    gap: 4px;
+}
+
+:root[data-orientation="landscape"] #bot-menu .ai-bot-star-tier-label {
+    min-height: 22px;
+    margin: 0;
+    padding: 2px 5px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.58rem;
+    line-height: 1;
+}
+
+:root[data-orientation="landscape"] #bot-menu .ai-bot-tier-grid {
+    min-height: 0;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: repeat(3, minmax(0, 1fr));
+    gap: 4px !important;
+}
+
+:root[data-orientation="landscape"] #bot-menu .ai-bot-card {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    padding: 3px 5px !important;
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    column-gap: 5px !important;
+    row-gap: 1px !important;
+    align-content: center;
+    text-align: start;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+:root[data-orientation="landscape"] #bot-menu .ai-bot-card .card-icon {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    align-self: center;
+    margin: 0 !important;
+    font-size: 0.82rem !important;
+}
+
+:root[data-orientation="landscape"] #bot-menu .ai-bot-card h3 {
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+    font-size: clamp(0.54rem, 1.15vw, 0.66rem) !important;
+    line-height: 1.02 !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+:root[data-orientation="landscape"] #bot-menu .ai-bot-card .ai-bot-meta,
+:root[data-orientation="landscape"] #bot-menu .ai-bot-card .ai-bot-stars {
+    grid-column: 2;
+    grid-row: 2;
+    display: inline;
+    width: auto;
+    margin: 0;
+    padding: 0;
+    font-size: 0.5rem !important;
+    line-height: 1;
+}
+
+:root[data-orientation="landscape"] #bot-menu .ai-bot-card .ai-bot-stars {
+    justify-self: end;
+}
+
+:root[data-orientation="landscape"] #bot-menu .ai-bot-card .ai-bot-desc {
+    display: none !important;
+}
+
+:root[data-orientation="landscape"] #bot-menu .ai-bot-defeated-badge {
+    top: 2px;
+    right: 2px;
+    width: 14px;
+    height: 14px;
+    justify-content: center;
+    padding: 0;
+    font-size: 0.42rem;
+}
+
+:root[data-orientation="landscape"] #bot-menu .ai-bot-defeated-badge span {
+    display: none;
+}
+
+:root[data-orientation="landscape"] #bot-menu .ai-bot-defeated-badge i {
+    font-size: 0.46rem;
+}
+
+:root[data-orientation="landscape"] #bot-menu .bot-menu-actions {
+    display: grid;
+    grid-template-columns: minmax(96px, 0.7fr) minmax(180px, 1.3fr);
+    gap: 8px;
+    width: min(430px, 100%);
+    height: 44px;
+    margin: 0 auto !important;
+    padding: 0 !important;
+}
+
+:root[data-orientation="landscape"] #bot-menu .bot-menu-actions .btn {
+    width: 100%;
+    min-height: 44px;
+    height: 44px;
+    padding: 6px 12px !important;
+    font-size: 0.76rem !important;
+}
+
+@media (max-width: 780px) {
+    :root[data-orientation="landscape"] #main-menu .menu-box {
+        grid-template-columns: minmax(190px, 0.72fr) minmax(330px, 1.28fr);
+        column-gap: 16px;
+        padding-inline: 14px;
+    }
+
+    :root[data-orientation="landscape"] #main-menu .menu-footer-meta {
+        display: none;
+    }
+
+    :root[data-orientation="landscape"] #formation-menu .menu-box,
+    :root[data-orientation="landscape"] #bot-menu .menu-box {
+        padding-inline: 10px;
+    }
+}
+
+/* ================================================================
+   FAZ 4 — DURDURMA, SONUC VE ANALIZ PANELLERI
+   Kisa yatay ekranlarda baslik ve eylemler sabit kalir. Yalnizca
+   panelin ana icerigi kayar.
+   ================================================================ */
+:root[data-orientation="landscape"] #game-settings-overlay,
+:root[data-orientation="landscape"] #game-analysis-overlay,
+:root[data-orientation="landscape"] #game-end-result-overlay {
+    align-items: center;
+    padding: 8px max(10px, env(safe-area-inset-right, 0px)) max(8px, var(--landscape-bottom-safe))
+        max(10px, env(safe-area-inset-left, 0px));
+    overflow: hidden;
+}
+
+/* Ayarlar: iki karar satiri, sabit baslik ve sabit alt komutlar. */
+:root[data-orientation="landscape"] #game-settings-overlay .game-settings-box {
+    width: min(940px, 100%);
+    max-width: 940px;
+    height: calc(100vh - 16px);
+    height: calc(100dvh - 16px);
+    max-height: calc(100vh - 16px);
+    max-height: calc(100dvh - 16px);
+    min-height: 0;
+    padding: 10px 14px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 44px minmax(0, 1fr) 44px;
+    gap: 8px;
+    justify-content: stretch;
+    overflow: hidden;
+}
+
+:root[data-orientation="landscape"] #game-settings-overlay .game-settings-header {
+    min-width: 0;
+    min-height: 44px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+:root[data-orientation="landscape"] #game-settings-overlay .game-settings-header h2 {
+    min-width: 0;
+    margin: 0;
+    font-size: clamp(1rem, 2.2vw, 1.22rem);
+    line-height: 1.05;
+}
+
+:root[data-orientation="landscape"] #game-settings-overlay .game-settings-header .icon-btn,
+:root[data-orientation="landscape"] #game-analysis-overlay .analysis-header .icon-btn,
+:root[data-orientation="landscape"] #game-end-result-overlay .game-end-result-header .icon-btn {
+    flex: 0 0 44px;
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+}
+
+:root[data-orientation="landscape"] #game-settings-overlay .settings-list {
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    padding: 0 4px 2px 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: max-content;
+    gap: 6px 8px;
+    align-content: start;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+}
+
+:root[data-orientation="landscape"] #game-settings-overlay .settings-section-label {
+    grid-column: 1 / -1;
+    min-height: 16px;
+    margin: 0;
+    font-size: 0.68rem;
+    line-height: 1;
+}
+
+:root[data-orientation="landscape"] #game-settings-overlay .settings-row {
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    padding: 7px 9px;
+    gap: 8px;
+    border-radius: 8px;
+}
+
+:root[data-orientation="landscape"] #game-settings-overlay .settings-row--toggle {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(88px, 0.34fr);
+    align-items: center;
+}
+
+:root[data-orientation="landscape"] #game-settings-overlay .settings-row--vertical {
+    gap: 5px;
+}
+
+:root[data-orientation="landscape"] #game-settings-overlay .settings-copy {
+    min-width: 0;
+    gap: 2px;
+}
+
+:root[data-orientation="landscape"] #game-settings-overlay .settings-label {
+    font-size: 0.78rem;
+    line-height: 1.08;
+}
+
+:root[data-orientation="landscape"] #game-settings-overlay .settings-hint {
+    font-size: 0.62rem;
+    line-height: 1.15;
+}
+
+:root[data-orientation="landscape"] #game-settings-overlay .settings-toggle {
+    width: 100%;
+    min-width: 88px;
+    min-height: 44px;
+    height: 44px;
+    padding: 5px 9px;
+    font-size: 0.72rem;
+}
+
+:root[data-orientation="landscape"] #game-settings-overlay .theme-btn-group {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+}
+
+:root[data-orientation="landscape"] #game-settings-overlay .theme-choice-btn {
+    min-width: 0;
+    min-height: 44px;
+    height: 44px;
+    padding: 5px 6px;
+    font-size: 0.68rem;
+    line-height: 1.05;
+}
+
+:root[data-orientation="landscape"] #game-settings-overlay .settings-actions {
+    align-self: stretch;
+    display: grid;
+    grid-template-columns: minmax(140px, 1fr) minmax(120px, 0.8fr);
+    gap: 8px;
+    width: min(430px, 100%);
+    height: 44px;
+    margin: 0 auto;
+    padding: 0;
+}
+
+:root[data-orientation="landscape"] #game-settings-overlay .settings-actions .btn {
+    width: 100%;
+    min-height: 44px;
+    height: 44px;
+    padding: 6px 14px;
+    font-size: 0.76rem;
+}
+
+/* Analiz: rapor kayar; kapatma ve iki ana aksiyon yerinde kalir. */
+:root[data-orientation="landscape"] #game-analysis-overlay .analysis-box {
+    width: min(980px, 100%);
+    max-width: 980px;
+    height: calc(100vh - 16px);
+    height: calc(100dvh - 16px);
+    max-height: calc(100vh - 16px);
+    max-height: calc(100dvh - 16px);
+    min-height: 0;
+    padding: 10px 14px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 44px minmax(0, 1fr) 44px;
+    gap: 8px;
+    justify-content: stretch;
+    overflow: hidden;
+}
+
+:root[data-orientation="landscape"] #game-analysis-overlay .analysis-header {
+    min-width: 0;
+    min-height: 44px;
+    margin: 0;
+}
+
+:root[data-orientation="landscape"] #game-analysis-overlay .analysis-header h2 {
+    min-width: 0;
+    margin: 0;
+    font-size: clamp(1rem, 2.2vw, 1.22rem);
+    line-height: 1.05;
+}
+
+:root[data-orientation="landscape"] #game-analysis-overlay .analysis-content {
+    min-width: 0;
+    min-height: 0;
+    padding: 0 4px 4px 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+}
+
+:root[data-orientation="landscape"] #game-analysis-overlay .analysis-tabs {
+    margin-bottom: 8px;
+    padding-top: 0;
+    gap: 6px;
+}
+
+:root[data-orientation="landscape"] #game-analysis-overlay .analysis-tab-btn {
+    min-height: 40px;
+    padding: 7px 12px;
+    font-size: 0.74rem;
+}
+
+:root[data-orientation="landscape"] #game-analysis-overlay .analysis-tab-panel {
+    min-height: 0;
+}
+
+:root[data-orientation="landscape"] #game-analysis-overlay .analysis-summary-grid,
+:root[data-orientation="landscape"] #game-analysis-overlay .analysis-phase-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+:root[data-orientation="landscape"] #game-analysis-overlay .analysis-actions {
+    align-self: stretch;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+    gap: 8px;
+    width: min(430px, 100%);
+    height: 44px;
+    margin: 0 auto;
+    padding: 0;
+}
+
+:root[data-orientation="landscape"] #game-analysis-overlay .analysis-actions .btn {
+    width: 100%;
+    min-height: 44px;
+    height: 44px;
+    padding: 6px 14px;
+    font-size: 0.76rem;
+}
+
+/* Sonuc fermani: tek bakista sonuc, muhur ve tum eylemler. */
+:root[data-orientation="landscape"] #game-end-result-overlay .game-end-result-box.ferman-box {
+    width: min(820px, 100%);
+    max-width: 820px;
+    height: calc(100vh - 16px);
+    height: calc(100dvh - 16px);
+    max-height: calc(100vh - 16px);
+    max-height: calc(100dvh - 16px);
+    min-height: 0;
+    padding: 8px 14px;
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(120px, 0.8fr);
+    grid-template-rows: 8px 44px minmax(0, 1fr) 44px 8px;
+    column-gap: 14px;
+    row-gap: 6px;
+    overflow: hidden;
+}
+
+:root[data-orientation="landscape"] #game-end-result-overlay .ferman-border-top {
+    grid-column: 1 / -1;
+    grid-row: 1;
+}
+
+:root[data-orientation="landscape"] #game-end-result-overlay .game-end-result-header {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    min-height: 44px;
+}
+
+:root[data-orientation="landscape"] #game-end-result-overlay .game-end-result-body {
+    grid-column: 1;
+    grid-row: 3;
+    align-self: center;
+    min-width: 0;
+    min-height: 0;
+    padding: 0;
+    gap: 5px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+:root[data-orientation="landscape"] #game-end-result-overlay .game-end-result-badge {
+    padding: 4px 10px;
+    font-size: 0.7rem;
+}
+
+:root[data-orientation="landscape"] #game-end-result-overlay .game-end-result-body h2 {
+    font-size: clamp(1.2rem, 3.1vw, 1.72rem);
+    line-height: 1.08;
+}
+
+:root[data-orientation="landscape"] #game-end-result-overlay .game-end-result-body p {
+    font-size: 0.74rem;
+    line-height: 1.25;
+}
+
+:root[data-orientation="landscape"] #game-end-result-overlay .game-end-result-meta {
+    grid-column: auto;
+    grid-row: auto;
+    flex-direction: row;
+    gap: 6px;
+    margin-top: 2px;
+}
+
+:root[data-orientation="landscape"] #game-end-result-overlay .game-end-result-meta span {
+    width: auto;
+    padding: 5px 8px;
+    font-size: 0.66rem;
+}
+
+:root[data-orientation="landscape"] #game-end-result-overlay .ferman-seal {
+    grid-column: 2;
+    grid-row: 3;
+    align-self: center;
+    justify-self: center;
+    max-width: 132px;
+    max-height: 132px;
+    margin: 0;
+}
+
+:root[data-orientation="landscape"] #game-end-result-overlay .game-end-result-actions {
+    grid-column: 1 / -1;
+    grid-row: 4;
+    align-self: stretch;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(110px, 1fr));
+    gap: 8px;
+    width: min(620px, 100%);
+    height: 44px;
+    margin: 0 auto;
+    padding: 0;
+}
+
+:root[data-orientation="landscape"] #game-end-result-overlay .game-end-result-actions .btn {
+    width: 100%;
+    min-height: 44px;
+    height: 44px;
+    padding: 5px 10px;
+    font-size: 0.72rem;
+}
+
+:root[data-orientation="landscape"] #game-end-result-overlay .ferman-border-bottom {
+    grid-column: 1 / -1;
+    grid-row: 5;
+}
+
+:root[data-orientation="landscape"]:not([data-historical-theme="on"]) #game-end-result-overlay .game-end-result-box.ferman-box {
+    display: grid;
+    width: min(720px, 100%);
+    max-width: 720px;
+}
+
+@media (max-width: 780px) {
+    :root[data-orientation="landscape"] #game-settings-overlay .game-settings-box,
+    :root[data-orientation="landscape"] #game-analysis-overlay .analysis-box,
+    :root[data-orientation="landscape"] #game-end-result-overlay .game-end-result-box.ferman-box {
+        padding-inline: 10px;
+    }
+
+    :root[data-orientation="landscape"] #game-settings-overlay .settings-hint {
+        display: none;
+    }
+
+    :root[data-orientation="landscape"] #game-end-result-overlay .ferman-seal {
+        max-width: 104px;
+        max-height: 104px;
+    }
+}
+
+/* -------------------------------------------------------------------------
+   FAZ 5 - OGRETICI REHBER VE MAC GECMISI
+   Landscape-only: sabit baslik/aksiyon, kaydirilabilir orta alan.
+   ------------------------------------------------------------------------- */
+:root[data-orientation="landscape"] #tutorial-overlay,
+:root[data-orientation="landscape"] #match-history-overlay {
+    align-items: center;
+    justify-content: center;
+    padding:
+        max(8px, env(safe-area-inset-top, 0px))
+        max(10px, env(safe-area-inset-right, 0px))
+        max(8px, var(--landscape-bottom-safe))
+        max(10px, env(safe-area-inset-left, 0px));
+    overflow: hidden;
+}
+
+:root[data-orientation="landscape"] #tutorial-overlay .tutorial-box {
+    --tutorial-mobile-ad-reserve: 0px;
+    width: min(1040px, 100%);
+    max-width: 1040px;
+    height: calc(100vh - 16px);
+    height: calc(100dvh - 16px);
+    max-height: calc(100vh - 16px);
+    max-height: calc(100dvh - 16px);
+    min-height: 0;
+    margin: 0;
+    padding: 10px 14px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 44px 48px minmax(0, 1fr) 44px;
+    gap: 8px;
+    justify-content: stretch;
+    overflow: hidden;
+}
+
+:root[data-orientation="landscape"] #tutorial-overlay .tutorial-header,
+:root[data-orientation="landscape"] #match-history-overlay .tutorial-header {
+    min-width: 0;
+    min-height: 44px;
+    height: 44px;
+    gap: 10px;
+    margin: 0;
+    padding: 0 0 6px;
+    align-items: center;
+}
+
+:root[data-orientation="landscape"] #tutorial-overlay .tutorial-header h2,
+:root[data-orientation="landscape"] #match-history-overlay .tutorial-header h2 {
+    min-width: 0;
+    margin: 0;
+    font-size: clamp(1rem, 2.2vw, 1.22rem);
+    line-height: 1.05;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+:root[data-orientation="landscape"] #tutorial-overlay #btn-close-tutorial,
+:root[data-orientation="landscape"] #match-history-overlay #btn-close-match-history {
+    flex: 0 0 44px;
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+}
+
+:root[data-orientation="landscape"] #tutorial-overlay .tutorial-tabs {
+    min-width: 0;
+    min-height: 44px;
+    height: 48px;
+    gap: 6px;
+    padding: 0 0 4px;
+    align-items: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-inline: contain;
+    scrollbar-gutter: stable;
+}
+
+:root[data-orientation="landscape"] #tutorial-overlay .tutorial-tab {
+    flex: 0 0 auto;
+    min-height: 44px;
+    height: 44px;
+    padding: 6px 12px;
+    border-radius: 10px;
+    font-size: 0.74rem;
+    line-height: 1;
+}
+
+:root[data-orientation="landscape"] #tutorial-overlay .tutorial-content {
+    min-width: 0;
+    min-height: 0;
+    padding: 4px 6px 6px 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    font-size: 0.82rem;
+}
+
+:root[data-orientation="landscape"] #tutorial-overlay .lesson-body {
+    min-width: 0;
+    min-height: 0;
+    font-size: clamp(0.8rem, 0.72rem + 0.22vw, 0.9rem);
+    line-height: 1.38;
+}
+
+:root[data-orientation="landscape"] #tutorial-overlay .lesson-body h4 {
+    margin-top: 7px;
+    margin-bottom: 5px;
+    font-size: clamp(0.92rem, 0.84rem + 0.22vw, 1rem);
+}
+
+:root[data-orientation="landscape"] #tutorial-overlay .lesson-body p,
+:root[data-orientation="landscape"] #tutorial-overlay .lesson-body li {
+    margin-bottom: 7px;
+    line-height: 1.34;
+}
+
+:root[data-orientation="landscape"] #tutorial-overlay .lesson-body .rule-box,
+:root[data-orientation="landscape"] #tutorial-overlay .lesson-body .tip-box,
+:root[data-orientation="landscape"] #tutorial-overlay .lesson-body .warning-box {
+    margin: 6px 0;
+    padding: 7px 10px;
+    font-size: clamp(0.78rem, 0.72rem + 0.18vw, 0.86rem);
+    line-height: 1.32;
+}
+
+:root[data-orientation="landscape"] #tutorial-overlay .tutorial-quick-actions {
+    display: none;
+}
+
+:root[data-orientation="landscape"] #tutorial-overlay .tutorial-action-card {
+    min-width: 0;
+    gap: 5px;
+    padding: 9px 10px;
+    border-radius: 12px;
+}
+
+:root[data-orientation="landscape"] #tutorial-overlay .tutorial-action-card strong {
+    font-size: 0.76rem;
+}
+
+:root[data-orientation="landscape"] #tutorial-overlay .tutorial-action-card p {
+    font-size: 0.62rem;
+    line-height: 1.22;
+    display: block;
+    line-clamp: unset;
+    -webkit-line-clamp: unset;
+    overflow: visible;
+}
+
+:root[data-orientation="landscape"] #tutorial-overlay .piece-guide-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+    margin: 0 0 8px;
+    align-items: start;
+}
+
+:root[data-orientation="landscape"] #tutorial-overlay .piece-guide-card {
+    min-height: 0;
+    grid-template-columns: minmax(120px, 1fr) auto;
+    grid-template-areas:
+        "copy diagram"
+        "move diagram"
+        "capture diagram"
+        "note note";
+    gap: 6px 9px;
+    padding: 8px 9px;
+    border-radius: 12px;
+}
+
+:root[data-orientation="landscape"] #tutorial-overlay .piece-guide-card::before {
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+}
+
+:root[data-orientation="landscape"] #tutorial-overlay .piece-guide-copy {
+    gap: 7px;
+}
+
+:root[data-orientation="landscape"] #tutorial-overlay .piece-guide-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    font-size: 0.9rem;
+}
+
+:root[data-orientation="landscape"] #tutorial-overlay .piece-guide-card h4 {
+    font-size: clamp(0.84rem, 0.76rem + 0.18vw, 0.94rem);
+    line-height: 1.14;
+    overflow-wrap: normal;
+    word-break: keep-all;
+}
+
+:root[data-orientation="landscape"] #tutorial-overlay .piece-guide-subtitle {
+    font-size: clamp(0.66rem, 0.6rem + 0.16vw, 0.74rem);
+    line-height: 1.18;
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+:root[data-orientation="landscape"] #tutorial-overlay .piece-guide-rule {
+    gap: 4px;
+    padding: 5px 6px;
+    font-size: clamp(0.68rem, 0.62rem + 0.16vw, 0.76rem);
+    line-height: 1.22;
+    word-break: normal;
+    overflow-wrap: break-word;
+}
+
+:root[data-orientation="landscape"] #tutorial-overlay .piece-guide-note {
+    padding-top: 3px;
+    font-size: clamp(0.66rem, 0.6rem + 0.16vw, 0.74rem);
+    line-height: 1.24;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+}
+
+:root[data-orientation="landscape"][data-historical-theme="on"] #tutorial-overlay .mini-board.mini-board-compact.grid-3,
+:root[data-orientation="landscape"] #tutorial-overlay .mini-board-compact.grid-3 {
+    grid-template-columns: repeat(3, 18px) !important;
+}
+
+:root[data-orientation="landscape"][data-historical-theme="on"] #tutorial-overlay .mini-board.mini-board-compact.grid-5,
+:root[data-orientation="landscape"] #tutorial-overlay .mini-board-compact.grid-5 {
+    grid-template-columns: repeat(5, 13px) !important;
+}
+
+:root[data-orientation="landscape"][data-historical-theme="on"] #tutorial-overlay .mini-board.mini-board-compact.grid-7,
+:root[data-orientation="landscape"] #tutorial-overlay .mini-board-compact.grid-7 {
+    grid-template-columns: repeat(7, 10px) !important;
+}
+
+:root[data-orientation="landscape"] #tutorial-overlay .mini-board-compact .mini-cell {
+    font-size: 0.5rem;
+}
+
+:root[data-orientation="landscape"] #tutorial-overlay .mini-board-compact .mini-cell.piece-cell {
+    font-size: 0.62rem;
+}
+
+:root[data-orientation="landscape"] #tutorial-overlay .tutorial-nav {
+    min-width: 0;
+    min-height: 44px;
+    height: 44px;
+    display: grid;
+    grid-template-columns: minmax(108px, 1fr) auto minmax(108px, 1fr);
+    gap: 8px;
+    align-items: center;
+    padding: 0;
+    border-top-width: 1px;
+}
+
+:root[data-orientation="landscape"] #tutorial-overlay .tutorial-nav .btn {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    height: 44px;
+    padding: 6px 12px;
+    font-size: 0.76rem;
+}
+
+:root[data-orientation="landscape"] #tutorial-overlay .lesson-counter {
+    min-width: 54px;
+    text-align: center;
+    font-size: 0.76rem;
+    white-space: nowrap;
+}
+
+:root[data-orientation="landscape"] #match-history-overlay .match-history-box {
+    width: min(980px, 100%);
+    max-width: 980px;
+    height: calc(100vh - 16px);
+    height: calc(100dvh - 16px);
+    max-height: calc(100vh - 16px);
+    max-height: calc(100dvh - 16px);
+    min-height: 0;
+    margin: 0;
+    padding: 10px 14px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 44px 26px minmax(0, 1fr);
+    gap: 8px;
+    justify-content: stretch;
+    overflow: hidden;
+}
+
+:root[data-orientation="landscape"] #match-history-overlay .history-desc {
+    min-width: 0;
+    margin: 0;
+    color: rgba(45, 24, 10, 0.78);
+    font-size: 0.72rem;
+    line-height: 1.12;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+:root[data-orientation="landscape"] #match-history-overlay .match-history-list {
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start;
+    gap: 8px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 0 4px 4px 0;
+    scrollbar-gutter: stable;
+}
+
+:root[data-orientation="landscape"] #match-history-overlay .match-history-list > .match-history-meta {
+    grid-column: 1 / -1;
+}
+
+:root[data-orientation="landscape"] #match-history-overlay .match-history-card {
+    min-width: 0;
+    padding: 8px 10px 9px;
+    border-radius: 12px;
+}
+
+:root[data-orientation="landscape"] #match-history-overlay .match-history-card::before {
+    inset: 9px auto 9px 0;
+    width: 3px;
+}
+
+:root[data-orientation="landscape"] #match-history-overlay .match-history-card-header {
+    gap: 8px;
+}
+
+:root[data-orientation="landscape"] #match-history-overlay .match-history-title {
+    font-size: 0.78rem;
+    line-height: 1.12;
+}
+
+:root[data-orientation="landscape"] #match-history-overlay .match-history-meta {
+    font-size: 0.62rem;
+    line-height: 1.22;
+}
+
+:root[data-orientation="landscape"] #match-history-overlay .match-history-result-pill {
+    max-width: 42%;
+    padding: 4px 7px;
+    font-size: 0.58rem;
+    line-height: 1.05;
+}
+
+:root[data-orientation="landscape"] #match-history-overlay .match-history-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+    margin-top: 6px;
+}
+
+:root[data-orientation="landscape"] #match-history-overlay .match-history-summary-chip {
+    padding: 5px 6px;
+    border-radius: 9px;
+    gap: 2px;
+}
+
+:root[data-orientation="landscape"] #match-history-overlay .match-history-summary-chip span {
+    font-size: 0.54rem;
+}
+
+:root[data-orientation="landscape"] #match-history-overlay .match-history-summary-chip strong {
+    font-size: 0.62rem;
+}
+
+:root[data-orientation="landscape"] #match-history-overlay .match-history-analysis-summary {
+    margin-top: 6px;
+    padding: 6px 7px;
+    border-radius: 9px;
+    font-size: 0.64rem;
+    line-height: 1.2;
+}
+
+:root[data-orientation="landscape"] #match-history-overlay .match-history-actions {
+    margin-top: 6px;
+    gap: 5px;
+}
+
+:root[data-orientation="landscape"] #match-history-overlay .match-history-actions .btn {
+    min-height: 40px;
+    padding: 5px 9px;
+    font-size: 0.64rem;
+}
+
+:root[data-orientation="landscape"] #match-history-overlay .match-history-moves {
+    max-height: 78px;
+    margin-top: 6px;
+    padding: 7px;
+    border-radius: 9px;
+    font-size: 0.62rem;
+    line-height: 1.22;
+    overflow-y: auto;
+}
+
+@media (max-width: 780px) {
+    :root[data-orientation="landscape"] #tutorial-overlay .tutorial-box,
+    :root[data-orientation="landscape"] #match-history-overlay .match-history-box {
+        padding-inline: 10px;
+    }
+
+    :root[data-orientation="landscape"] #tutorial-overlay .tutorial-box {
+        grid-template-rows: 42px 46px minmax(0, 1fr) 44px;
+        gap: 6px;
+    }
+
+    :root[data-orientation="landscape"] #tutorial-overlay .piece-guide-grid,
+    :root[data-orientation="landscape"] #match-history-overlay .match-history-list {
+        gap: 6px;
+    }
+
+    :root[data-orientation="landscape"] #tutorial-overlay .piece-guide-card {
+        padding: 7px 8px;
+        gap: 4px 7px;
+    }
+
+    :root[data-orientation="landscape"] #tutorial-overlay .piece-guide-icon {
+        width: 28px;
+        height: 28px;
+    }
+
+    :root[data-orientation="landscape"] #tutorial-overlay .piece-guide-note {
+        display: none;
+    }
+
+    :root[data-orientation="landscape"] #match-history-overlay .match-history-box {
+        grid-template-rows: 42px 22px minmax(0, 1fr);
+    }
+
+    :root[data-orientation="landscape"] #match-history-overlay .match-history-summary-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* -------------------------------------------------------------------------
+   YATAY BANNER REKLAM GUVENLI ALANI
+   Native AdMob banner altta belirdiginde oyun ve paneller reklam bolgesine
+   girmeden kalan yukseklige sigar. Reklam yoksa rezerv 0px kalir.
+   ------------------------------------------------------------------------- */
+:root[data-orientation="landscape"] #main-menu .menu-box {
+    max-height: min(92vh, calc(var(--landscape-safe-height) - 12px));
+}
+
+:root[data-orientation="landscape"] #formation-menu .menu-box,
+:root[data-orientation="landscape"] #bot-menu .menu-box {
+    max-height: min(94vh, calc(var(--landscape-safe-height) - 12px));
+}
+
+:root[data-orientation="landscape"] #game-settings-overlay .game-settings-box,
+:root[data-orientation="landscape"] #tutorial-overlay .tutorial-box {
+    height: calc(var(--landscape-safe-height) - 16px);
+    max-height: calc(var(--landscape-safe-height) - 16px);
+}
+
+:root[data-orientation="landscape"] #game-analysis-overlay .analysis-box,
+:root[data-orientation="landscape"] #game-end-result-overlay .game-end-result-box.ferman-box,
+:root[data-orientation="landscape"] #match-history-overlay .match-history-box {
+    max-height: calc(var(--landscape-safe-height) - 16px);
+}
+
+:root[data-orientation="landscape"].ad-banner-active .orientation-toggle,
+:root[data-orientation="landscape"][data-ad-banner="active"] .orientation-toggle {
+    top: max(8px, calc(env(safe-area-inset-top, 0px) + 6px));
+}
+/* AdMob reports the real adaptive banner height after every rotation. */
+:root[data-orientation="landscape"].ad-banner-active,
+:root[data-orientation="landscape"][data-ad-banner="active"] {
+    --landscape-ad-reserve: max(var(--ad-banner-height, 0px), 50px) !important;
+}
+
+/* -------------------------------------------------------------------------
+   YATAY FULL-FIT DÜZELTME
+   Android cutout/safe-area değerleri body, overlay ve ekran içinde üst üste
+   eklenirse içerik sağda boşluk bırakır. Landscape'te güvenli alanı tek
+   katmanda tutup bütün ana yüzeyleri kullanılabilir genişliğe yayıyoruz.
+   ------------------------------------------------------------------------- */
+:root[data-orientation="landscape"] #main-menu,
+:root[data-orientation="landscape"] #formation-menu,
+:root[data-orientation="landscape"] #bot-menu,
+:root[data-orientation="landscape"] #tutorial-overlay,
+:root[data-orientation="landscape"] #match-history-overlay,
+:root[data-orientation="landscape"] #game-settings-overlay,
+:root[data-orientation="landscape"] #game-analysis-overlay,
+:root[data-orientation="landscape"] #game-end-result-overlay,
+:root[data-orientation="landscape"] #game-view {
+    width: 100dvw;
+    max-width: 100dvw;
+    min-width: 0;
+    box-sizing: border-box;
+    padding-left: max(var(--landscape-safe-inline-gap), var(--landscape-safe-left)) !important;
+    padding-right: max(var(--landscape-safe-inline-gap), var(--landscape-safe-right)) !important;
+}
+
+:root[data-orientation="landscape"] #main-menu .menu-box,
+:root[data-orientation="landscape"] #formation-menu .menu-box,
+:root[data-orientation="landscape"] #bot-menu .menu-box,
+:root[data-orientation="landscape"] #tutorial-overlay .tutorial-box,
+:root[data-orientation="landscape"] #match-history-overlay .match-history-box,
+:root[data-orientation="landscape"] #game-settings-overlay .game-settings-box,
+:root[data-orientation="landscape"] #game-analysis-overlay .analysis-box,
+:root[data-orientation="landscape"] #game-end-result-overlay .game-end-result-box.ferman-box {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0;
+}
+
+:root[data-orientation="landscape"] #game-view {
+    grid-template-columns:
+        clamp(108px, 14.5vw, 162px)
+        minmax(0, 1fr)
+        clamp(116px, 15vw, 168px);
+}
+
+@media (max-width: 760px) {
+    :root[data-orientation="landscape"] #game-view {
+        grid-template-columns: 104px minmax(0, 1fr) 122px;
+    }
+}
+
+/* -------------------------------------------------------------------------
+   YATAY HUD POLISH
+   Tahta ana odak kalırken sol bilgi kartı kırpılmadan okunur, sağdaki
+   oyuncu/AI kartları ve kontrol butonları daha hafif bir skor panosuna dönüşür.
+   ------------------------------------------------------------------------- */
+:root[data-orientation="landscape"] #game-view {
+    grid-template-columns:
+        clamp(132px, 16vw, 190px)
+        minmax(0, 1fr)
+        clamp(130px, 14.5vw, 168px);
+    column-gap: clamp(3px, 0.45vw, 7px);
+}
+
+:root[data-orientation="landscape"] #game-view .piece-info-panel {
+    width: calc(100% - 8px);
+    min-height: 104px;
+    max-height: 142px;
+    padding: 9px;
+    border-radius: 10px;
+}
+
+:root[data-orientation="landscape"] #game-view .piece-info-summary {
+    align-items: center;
+    min-height: 68px;
+}
+
+:root[data-orientation="landscape"] #game-view .piece-info-panel .piece-info-summary .avatar,
+:root[data-orientation="landscape"] #game-view .piece-info-panel .info-piece-preview {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+}
+
+:root[data-orientation="landscape"] #game-view .piece-info-panel .piece-info-summary .details,
+:root[data-orientation="landscape"] #game-view .piece-info-panel .info-piece-text {
+    min-width: 0;
+    overflow: hidden;
+}
+
+:root[data-orientation="landscape"] #game-view .piece-info-panel .details .name,
+:root[data-orientation="landscape"] #game-view .piece-info-panel .info-piece-name {
+    display: block;
+    overflow: hidden;
+    color: var(--color-burnt-umber, var(--text-primary));
+    font-size: 0.72rem;
+    line-height: 1.08;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+:root[data-orientation="landscape"] #game-view .piece-info-panel .details .status,
+:root[data-orientation="landscape"] #game-view .piece-info-panel .info-piece-desc {
+    display: -webkit-box;
+    overflow: hidden;
+    color: #5b4a36;
+    font-size: 0.58rem;
+    line-height: 1.12;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+}
+
+:root[data-orientation="landscape"] #game-view .piece-info-panel.showing-detail .piece-info-detail {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) 42px;
+    grid-template-areas: "preview text diagram";
+    align-items: center;
+    gap: 7px;
+    min-height: 74px;
+}
+
+:root[data-orientation="landscape"] #game-view .piece-info-panel .info-piece-preview .piece {
+    width: 28px !important;
+    height: 28px !important;
+}
+
+:root[data-orientation="landscape"] #game-view .piece-info-panel .info-move-diagram {
+    width: 42px;
+    height: 42px;
+    justify-self: end;
+}
+
+:root[data-orientation="landscape"] #game-view .piece-info-panel .piece-type-badge {
+    display: none;
+}
+
+:root[data-orientation="landscape"] #game-view .game-header,
+:root[data-orientation="landscape"] #game-view .game-footer {
+    width: calc(100% - 8px);
+    margin: 4px;
+    padding: 0;
+    background: transparent !important;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none !important;
+    overflow: visible;
+}
+
+:root[data-orientation="landscape"] #game-view .game-header {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+        "opponent opponent"
+        "history pause";
+    gap: 5px;
+}
+
+:root[data-orientation="landscape"] #game-view .game-header .top-player,
+:root[data-orientation="landscape"] #game-view .bottom-player {
+    border: 1px solid rgba(201, 162, 75, 0.42);
+    border-radius: 11px;
+    background:
+        linear-gradient(180deg, rgba(12, 9, 5, 0.84), rgba(3, 5, 8, 0.78));
+    box-shadow:
+        0 2px 0 rgba(201, 162, 75, 0.28),
+        inset 0 1px 0 rgba(255, 252, 236, 0.08);
+}
+
+:root[data-orientation="landscape"] #game-view .game-header .top-player {
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 3px 6px;
+    padding: 6px 7px;
+}
+
+:root[data-orientation="landscape"] #game-view .bottom-player {
+    padding: 6px 7px;
+}
+
+:root[data-orientation="landscape"] #game-view .game-header .top-player > .avatar,
+:root[data-orientation="landscape"] #game-view .player-info > .avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 0.72rem;
+}
+
+:root[data-orientation="landscape"] #game-view .details .name {
+    color: #f6df9a;
+    font-size: 0.68rem;
+    line-height: 1.05;
+}
+
+:root[data-orientation="landscape"] #game-view .details .status {
+    color: rgba(255, 248, 224, 0.78);
+    font-size: 0.52rem;
+}
+
+:root[data-orientation="landscape"] #game-view .player-clock {
+    width: fit-content;
+    min-width: 42px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    color: #ffe08a;
+    font-size: 0.6rem;
+    font-variant-numeric: tabular-nums;
+}
+
+:root[data-orientation="landscape"] #game-view .bottom-player .details {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 3px 5px;
+}
+
+:root[data-orientation="landscape"] #game-view .turn-indicator {
+    max-width: 100%;
+    overflow: hidden;
+    padding: 3px 7px;
+    border: 1px solid rgba(201, 162, 75, 0.24);
+    background: rgba(255, 176, 32, 0.18);
+    color: #ffe08a;
+    font-size: 0.52rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+:root[data-orientation="landscape"] #game-view .captured-pieces {
+    height: 15px;
+    min-height: 15px;
+    padding: 0 4px;
+    background: rgba(0, 0, 0, 0.26);
+    border: 1px solid rgba(255, 252, 236, 0.08);
+    opacity: 0.86;
+}
+
+:root[data-orientation="landscape"] #game-view .captured-pieces .piece {
+    flex-basis: 14px;
+    width: 14px !important;
+    height: 14px !important;
+}
+
+:root[data-orientation="landscape"] #game-view #btn-toggle-log,
+:root[data-orientation="landscape"] #game-view #btn-game-menu {
+    width: 100%;
+    min-width: 0;
+    height: 34px;
+    min-height: 34px;
+    margin: 0 !important;
+    border-radius: 10px;
+    border: 1px solid rgba(122, 79, 23, 0.32);
+    background:
+        linear-gradient(180deg, rgba(255, 248, 224, 0.96), rgba(218, 187, 113, 0.9));
+    color: #39250f !important;
+    box-shadow:
+        0 2px 0 rgba(122, 79, 23, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+:root[data-orientation="landscape"] #game-view #btn-toggle-log i,
+:root[data-orientation="landscape"] #game-view #btn-game-menu i {
+    font-size: 0.86rem;
+}
+
+@media (max-width: 760px) {
+    :root[data-orientation="landscape"] #game-view {
+        grid-template-columns: 128px minmax(0, 1fr) 126px;
+        column-gap: 3px;
+    }
+
+    :root[data-orientation="landscape"] #game-view .piece-info-panel {
+        min-height: 94px;
+        max-height: 112px;
+        padding: 7px;
+    }
+
+    :root[data-orientation="landscape"] #game-view .piece-info-panel.showing-detail .piece-info-detail {
+        grid-template-columns: 30px minmax(0, 1fr);
+        grid-template-areas:
+            "preview text"
+            "diagram diagram";
+        gap: 4px 6px;
+    }
+
+    :root[data-orientation="landscape"] #game-view .piece-info-panel .info-move-diagram {
+        width: 34px;
+        height: 34px;
+    }
+
+    :root[data-orientation="landscape"] #game-view .game-header .top-player,
+    :root[data-orientation="landscape"] #game-view .bottom-player {
+        padding: 5px 6px;
+    }
+
+    :root[data-orientation="landscape"] #game-view #btn-toggle-log,
+    :root[data-orientation="landscape"] #game-view #btn-game-menu {
+        height: 32px;
+        min-height: 32px;
+    }
+}
+
+@media (max-height: 340px) {
+    :root[data-orientation="landscape"] #game-view .piece-info-panel {
+        min-height: 82px;
+        max-height: 98px;
+    }
+
+    :root[data-orientation="landscape"] #game-view .piece-info-panel .details .status,
+    :root[data-orientation="landscape"] #game-view .piece-info-panel .info-piece-desc {
+        -webkit-line-clamp: 1;
+        line-clamp: 1;
+    }
+}
+
+/* Piece info kartında flex'in metni gereksiz daraltmasını engelle. */
+:root[data-orientation="landscape"] #game-view .piece-info-default {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+:root[data-orientation="landscape"] #game-view .piece-info-panel.showing-detail .piece-info-default {
+    display: none !important;
+}
+
+:root[data-orientation="landscape"] #game-view .piece-info-panel.showing-detail .piece-info-detail {
+    display: grid !important;
+}
+
+:root[data-orientation="landscape"] #game-view .piece-info-summary {
+    display: grid !important;
+    grid-template-columns: 34px minmax(0, 1fr);
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+:root[data-orientation="landscape"] #game-view .piece-info-summary .details {
+    width: 100%;
+    min-width: 0;
+}
+
+:root[data-orientation="landscape"] #game-view .piece-info-summary .details .name {
+    white-space: normal;
+    text-overflow: clip;
+}
+
+:root[data-orientation="landscape"] #game-view .piece-info-summary .details .status {
+    max-width: 100%;
+    font-size: 0.54rem;
+    line-height: 1.08;
+    white-space: normal;
+    text-overflow: clip;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+}
+
+:root[data-orientation="landscape"] #game-view .bottom-player .name {
+    max-width: 100%;
+    font-size: 0.64rem;
+}
+
+:root[data-orientation="landscape"] #game-view .bottom-player .player-clock {
+    min-width: 38px;
+    padding-inline: 6px;
+}
+
+:root[data-orientation="landscape"][data-historical-theme="on"] #game-view #btn-toggle-log,
+:root[data-orientation="landscape"][data-historical-theme="on"] #game-view #btn-game-menu {
+    flex: 1 1 0 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 0 !important;
+}
+
+:root[data-orientation="landscape"][data-historical-theme="on"] #game-view #btn-toggle-log i,
+:root[data-orientation="landscape"][data-historical-theme="on"] #game-view #btn-game-menu i {
+    font-size: 0.82rem !important;
+}
+
+/* -------------------------------------------------------------------------
+   YATAY TAHTA KATMAN TEMIZLIGI
+   Gercek zemin #game-view'da kalir; .board-container::before ise tahta
+   kolonunu dolduran ikinci lacivert sahne katmani oldugu icin yatay oyunda
+   kapatilir. Bosalan yatay alan sol bilgi ve sag HUD raylarina verilir.
+   ------------------------------------------------------------------------- */
+:root[data-orientation="landscape"] #game-view {
+    grid-template-columns:
+        minmax(clamp(150px, 22vw, 260px), 1fr)
+        clamp(340px, 54vw, 620px)
+        minmax(clamp(144px, 19vw, 230px), 0.9fr);
+    column-gap: clamp(5px, 0.7vw, 10px);
+}
+
+:root[data-orientation="landscape"] #game-view .board-container {
+    background: transparent !important;
+    box-shadow: none !important;
+    isolation: auto;
+}
+
+:root[data-orientation="landscape"] #game-view .board-container::before {
+    display: none !important;
+}
+
+:root[data-orientation="landscape"] #game-view .piece-info-panel,
+:root[data-orientation="landscape"] #game-view .game-header,
+:root[data-orientation="landscape"] #game-view .game-footer {
+    width: calc(100% - 10px);
+    margin-inline: 5px;
+}
+
+:root[data-orientation="landscape"] #game-view .piece-info-panel {
+    min-height: 112px;
+    max-height: 150px;
+}
+
+@media (max-width: 680px) {
+    :root[data-orientation="landscape"] #game-view {
+        grid-template-columns: 124px minmax(0, 1fr) 122px;
+        column-gap: 3px;
+    }
+
+    :root[data-orientation="landscape"] #game-view .piece-info-panel {
+        min-height: 94px;
+        max-height: 118px;
+    }
+}
+
+/* Faz 14 — Yatay modda sade maç kurulumu */
+:root[data-orientation="landscape"] #formation-menu .menu-box {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: none !important;
+    grid-template-rows: none !important;
+    width: min(860px, var(--landscape-safe-width, 100dvw)) !important;
+    height: auto !important;
+    max-height: calc(100dvh - 16px) !important;
+    gap: 8px !important;
+}
+
+:root[data-orientation="landscape"] #formation-menu .setup-summary-card,
+:root[data-orientation="landscape"] #formation-menu .setup-primary-section,
+:root[data-orientation="landscape"] #formation-menu .menu-actions {
+    grid-column: auto !important;
+    grid-row: auto !important;
+}
+
+:root[data-orientation="landscape"] #formation-menu .setup-choice-row {
+    display: grid !important;
+    height: auto !important;
+    overflow: visible !important;
+}
+
+:root[data-orientation="landscape"] #formation-menu .setup-choice-row .card {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 54px !important;
+}
+
+:root[data-orientation="landscape"] #formation-menu .setup-sheet {
+    inset: 58px 12px 58px !important;
+}
+
+:root[data-orientation="landscape"] #formation-menu .setup-sheet .formation-cards,
+:root[data-orientation="landscape"] #formation-menu .setup-sheet .ai-persona-cards,
+:root[data-orientation="landscape"] #formation-menu .setup-sheet .time-control-cards {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) !important;
+    height: auto !important;
+    overflow: visible !important;
+}
+
+:root[data-orientation="landscape"] #formation-menu .setup-sheet .card p {
+    display: -webkit-box !important;
+}
+
+:root[data-orientation="landscape"] #formation-menu .setup-sheet .ai-persona-card .persona-portrait {
+    display: block !important;
+}
+
+:root[data-orientation="landscape"] #formation-menu .setup-sheet .card-seal {
+    display: inline-flex !important;
+}

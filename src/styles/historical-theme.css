@@ -1,0 +1,2434 @@
+/* ================================================================
+   HISTORICAL THEME — Faz 2 Bileşen Kütüphanesi
+   Tarih: 2026-05-26
+   ================================================================
+   AKTİVASYON:
+   document.documentElement.dataset.historicalTheme = 'on';
+
+   YAPI:
+   1. Body & Layout
+   2. Buton bileşeni
+   3. Kart bileşeni
+   4. Modal/Overlay (parşömen scroll)
+   5. Logo bileşeni
+   6. Sefer Defteri (hamle geçmişi)
+   7. Yardımcı sınıflar (toggle, seal, vb.)
+   ================================================================ */
+
+/* ================================================================
+   1. BODY & LAYOUT
+   ================================================================ */
+
+:root[data-historical-theme="on"] body {
+    background-color: var(--color-lapis-deep);
+    background-image: var(--bg-pattern-url);
+    background-repeat: repeat;
+    background-size: 240px;
+    background-blend-mode: overlay;
+    color: var(--color-parchment);
+    font-family: var(--font-body);
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
+}
+
+/* Glassmorphism etkilerini kapat */
+:root[data-historical-theme="on"] .glass-panel {
+    background-color: var(--color-parchment-aged);
+    background-image: var(--bg-parchment-url);
+    background-blend-mode: multiply;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: var(--border-gold-thin);
+    border-radius: var(--border-tezhip-radius);
+    box-shadow: var(--shadow-card);
+    color: var(--color-burnt-umber);
+}
+
+
+/* ================================================================
+   2. BUTON BİLEŞENİ — Tezhip Stilli
+   ================================================================ */
+
+:root[data-historical-theme="on"] .btn {
+    background: var(--color-gold-leaf);
+    background-image: none;             /* gradient kaldırıldı */
+    color: var(--color-burnt-umber);
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: var(--fs-body);
+    letter-spacing: 0.04em;
+    padding: var(--space-md) var(--space-lg);
+    border: var(--border-gold-double);
+    border-radius: var(--border-tezhip-radius);
+    box-shadow: var(--shadow-button);
+    text-transform: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    transition:
+        background-color var(--duration-quick) var(--ease-classical),
+        color var(--duration-quick) var(--ease-classical),
+        transform var(--duration-quick) var(--ease-classical),
+        box-shadow var(--duration-quick) var(--ease-classical);
+    text-shadow: none;
+    position: relative;
+}
+
+:root[data-historical-theme="on"] .btn:hover {
+    background-color: var(--color-terracotta);
+    color: var(--color-parchment);
+}
+
+:root[data-historical-theme="on"] .btn:active {
+    box-shadow: var(--shadow-pressed);
+    transform: translateY(1px);
+}
+
+:root[data-historical-theme="on"] .btn:disabled,
+:root[data-historical-theme="on"] .btn.disabled {
+    background-color: var(--color-ink-gray);
+    color: var(--color-parchment);
+    cursor: not-allowed;
+    opacity: 0.55;
+    border-color: var(--color-gold-shadow);
+}
+
+/* Primary buton (varsayılan) */
+:root[data-historical-theme="on"] .primary-btn {
+    background-color: var(--color-gold-leaf);
+    color: var(--color-burnt-umber);
+}
+
+/* Secondary buton — parşömen üzerinde okunabilir koyu kahve */
+:root[data-historical-theme="on"] .secondary-btn {
+    background-color: var(--color-parchment);
+    color: var(--color-burnt-umber);
+    border: 2px solid var(--color-gold-leaf);
+    box-shadow: 0 2px 4px rgba(40, 24, 12, 0.15);
+}
+
+:root[data-historical-theme="on"] .secondary-btn:hover {
+    background-color: var(--color-cinnabar);
+    color: var(--color-parchment-aged);
+    border-color: var(--color-cinnabar);
+}
+
+/* Hızlı Başlat — özel vurgu */
+:root[data-historical-theme="on"] .quick-start-btn {
+    background-color: var(--color-cinnabar);
+    color: var(--color-parchment-aged);
+    border-color: var(--color-gold-leaf);
+}
+
+:root[data-historical-theme="on"] .quick-start-btn:hover {
+    background-color: var(--color-burnt-umber);
+    color: var(--color-gold-leaf);
+}
+
+/* Oynayarak öğren — yeşil çini */
+:root[data-historical-theme="on"] .learn-btn {
+    background-color: var(--color-mosque-green);
+    color: var(--color-parchment-aged);
+    background-image: none !important;
+}
+
+:root[data-historical-theme="on"] .learn-btn:hover {
+    background-color: var(--color-burnt-umber);
+    color: var(--color-gold-leaf);
+}
+
+
+/* ================================================================
+   3. KART BİLEŞENİ — Rumi Köşeli
+   ================================================================ */
+
+:root[data-historical-theme="on"] .card {
+    background-color: var(--color-parchment-aged);
+    background-image: var(--bg-parchment-url);
+    background-blend-mode: multiply;
+    color: var(--color-burnt-umber);
+    border: var(--border-card);
+    border-radius: var(--border-tezhip-radius);
+    box-shadow: var(--shadow-card);
+    padding: var(--space-md);
+    position: relative;
+    transition:
+        background-color var(--duration-base) var(--ease-classical),
+        transform var(--duration-base) var(--ease-classical),
+        box-shadow var(--duration-base) var(--ease-classical);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+/* 4 köşede rumi motif (üst-sol ve alt-sağ ::before ::after) */
+:root[data-historical-theme="on"] .card::before,
+:root[data-historical-theme="on"] .card::after {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    background-image: url('/textures/rumi-corner.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+:root[data-historical-theme="on"] .card::before {
+    top: 4px;
+    left: 4px;
+}
+
+:root[data-historical-theme="on"] .card::after {
+    bottom: 4px;
+    right: 4px;
+    transform: rotate(180deg);
+}
+
+/* Seçili kart — altın vurgu */
+:root[data-historical-theme="on"] .card.selected {
+    background-color: var(--color-gold-leaf);
+    color: var(--color-burnt-umber);
+    border-color: var(--color-gold-shadow);
+    box-shadow: var(--shadow-elevated);
+    transform: translateY(-2px);
+}
+
+:root[data-historical-theme="on"] .card.selected::before,
+:root[data-historical-theme="on"] .card.selected::after {
+    opacity: 1;
+}
+
+:root[data-historical-theme="on"] .card.disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    background-color: var(--color-ink-gray);
+}
+
+/* Kart içi başlık ve metin */
+:root[data-historical-theme="on"] .card h3 {
+    font-family: var(--font-heading);
+    font-size: var(--fs-body);
+    color: var(--color-burnt-umber);
+    margin: var(--space-xs) 0;
+    text-align: center;
+}
+
+:root[data-historical-theme="on"] .card p {
+    font-family: var(--font-body);
+    font-size: var(--fs-small);
+    color: var(--color-ink-gray);
+    text-align: center;
+    line-height: 1.5;
+    margin: 0;
+}
+
+:root[data-historical-theme="on"] .card.selected h3,
+:root[data-historical-theme="on"] .card.selected p {
+    color: var(--color-burnt-umber);
+}
+
+/* Kart ikonu */
+:root[data-historical-theme="on"] .card .card-icon {
+    font-size: 2rem;
+    color: var(--color-gold-shadow);
+    margin-bottom: var(--space-xs);
+    text-align: center;
+    display: block;
+}
+
+:root[data-historical-theme="on"] .card.selected .card-icon {
+    color: var(--color-burnt-umber);
+}
+
+
+/* ================================================================
+   4. MODAL / OVERLAY — Parşömen Scroll
+   ================================================================ */
+
+:root[data-historical-theme="on"] .overlay-container {
+    background-color: var(--color-overlay-veil);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+:root[data-historical-theme="on"] .menu-box {
+    background-color: var(--color-parchment-aged);
+    background-image: var(--bg-parchment-url);
+    background-blend-mode: multiply;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: var(--border-gold-thin);
+    border-radius: var(--border-tezhip-radius);
+    box-shadow: var(--shadow-elevated);
+    color: var(--color-burnt-umber);
+    padding: var(--space-lg);
+    position: relative;
+    animation: scrollUnroll 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+}
+
+/* Scroll üst ve alt çubukları (altın silindir) */
+:root[data-historical-theme="on"] .menu-box::before,
+:root[data-historical-theme="on"] .menu-box::after {
+    content: '';
+    position: absolute;
+    left: -10px;
+    right: -10px;
+    height: 14px;
+    background: linear-gradient(180deg,
+        var(--color-gold-shadow) 0%,
+        var(--color-gold-leaf) 40%,
+        var(--color-gold-shadow) 100%);
+    border-radius: 7px;
+    box-shadow: 0 2px 4px var(--color-shadow-deep);
+    pointer-events: none;
+}
+
+:root[data-historical-theme="on"] .menu-box::before {
+    top: -8px;
+}
+
+:root[data-historical-theme="on"] .menu-box::after {
+    bottom: -8px;
+}
+
+/* Parşömen açılma animasyonu */
+@keyframes scrollUnroll {
+    0% {
+        transform: translate3d(0, 10px, 0) scale(0.985);
+        opacity: 0;
+    }
+    100% {
+        transform: translate3d(0, 0, 0) scale(1);
+        opacity: 1;
+    }
+}
+
+/* Modal başlıkları */
+:root[data-historical-theme="on"] .menu-box h1,
+:root[data-historical-theme="on"] .menu-box h2 {
+    font-family: var(--font-heading);
+    color: var(--color-burnt-umber);
+    text-align: center;
+    margin-bottom: var(--space-md);
+}
+
+:root[data-historical-theme="on"] .menu-box h2 {
+    font-size: var(--fs-h2);
+    margin-top: var(--space-md);
+    position: relative;
+}
+
+/* Bölüm başlıklarının altında ince altın çizgi */
+:root[data-historical-theme="on"] .menu-box h2::after {
+    content: '';
+    display: block;
+    width: 60%;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        var(--color-gold-shadow) 50%,
+        transparent 100%);
+    margin: var(--space-xs) auto 0;
+}
+
+
+/* ================================================================
+   5. LOGO BİLEŞENİ — Cinzel + Ornament
+   ================================================================ */
+
+:root[data-historical-theme="on"] .game-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--fs-display);
+    color: var(--color-gold-leaf);
+    text-align: center;
+    letter-spacing: 0.08em;
+    text-shadow: 1px 1px 0 var(--color-lapis-deep);
+    margin: var(--space-md) 0;
+    line-height: var(--lh-display);
+    position: relative;
+    padding: var(--space-md) 0;
+}
+
+/* Logonun üstünde ve altında dekoratif altın çizgi + ۞ sembol */
+:root[data-historical-theme="on"] .game-title::before,
+:root[data-historical-theme="on"] .game-title::after {
+    content: '۞';
+    display: block;
+    color: var(--color-gold-shadow);
+    font-size: 1.5rem;
+    text-shadow: none;
+    margin: var(--space-xs) auto;
+    position: relative;
+}
+
+:root[data-historical-theme="on"] .game-title::before {
+    content: '۞';
+    margin-bottom: var(--space-sm);
+}
+
+:root[data-historical-theme="on"] .game-title::after {
+    margin-top: var(--space-sm);
+}
+
+/* Dekoratif çizgi (alternatif olarak ::before/::after kullanılabilir) */
+:root[data-historical-theme="on"] .decor-line {
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        var(--color-gold-shadow) 30%,
+        var(--color-gold-leaf) 50%,
+        var(--color-gold-shadow) 70%,
+        transparent 100%);
+    margin: var(--space-md) 0;
+}
+
+/* Dil seçici */
+:root[data-historical-theme="on"] .language-selector {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-sm);
+    margin: var(--space-md) 0;
+}
+
+:root[data-historical-theme="on"] .lang-btn {
+    background: transparent;
+    color: var(--color-burnt-umber);
+    border: var(--border-gold-thin);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    font-family: var(--font-decorative);
+    font-size: var(--fs-small);
+    cursor: pointer;
+    transition: all var(--duration-quick) var(--ease-classical);
+}
+
+:root[data-historical-theme="on"] .lang-btn:hover,
+:root[data-historical-theme="on"] .lang-btn.active {
+    background-color: var(--color-gold-leaf);
+    color: var(--color-burnt-umber);
+}
+
+/* Menu footer (gizlilik politikası + Hakkında) */
+:root[data-historical-theme="on"] .menu-footer {
+    text-align: center;
+    margin-top: var(--space-md);
+    font-family: var(--font-decorative);
+    font-size: var(--fs-caption);
+    gap: var(--space-xs, 0.5rem);
+}
+
+:root[data-historical-theme="on"] .menu-footer-meta {
+    color: var(--color-gold-shadow);
+    opacity: 0.78;
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    letter-spacing: 0.5px;
+}
+
+:root[data-historical-theme="on"] .footer-divider {
+    color: var(--color-gold-leaf);
+    opacity: 0.55;
+}
+
+:root[data-historical-theme="on"] .footer-version {
+    color: var(--color-gold-leaf);
+    font-weight: 600;
+    letter-spacing: 0.7px;
+}
+
+:root[data-historical-theme="on"] .footer-tagline {
+    color: var(--color-burnt-umber);
+    font-style: italic;
+    font-family: var(--font-body);
+}
+
+:root[data-historical-theme="on"] .policy-link {
+    color: var(--color-gold-shadow);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--color-gold-shadow);
+    padding-bottom: 2px;
+}
+
+:root[data-historical-theme="on"] .policy-link:hover {
+    color: var(--color-cinnabar);
+    border-color: var(--color-cinnabar);
+}
+
+
+/* ================================================================
+   6. SEFER DEFTERİ — Hamle Geçmişi
+   ================================================================ */
+
+:root[data-historical-theme="on"] .move-log-scroll,
+:root[data-historical-theme="on"] .move-log {
+    background-color: var(--color-parchment-aged);
+    background-image: var(--bg-parchment-url);
+    background-blend-mode: multiply;
+    padding: var(--space-md);
+    border: var(--border-card);
+    border-radius: var(--border-tezhip-radius);
+    color: var(--color-burnt-umber);
+    font-family: var(--font-body);
+    font-size: var(--fs-small);
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Sefer Defteri başlığı */
+:root[data-historical-theme="on"] .move-log-scroll h3,
+:root[data-historical-theme="on"] .move-log h3,
+:root[data-historical-theme="on"] .move-log-title {
+    font-family: var(--font-decorative);
+    font-size: var(--fs-h2);
+    color: var(--color-gold-shadow);
+    text-align: center;
+    margin-bottom: var(--space-sm);
+    padding-bottom: var(--space-xs);
+    border-bottom: 1px dotted var(--color-gold-shadow);
+}
+
+/* Hamle satırları */
+:root[data-historical-theme="on"] .move-entry,
+:root[data-historical-theme="on"] .move-log li {
+    display: grid;
+    grid-template-columns: 32px 1fr 1fr;
+    gap: var(--space-sm);
+    padding: var(--space-xs) 0;
+    border-bottom: 1px dotted var(--color-gold-shadow);
+    align-items: center;
+    transition: background-color var(--duration-quick) var(--ease-classical);
+}
+
+:root[data-historical-theme="on"] .move-entry:hover,
+:root[data-historical-theme="on"] .move-log li:hover {
+    background-color: var(--color-highlight-soft);
+}
+
+/* Hamle numarası — Cormorant Garamond */
+:root[data-historical-theme="on"] .move-number {
+    font-family: var(--font-numeric);
+    font-weight: 600;
+    color: var(--color-cinnabar);
+    text-align: right;
+    padding-right: var(--space-xs);
+}
+
+/* Beyaz/Siyah hamle metni */
+:root[data-historical-theme="on"] .move-white,
+:root[data-historical-theme="on"] .move-black {
+    font-family: var(--font-body);
+    color: var(--color-burnt-umber);
+}
+
+/* Aktif hamle vurgusu */
+:root[data-historical-theme="on"] .move-entry.active,
+:root[data-historical-theme="on"] .move-log .active {
+    background-color: var(--color-gold-leaf);
+    color: var(--color-burnt-umber);
+    font-weight: 600;
+}
+
+/* Scrollbar — tezhip stilinde */
+:root[data-historical-theme="on"] .move-log-scroll::-webkit-scrollbar,
+:root[data-historical-theme="on"] .move-log::-webkit-scrollbar {
+    width: 8px;
+}
+
+:root[data-historical-theme="on"] .move-log-scroll::-webkit-scrollbar-track,
+:root[data-historical-theme="on"] .move-log::-webkit-scrollbar-track {
+    background: var(--color-parchment);
+}
+
+:root[data-historical-theme="on"] .move-log-scroll::-webkit-scrollbar-thumb,
+:root[data-historical-theme="on"] .move-log::-webkit-scrollbar-thumb {
+    background: var(--color-gold-shadow);
+    border-radius: 4px;
+}
+
+
+/* ================================================================
+   7. YARDIMCI SINIFLAR
+   ================================================================ */
+
+/* Mühür ikonu (Sefer Defteri, Daily Decree vb.) */
+:root[data-historical-theme="on"] .seal-mark {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    background-image: url('/textures/tugra-mark.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    vertical-align: middle;
+}
+
+/* Loading spinner — astrolab */
+:root[data-historical-theme="on"] .historical-spinner {
+    width: 64px;
+    height: 64px;
+    background-image: url('/textures/astrolab-spinner.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+/* Tezhip kenar çizgisi (dekoratif divider) */
+:root[data-historical-theme="on"] .tezhip-divider {
+    height: 8px;
+    background-image: url('/textures/border-pattern.svg');
+    background-repeat: repeat-x;
+    background-size: 24px 8px;
+    opacity: 0.8;
+    margin: var(--space-md) 0;
+}
+
+/* Tipografi yardımcıları */
+:root[data-historical-theme="on"] .display-text {
+    font-family: var(--font-display);
+}
+
+:root[data-historical-theme="on"] .heading-text {
+    font-family: var(--font-heading);
+}
+
+:root[data-historical-theme="on"] .decorative-text {
+    font-family: var(--font-decorative);
+}
+
+:root[data-historical-theme="on"] .numeric-text {
+    font-family: var(--font-numeric);
+}
+
+
+/* ================================================================
+   8. CUSTOM HISTORICAL ICON OVERRIDE — DEVRE DIŞI
+   ================================================================
+   NOT: Blanket .fas/.fa-solid override TÜM ikonları renkli kareye
+   dönüştürüyordu çünkü sadece 13 ikona mask tanımladık (40+ ikon var).
+   Tarihsel temada FA glyph'leri olduğu gibi kullanılır — gerekirse
+   sadece RENK override edilir. SVG mask sistemi Faz 11 polish'e
+   ertelendi (tüm ikonların tasarlanması gerekiyor).
+   ================================================================ */
+
+/* Tarihsel temada ikonlar altın rengi alır (FA glyph'i korunur) */
+:root[data-historical-theme="on"] .btn .fas,
+:root[data-historical-theme="on"] .btn .fa-solid {
+    color: inherit;
+}
+
+:root[data-historical-theme="on"] .icon-btn .fas {
+    color: var(--color-gold-leaf);
+}
+
+/* ================================================================
+   FAZ 11 — İKON DİLİ VE TARİHSEL TUTARLILIK
+   Sistem, oyun/taş ve karakter ikonlarını aynı ölçü/renk ailesine bağlar.
+   ================================================================ */
+
+:root[data-historical-theme="on"] {
+    --icon-system-ink: var(--color-gold-shadow);
+    --icon-game-ink: var(--color-cinnabar);
+    --icon-persona-ink: var(--color-burnt-umber);
+    --icon-bot-seal-bg: rgba(201, 162, 75, 0.18);
+    --icon-bot-seal-border: rgba(139, 105, 20, 0.72);
+}
+
+:root[data-historical-theme="on"] .icon-system,
+:root[data-historical-theme="on"] .bot-menu-entry-arrow {
+    color: var(--icon-system-ink);
+}
+
+:root[data-historical-theme="on"] .icon-game {
+    color: var(--icon-game-ink);
+}
+
+:root[data-historical-theme="on"] .icon-persona {
+    color: var(--icon-persona-ink);
+}
+
+:root[data-historical-theme="on"] .icon-action {
+    color: var(--color-cinnabar);
+}
+
+:root[data-historical-theme="on"] .icon-learning {
+    color: var(--color-mosque-green);
+}
+
+:root[data-historical-theme="on"] .icon-record,
+:root[data-historical-theme="on"] .icon-analysis,
+:root[data-historical-theme="on"] .icon-world {
+    color: var(--color-focus-turquoise);
+}
+
+:root[data-historical-theme="on"] .icon-danger,
+:root[data-historical-theme="on"] .icon-close {
+    color: var(--color-cinnabar);
+}
+
+:root[data-historical-theme="on"] .btn > .icon-system,
+:root[data-historical-theme="on"] .btn > .icon-game,
+:root[data-historical-theme="on"] .btn > .icon-persona {
+    color: currentColor;
+    filter: none;
+    text-shadow: none;
+}
+
+:root[data-historical-theme="on"] .icon-btn > .icon-system,
+:root[data-historical-theme="on"] .icon-btn > .icon-game,
+:root[data-historical-theme="on"] .icon-btn > .icon-persona {
+    color: var(--color-gold-leaf);
+    filter: none;
+    text-shadow: none;
+}
+
+:root[data-historical-theme="on"] .menu-box h2 > .icon-system,
+:root[data-historical-theme="on"] .menu-box h2 > .icon-game,
+:root[data-historical-theme="on"] .menu-box h2 > .icon-persona {
+    color: var(--color-gold-shadow);
+    margin-right: 0.35rem;
+    font-size: 0.95em;
+    vertical-align: 0;
+}
+
+:root[data-historical-theme="on"] .card-icon.icon-game:not([style]) {
+    color: var(--icon-game-ink);
+}
+
+:root[data-historical-theme="on"] .card-icon.icon-persona {
+    filter: none;
+    text-shadow: none;
+}
+
+:root[data-historical-theme="on"] .bot-menu-entry-icon,
+:root[data-historical-theme="on"] #bot-menu .ai-bot-card .card-icon.icon-bot {
+    display: inline-grid;
+    place-items: center;
+    border: 1px solid var(--icon-bot-seal-border);
+    background:
+        radial-gradient(circle at 50% 42%, rgba(244, 232, 200, 0.34), transparent 58%),
+        var(--icon-bot-seal-bg);
+    box-shadow: inset 0 0 0 1px rgba(244, 232, 200, 0.2);
+}
+
+:root[data-historical-theme="on"] .bot-menu-entry-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    color: var(--color-cinnabar);
+}
+
+:root[data-historical-theme="on"] .bot-menu-entry-icon .icon-bot {
+    color: var(--color-cinnabar);
+}
+
+:root[data-historical-theme="on"] #bot-menu .ai-bot-card .card-icon.icon-bot {
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    margin-bottom: 2px;
+    font-size: 0.95rem;
+}
+
+:root[data-historical-theme="on"] .avatar .icon-bot,
+:root[data-historical-theme="on"] .avatar .icon-persona {
+    color: var(--color-gold-leaf);
+}
+
+
+/* ================================================================
+   8b. ANA MENÜ — Yüksek Specificity Override (Faz 2 düzeltme)
+   #main-menu .menu-box mevcut CSS'i koyu gradient kullanıyor;
+   historical theme bunu parchment'la üst yazmalı.
+   ================================================================ */
+
+/* Menu-box parşömen arkaplan — #main-menu specificity yenmesi için */
+:root[data-historical-theme="on"] #main-menu .menu-box {
+    background:
+        var(--bg-parchment-url),
+        var(--color-parchment-aged);
+    background-blend-mode: multiply;
+    background-color: var(--color-parchment-aged);
+    border: 3px solid var(--color-gold-leaf);
+    border-radius: var(--border-tezhip-radius);
+    box-shadow:
+        0 0 0 1px var(--color-gold-shadow),
+        0 24px 60px rgba(0, 0, 0, 0.55),
+        inset 0 0 80px rgba(201, 162, 75, 0.12);
+    overflow: visible;
+}
+
+/* Mevcut iç gradient overlay'i (radial yellow + green + red) kapat */
+:root[data-historical-theme="on"] #main-menu .menu-box::before {
+    content: '';
+    position: absolute;
+    inset: auto;
+    left: 0;
+    right: 0;
+    top: -8px;
+    height: 14px;
+    background: linear-gradient(180deg,
+        var(--color-gold-shadow) 0%,
+        var(--color-gold-leaf) 40%,
+        var(--color-gold-shadow) 100%);
+    border: none;
+    border-radius: 7px;
+    box-shadow: 0 2px 4px var(--color-shadow-deep);
+    pointer-events: none;
+    z-index: 1;
+}
+
+:root[data-historical-theme="on"] #main-menu .menu-box::after {
+    left: 0;
+    right: 0;
+}
+
+/* Logo — parşömen üzerinde koyu kahve okunabilir */
+:root[data-historical-theme="on"] #main-menu .game-title {
+    background:
+        radial-gradient(circle at 50% 50%,
+            rgba(245, 220, 140, 0.25) 0%,
+            transparent 70%);
+    background-color: transparent;
+    color: var(--color-burnt-umber);
+    border: 1px solid rgba(201, 162, 75, 0.4);
+    border-radius: var(--border-tezhip-radius);
+    padding: var(--space-md) var(--space-sm);
+    text-shadow:
+        0 1px 0 rgba(245, 220, 140, 0.6),
+        0 0 12px rgba(201, 162, 75, 0.25);
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+}
+
+/* Logo ۞ süslemeleri — altın kontrast */
+:root[data-historical-theme="on"] #main-menu .game-title::before,
+:root[data-historical-theme="on"] #main-menu .game-title::after {
+    color: var(--color-cinnabar);
+    opacity: 0.7;
+    font-size: 1.3rem;
+}
+
+/* Menu options butonları — historical primary altın */
+:root[data-historical-theme="on"] #main-menu .menu-options .btn {
+    background-color: var(--color-gold-leaf);
+    background-image: none;
+    color: var(--color-burnt-umber);
+    border: 2px solid var(--color-gold-shadow);
+    box-shadow:
+        0 4px 8px rgba(40, 24, 12, 0.3),
+        inset 0 1px 0 var(--color-parchment);
+    font-family: var(--font-heading);
+    font-weight: 600;
+    text-shadow: none;
+    min-height: 52px;
+}
+
+:root[data-historical-theme="on"] #main-menu .menu-options .btn:hover {
+    background-color: var(--color-terracotta);
+    color: var(--color-parchment);
+}
+
+/* Hızlı Başlat — kırmızı vurgu */
+:root[data-historical-theme="on"] #main-menu .menu-options .quick-start-btn {
+    background-color: var(--color-cinnabar);
+    color: var(--color-parchment-aged);
+    border-color: var(--color-gold-leaf);
+}
+
+/* Oynayarak Öğren — yeşil çini ama OKUNABILIR */
+:root[data-historical-theme="on"] #main-menu .menu-options .learn-btn {
+    background: var(--color-mosque-green);
+    background-image: none;
+    color: var(--color-parchment-aged);
+    border-color: var(--color-gold-leaf);
+}
+
+/* Secondary butonlar (Öğretici, Maç Geçmişi, Çevrimiçi) — parşömen okunabilir */
+:root[data-historical-theme="on"] #main-menu .menu-options .secondary-btn {
+    background: var(--color-parchment-aged);
+    background-image: var(--bg-parchment-url);
+    background-blend-mode: multiply;
+    color: var(--color-burnt-umber);
+    border: 2px solid var(--color-gold-leaf);
+    box-shadow: 0 2px 4px rgba(40, 24, 12, 0.2);
+}
+
+:root[data-historical-theme="on"] #main-menu .menu-options .secondary-btn:hover {
+    background-color: var(--color-cinnabar);
+    background-image: none;
+    color: var(--color-parchment-aged);
+}
+
+/* Dil seçici — parşömen üstü altın */
+:root[data-historical-theme="on"] #main-menu .lang-btn {
+    background-color: var(--color-parchment);
+    color: var(--color-burnt-umber);
+    border: 1px solid var(--color-gold-leaf);
+}
+
+:root[data-historical-theme="on"] #main-menu .lang-btn.active {
+    background-color: var(--color-gold-leaf);
+    color: var(--color-burnt-umber);
+    border-color: var(--color-gold-shadow);
+}
+
+/* Footer linkleri — parşömen üstü gold-shadow okunabilir */
+:root[data-historical-theme="on"] #main-menu .menu-footer-links .policy-link {
+    color: var(--color-gold-shadow);
+}
+
+:root[data-historical-theme="on"] #main-menu .menu-footer-links .policy-link:hover {
+    color: var(--color-cinnabar);
+}
+
+
+/* ================================================================
+   9. YÖN TOGGLE BUTONU (Faz 3)
+   Tarihsel temadan bağımsız her zaman çalışır (data-attr olmadan da).
+   ================================================================ */
+
+.orientation-toggle {
+    position: fixed;
+    top: max(10px, calc(env(safe-area-inset-top, 0px) + 8px));
+    right: max(10px, calc(env(safe-area-inset-right, 0px) + 10px));
+    background: rgba(8, 18, 32, 0.86);
+    border: 1px solid rgba(255, 215, 0, 0.5);
+    border-radius: 26px;
+    padding: 3px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 84px;
+    min-height: 44px;
+    z-index: 10050;
+    transition: all 200ms ease;
+    color: #C9A24B;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
+    pointer-events: auto;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.orientation-toggle:hover {
+    border-color: #C9A24B;
+    background-color: rgba(201, 162, 75, 0.08);
+}
+
+.orientation-toggle:active {
+    transform: scale(0.96);
+}
+
+:root[data-orientation="landscape"] .orientation-toggle {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+}
+
+:root[data-orientation="landscape"] .orientation-toggle:active {
+    transform: translateX(-50%) scale(0.96);
+}
+
+.orientation-track {
+    display: inline-flex;
+    gap: 2px;
+    background-color: rgba(15, 37, 71, 0.4);
+    border-radius: 22px;
+    padding: 2px;
+    position: relative;
+}
+
+.orientation-thumb {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: rgba(201, 162, 75, 0.6);
+    background-color: transparent;
+    transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Aktif moda göre vurgu */
+:root[data-orientation="portrait"] .orientation-thumb[data-mode="portrait"],
+:root:not([data-orientation]) .orientation-thumb[data-mode="portrait"],
+:root[data-orientation="landscape"] .orientation-thumb[data-mode="landscape"] {
+    background-color: #C9A24B;
+    color: #2C2118;
+    transform: scale(1.05);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Tarihsel temada altın detaylar daha güçlü */
+:root[data-historical-theme="on"] .orientation-toggle {
+    border-color: var(--color-gold-leaf);
+    color: var(--color-gold-leaf);
+}
+
+:root[data-historical-theme="on"] .orientation-toggle:hover {
+    background-color: var(--color-highlight-soft);
+}
+
+:root[data-historical-theme="on"] .orientation-track {
+    background-color: var(--color-burnt-umber);
+}
+
+:root[data-historical-theme="on"] .orientation-thumb {
+    color: var(--color-parchment);
+}
+
+:root[data-historical-theme="on"][data-orientation="portrait"] .orientation-thumb[data-mode="portrait"],
+:root[data-historical-theme="on"]:not([data-orientation]) .orientation-thumb[data-mode="portrait"],
+:root[data-historical-theme="on"][data-orientation="landscape"] .orientation-thumb[data-mode="landscape"] {
+    background-color: var(--color-gold-leaf);
+    color: var(--color-burnt-umber);
+}
+
+body:not(:has(#main-menu:not(.hidden))) .orientation-toggle {
+    display: none;
+}
+
+body:has(#main-menu:not(.hidden)) .orientation-toggle {
+    display: inline-flex;
+}
+
+#btn-orientation-toggle[hidden] {
+    display: none !important;
+}
+
+
+/* ================================================================
+   10. GEÇİŞ ANİMASYONU — Parşömen Perdesi (Faz 3)
+   transitionOrientation() JavaScript akışı tarafından tetiklenir.
+   ================================================================ */
+
+.orientation-transition {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background-color: #1B3A6B;
+    background-image: linear-gradient(180deg,
+        #8B6914 0px,
+        #C9A24B 8px,
+        #F4E8C8 16px,
+        #F4E8C8 calc(100% - 16px),
+        #C9A24B calc(100% - 8px),
+        #8B6914 100%);
+    transform: scaleY(0);
+    transform-origin: top center;
+    opacity: 0;
+    pointer-events: none;
+    transition: none;
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+}
+
+.orientation-transition.parchment-roll-down {
+    pointer-events: auto;
+    animation: parchmentRollDown 160ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.orientation-transition.parchment-roll-up {
+    animation: parchmentRollUp 140ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes parchmentRollDown {
+    0% {
+        transform: translateZ(0) scaleY(0);
+        opacity: 0;
+        transform-origin: top center;
+    }
+    100% {
+        transform: translateZ(0) scaleY(1);
+        opacity: 1;
+        transform-origin: top center;
+    }
+}
+
+@keyframes parchmentRollUp {
+    0% {
+        transform: translateZ(0) scaleY(1);
+        opacity: 1;
+        transform-origin: top center;
+    }
+    100% {
+        transform: translateZ(0) scaleY(0);
+        opacity: 0;
+        transform-origin: top center;
+    }
+}
+
+/* Tarihsel temada parşömen dokusu uygula */
+:root[data-historical-theme="on"] .orientation-transition {
+    background-image: linear-gradient(180deg,
+            var(--color-gold-shadow) 0px,
+            var(--color-gold-leaf) 8px,
+            var(--color-parchment-aged) 16px,
+            var(--color-parchment-aged) calc(100% - 16px),
+            var(--color-gold-leaf) calc(100% - 8px),
+            var(--color-gold-shadow) 100%),
+        var(--bg-parchment-url);
+    background-blend-mode: multiply;
+    background-size: 100% 100%, 512px 512px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .orientation-transition.parchment-roll-down,
+    .orientation-transition.parchment-roll-up {
+        animation-duration: 50ms;
+    }
+}
+
+
+/* ================================================================
+   11. KOMUTAN KONSEYİ — Faz 5 (formation-menu özel stillemesi)
+   - Persona portreleri (4 minyatür: timur, beyazid, ulu_bey, saray_veziri)
+   - .card-seal mührü seçili kartlarda parlar
+   - Tüm kart gruplarına tezhip vurgusu
+   ================================================================ */
+
+/* Persona kart portresi: ikon yerine SVG minyatür */
+:root[data-historical-theme="on"] .persona-portrait {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border: 2px solid var(--color-gold-leaf);
+    box-shadow:
+        0 0 0 1px var(--color-burnt-umber),
+        0 2px 6px rgba(40, 24, 12, 0.35);
+    margin: 0 auto 4px;
+    flex-shrink: 0;
+    transition: transform var(--duration-quick) var(--ease-classical),
+                box-shadow var(--duration-quick) var(--ease-classical),
+                border-color var(--duration-quick) var(--ease-classical);
+}
+
+:root[data-historical-theme="on"] .persona-portrait[data-persona="timur"] {
+    background-image: url('/portraits/timur.svg');
+}
+:root[data-historical-theme="on"] .persona-portrait[data-persona="beyazid"] {
+    background-image: url('/portraits/beyazid.svg');
+}
+:root[data-historical-theme="on"] .persona-portrait[data-persona="ulu_bey"] {
+    background-image: url('/portraits/ulu_bey.svg');
+}
+:root[data-historical-theme="on"] .persona-portrait[data-persona="saray_veziri"] {
+    background-image: url('/portraits/saray_veziri.svg');
+}
+
+/* Default (non-historical) tema: portrait gizli, FA ikon görünür */
+:root:not([data-historical-theme="on"]) .persona-portrait {
+    display: none;
+}
+
+/* Historical tema: FA ikon gizli, portrait görünür */
+:root[data-historical-theme="on"] .persona-icon-fallback {
+    display: none;
+}
+
+/* Seçili persona kartında portre büyür ve altın halka parlar */
+:root[data-historical-theme="on"] .ai-persona-card.selected .persona-portrait {
+    transform: scale(1.08);
+    border-color: var(--color-cinnabar);
+    box-shadow:
+        0 0 0 2px var(--color-burnt-umber),
+        0 0 14px var(--color-highlight-soft, rgba(245, 220, 140, 0.55)),
+        0 4px 10px rgba(40, 24, 12, 0.45);
+}
+
+/* ----------------------------------------------------------------
+   .card-seal — Mührü tüm seçilebilir kartlarda kullan (pseudo + element)
+   ---------------------------------------------------------------- */
+.card-seal {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 16px;
+    height: 16px;
+    display: grid;
+    place-items: center;
+    font-size: 11px;
+    line-height: 1;
+    color: var(--color-gold-leaf, #C9A24B);
+    opacity: 0;
+    transform: scale(0.6) rotate(-12deg);
+    transition: all 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+    text-shadow: 0 0 4px rgba(245, 220, 140, 0.6);
+}
+
+/* Default tema: card-seal gizli kalır (sadece historical'da görünür) */
+:root:not([data-historical-theme="on"]) .card-seal {
+    display: none;
+}
+
+/* Seçili kart → mühür belirir ve düz oturur */
+:root[data-historical-theme="on"] .card.selected .card-seal {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+    color: var(--color-cinnabar);
+}
+
+/* Hover hint: mühür hafifçe belirir */
+:root[data-historical-theme="on"] .card:not(.selected):not(.disabled):hover .card-seal {
+    opacity: 0.35;
+    transform: scale(0.85) rotate(-6deg);
+}
+
+/* Tezhip vurgusu: seçili kartın çerçevesi altın ışıma */
+:root[data-historical-theme="on"] .card.selected {
+    border-color: var(--color-gold-leaf);
+    box-shadow:
+        0 0 0 1px var(--color-gold-shadow),
+        0 0 12px rgba(245, 220, 140, 0.35),
+        var(--shadow-card);
+    background-color: var(--color-parchment);
+    background-image: var(--bg-parchment-url);
+    background-blend-mode: multiply;
+}
+
+/* Bot menu entry (Botlara Karşı Oyna butonu) — tezhip uyumu */
+:root[data-historical-theme="on"] .bot-menu-entry-btn {
+    background: var(--color-parchment-aged);
+    background-image: var(--bg-parchment-url);
+    background-blend-mode: multiply;
+    border: var(--border-gold-thin);
+    border-radius: var(--border-tezhip-radius);
+    color: var(--color-burnt-umber);
+    box-shadow: var(--shadow-card);
+}
+
+:root[data-historical-theme="on"] .bot-menu-entry-btn:hover {
+    border-color: var(--color-cinnabar);
+    transform: translateY(-1px);
+}
+
+:root[data-historical-theme="on"] .bot-menu-entry-icon {
+    background: var(--color-gold-leaf);
+    color: var(--color-burnt-umber);
+}
+
+:root[data-historical-theme="on"] .bot-menu-entry-copy strong {
+    font-family: var(--font-heading);
+    color: var(--color-burnt-umber);
+}
+
+:root[data-historical-theme="on"] .bot-menu-entry-copy small {
+    color: var(--color-gold-shadow);
+    font-family: var(--font-body);
+}
+
+:root[data-historical-theme="on"] .bot-menu-entry-arrow {
+    color: var(--color-gold-shadow);
+}
+
+/* formation-menu başlıklar (tezhip) */
+:root[data-historical-theme="on"] #formation-menu h2 {
+    font-family: var(--font-decorative);
+    color: var(--color-gold-shadow);
+    text-align: center;
+    font-size: var(--fs-h2);
+    margin: var(--space-md) 0 var(--space-xs);
+    padding-bottom: var(--space-xs);
+    border-bottom: 1px dotted var(--color-gold-leaf);
+    letter-spacing: 0.05em;
+}
+
+
+/* ================================================================
+   12. OYUN TAHTASI — Faz 6 (Sefer Meydanı)
+   - Tezhip altın çerçeve
+   - Parşömen üzerinde koyu kahve karaler
+   - Hamle efektleri tezhip uyumlu
+   ================================================================ */
+
+/* Game view background — Saray salonu dokusu */
+:root[data-historical-theme="on"] #game-view {
+    background-color: var(--color-lapis-deep);
+    background-image: var(--bg-pattern-url);
+    background-size: 240px;
+    background-blend-mode: overlay;
+}
+
+/* Header & Footer — kompakt tezhip şeritleri */
+:root[data-historical-theme="on"] .game-header,
+:root[data-historical-theme="on"] .game-footer {
+    background-color: var(--color-burnt-umber);
+    background-image: linear-gradient(180deg,
+        rgba(40, 24, 12, 0.92),
+        rgba(40, 24, 12, 0.78));
+    border-color: var(--color-gold-leaf);
+    color: var(--color-parchment);
+}
+
+:root[data-historical-theme="on"] .game-header {
+    border-bottom: 2px solid var(--color-gold-shadow);
+    box-shadow: 0 2px 0 var(--color-gold-leaf), 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+:root[data-historical-theme="on"] .game-footer {
+    border-top: 2px solid var(--color-gold-shadow);
+    box-shadow: 0 -2px 0 var(--color-gold-leaf), 0 -4px 12px rgba(0, 0, 0, 0.35);
+}
+
+/* Player info & details */
+:root[data-historical-theme="on"] .details .name {
+    font-family: var(--font-heading);
+    color: var(--color-gold-leaf);
+    letter-spacing: 0.03em;
+}
+
+:root[data-historical-theme="on"] .details .status {
+    color: var(--color-parchment-aged);
+    font-style: italic;
+}
+
+:root[data-historical-theme="on"] .avatar {
+    background-color: var(--color-parchment);
+    color: var(--color-burnt-umber);
+    border: 2px solid var(--color-gold-leaf);
+    box-shadow: 0 0 8px rgba(245, 220, 140, 0.3);
+}
+
+/* Sıra göstergesi — altın taş */
+:root[data-historical-theme="on"] .turn-indicator {
+    background: var(--color-gold-leaf);
+    color: var(--color-burnt-umber);
+    font-family: var(--font-heading);
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(201, 162, 75, 0.55), inset 0 1px 0 var(--color-parchment);
+    border: 1px solid var(--color-gold-shadow);
+}
+
+/* Saat — kum saati hissi */
+:root[data-historical-theme="on"] .player-clock {
+    background-color: rgba(20, 12, 6, 0.6);
+    border: 1px solid var(--color-gold-shadow);
+    color: var(--color-gold-leaf);
+    font-family: var(--font-heading);
+    font-variant-numeric: tabular-nums;
+}
+
+:root[data-historical-theme="on"] .player-clock.is-active {
+    background: var(--color-gold-leaf);
+    color: var(--color-burnt-umber);
+    border-color: var(--color-gold-shadow);
+    box-shadow: 0 0 12px var(--color-highlight-soft, rgba(245, 220, 140, 0.55));
+}
+
+:root[data-historical-theme="on"] .player-clock.is-low {
+    background-color: rgba(127, 29, 29, 0.85);
+    border-color: var(--color-cinnabar);
+    color: var(--color-parchment);
+    animation: clockLowPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes clockLowPulse {
+    0%, 100% { box-shadow: 0 0 6px rgba(196, 30, 58, 0.45); }
+    50%      { box-shadow: 0 0 16px rgba(196, 30, 58, 0.85); }
+}
+
+/* Board container — Sefer Meydanı (savaş arenası) */
+:root[data-historical-theme="on"] .board-container {
+    background-color: transparent;
+}
+
+:root[data-historical-theme="on"] .board-container::before {
+    background:
+        radial-gradient(circle at 50% 42%, rgba(245, 220, 140, 0.10), transparent 45%),
+        linear-gradient(180deg, rgba(20, 12, 6, 0.15), rgba(20, 12, 6, 0.30));
+    border-radius: var(--border-tezhip-radius);
+}
+
+/* Chess board — tezhip çerçeve */
+:root[data-historical-theme="on"] .chess-board {
+    background-color: var(--color-burnt-umber);
+    border: 3px solid var(--color-gold-leaf);
+    border-radius: 6px;
+    box-shadow:
+        0 0 0 1px var(--color-gold-shadow),
+        0 0 0 5px var(--color-burnt-umber),
+        0 0 0 6px var(--color-gold-leaf),
+        0 16px 42px rgba(0, 0, 0, 0.52),
+        inset 0 0 0 1px rgba(245, 220, 140, 0.25);
+    animation: none;
+    /* Faz 6: glow animasyon yerine sabit altın çerçeve */
+}
+
+/* Karelar — tema renklerini kullanır, taş okunabilirliğini korur. */
+:root[data-historical-theme="on"] .cell.light {
+    background:
+        linear-gradient(145deg, rgba(255, 244, 196, 0.18), transparent 58%),
+        var(--board-light);
+    background-blend-mode: soft-light, normal;
+}
+
+:root[data-historical-theme="on"] .cell.dark {
+    background:
+        linear-gradient(145deg, rgba(255, 222, 150, 0.10), transparent 58%),
+        var(--board-dark);
+    background-blend-mode: soft-light, normal;
+}
+
+/* Cell hover — altın halka (Faz 6-B) */
+:root[data-historical-theme="on"] .cell:hover {
+    box-shadow: inset 0 0 0 2px var(--color-gold-leaf), inset 0 0 12px rgba(245, 220, 140, 0.35);
+}
+
+/* Selected cell — mühür efekti */
+:root[data-historical-theme="on"] .cell.selected {
+    background-color: var(--color-highlight-soft, rgba(245, 220, 140, 0.4));
+    box-shadow:
+        inset 0 0 0 2px var(--color-cinnabar),
+        inset 0 0 14px rgba(245, 220, 140, 0.65);
+    position: relative;
+}
+
+:root[data-historical-theme="on"] .cell.selected::before {
+    content: '۞';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: calc(var(--cell-size) * 0.65);
+    color: var(--color-gold-leaf);
+    opacity: 0.18;
+    pointer-events: none;
+    z-index: 1;
+    text-shadow: 0 0 8px rgba(245, 220, 140, 0.5);
+    animation: sealPulse 2s ease-in-out infinite;
+}
+
+@keyframes sealPulse {
+    0%, 100% { opacity: 0.15; transform: translate(-50%, -50%) rotate(0deg) scale(1); }
+    50%      { opacity: 0.30; transform: translate(-50%, -50%) rotate(15deg) scale(1.05); }
+}
+
+/* Valid move — altın yarısaydam nokta (yeşil glow yerine) */
+:root[data-historical-theme="on"] .cell.valid-move::after {
+    background: var(--color-gold-leaf);
+    box-shadow: 0 0 10px rgba(245, 220, 140, 0.7), inset 0 0 4px rgba(255, 255, 240, 0.6);
+    width: 28%;
+    height: 28%;
+    border: 1px solid var(--color-gold-shadow);
+}
+
+/* Valid capture — kırmızı tezhip halka */
+:root[data-historical-theme="on"] .cell.valid-capture::after {
+    border-color: var(--color-cinnabar);
+    box-shadow: inset 0 0 8px rgba(196, 30, 58, 0.5), 0 0 10px rgba(196, 30, 58, 0.4);
+    background: radial-gradient(circle, transparent 55%, rgba(196, 30, 58, 0.15) 100%);
+}
+
+/* In-check — altın rotation mührü (kırmızı glow yerine) */
+:root[data-historical-theme="on"] .cell.in-check {
+    background: radial-gradient(circle, rgba(196, 30, 58, 0.55) 0%, rgba(196, 30, 58, 0) 75%);
+    animation: checkRotation 1.4s ease-in-out infinite;
+}
+
+:root[data-historical-theme="on"] .cell.in-check::before {
+    content: '۞';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: calc(var(--cell-size) * 0.5);
+    color: var(--color-cinnabar);
+    opacity: 0.55;
+    pointer-events: none;
+    z-index: 1;
+    text-shadow: 0 0 10px rgba(245, 220, 140, 0.7);
+    animation: checkSealRotate 1.4s linear infinite;
+}
+
+@keyframes checkRotation {
+    0%, 100% { box-shadow: inset 0 0 10px rgba(196, 30, 58, 0.4); }
+    50%      { box-shadow: inset 0 0 22px rgba(196, 30, 58, 0.8); }
+}
+
+@keyframes checkSealRotate {
+    0%   { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Son hamle — tezhip altın vurgu */
+:root[data-historical-theme="on"] .cell.last-move-from {
+    background-color: rgba(201, 162, 75, 0.18) !important;
+    box-shadow: inset 0 0 6px rgba(201, 162, 75, 0.35);
+}
+
+:root[data-historical-theme="on"] .cell.last-move-to {
+    background-color: rgba(201, 162, 75, 0.35) !important;
+    box-shadow: inset 0 0 10px rgba(201, 162, 75, 0.5);
+}
+
+/* Koordinat etiketleri — parşömen üstü altın */
+:root[data-historical-theme="on"] .cell[data-file="0"]::before,
+:root[data-historical-theme="on"] .cell[data-rank="0"]::after {
+    color: var(--color-gold-leaf);
+    font-family: var(--font-decorative);
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(40, 24, 12, 0.8);
+}
+
+/* Hisarlar — altın muhafız kuleleri */
+:root[data-historical-theme="on"] .citadel {
+    background: linear-gradient(135deg, var(--color-burnt-umber), rgba(40, 24, 12, 0.95));
+    border-color: var(--color-gold-leaf);
+    box-shadow:
+        inset 0 0 0 1px var(--color-gold-shadow),
+        inset 0 0 18px rgba(245, 220, 140, 0.25),
+        0 0 12px rgba(0, 0, 0, 0.35);
+}
+
+/* Move log panel — sefer defteri (Faz 2'den miras) ek detay */
+:root[data-historical-theme="on"] .move-log-panel {
+    background-color: var(--color-parchment-aged);
+    background-image: var(--bg-parchment-url);
+    background-blend-mode: multiply;
+    border: 2px solid var(--color-gold-leaf);
+    border-radius: var(--border-tezhip-radius);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+:root[data-historical-theme="on"] .log-header h3 {
+    color: var(--color-burnt-umber);
+    font-family: var(--font-decorative);
+    border-color: var(--color-gold-shadow);
+}
+
+:root[data-historical-theme="on"] .move-item {
+    color: var(--color-burnt-umber);
+    border-bottom-color: rgba(201, 162, 75, 0.25);
+    font-family: var(--font-body);
+}
+
+
+/* ================================================================
+   13. SEFER SONU FERMANI — Faz 7 (Oyun Sonu Ekranı)
+   - Büyük açılmış parşömen estetiği
+   - Üst+alt tezhip kenar şeritleri (border-pattern)
+   - Tuğra mührü (badge → büyük yuvarlak)
+   - Komutan portresi seal (alt orta)
+   - Açılış: parchmentUnroll (1.2s scaleY)
+   - Stats: stagger fade-in
+   ================================================================ */
+
+/* Ferman box — büyük parşömen, kenar süslemeleri */
+:root[data-historical-theme="on"] .ferman-box {
+    background-color: var(--color-parchment-aged);
+    background-image: var(--bg-parchment-url);
+    background-blend-mode: multiply;
+    border: 3px solid var(--color-gold-leaf);
+    border-radius: 4px;
+    box-shadow:
+        0 0 0 1px var(--color-gold-shadow),
+        0 0 0 5px var(--color-parchment-aged),
+        0 0 0 6px var(--color-gold-leaf),
+        0 24px 60px rgba(0, 0, 0, 0.6),
+        inset 0 0 80px rgba(201, 162, 75, 0.15);
+    color: var(--color-burnt-umber);
+    padding: 0 var(--space-lg, 1.75rem) var(--space-md, 1rem);
+    overflow: visible;
+    position: relative;
+    animation: parchmentUnroll 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    transform-origin: top center;
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+}
+
+/* Açılış animasyonu — parşömen yukarıdan açılır */
+@keyframes parchmentUnroll {
+    0% {
+        transform: translate3d(0, 12px, 0) scale(0.985);
+        opacity: 0;
+    }
+    100% {
+        transform: translate3d(0, 0, 0) scale(1);
+        opacity: 1;
+    }
+}
+
+/* Üst tezhip kenar şeridi */
+:root[data-historical-theme="on"] .ferman-border-top,
+:root[data-historical-theme="on"] .ferman-border-bottom {
+    height: 18px;
+    margin: 0 calc(var(--space-lg, 1.75rem) * -1);
+    background-image: var(--bg-border-pattern, url('/textures/border-pattern.svg'));
+    background-repeat: repeat-x;
+    background-size: auto 18px;
+    background-position: center;
+    opacity: 0.85;
+}
+
+:root[data-historical-theme="on"] .ferman-border-top {
+    margin-top: 8px;
+    margin-bottom: var(--space-md, 1rem);
+}
+
+:root[data-historical-theme="on"] .ferman-border-bottom {
+    margin-top: var(--space-md, 1rem);
+    margin-bottom: 8px;
+}
+
+/* Header kicker — sefer mührü etiketi */
+:root[data-historical-theme="on"] .ferman-box .game-end-result-kicker {
+    color: var(--color-gold-shadow);
+    font-family: var(--font-decorative);
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+}
+
+:root[data-historical-theme="on"] .ferman-box .game-end-result-header {
+    border-bottom: 1px dotted var(--color-gold-leaf);
+    padding-bottom: var(--space-sm, 0.5rem);
+    margin-bottom: var(--space-md, 1rem);
+}
+
+:root[data-historical-theme="on"] .ferman-box #btn-close-game-end-result {
+    background: transparent;
+    color: var(--color-gold-shadow);
+    border: 1px solid var(--color-gold-shadow);
+}
+
+:root[data-historical-theme="on"] .ferman-box #btn-close-game-end-result:hover {
+    background: var(--color-cinnabar);
+    color: var(--color-parchment);
+    border-color: var(--color-cinnabar);
+}
+
+/* Body — sonuç içeriği */
+:root[data-historical-theme="on"] .ferman-box .game-end-result-body {
+    gap: var(--space-md, 1rem);
+    padding: var(--space-sm, 0.5rem) 0;
+}
+
+/* Badge → büyük yuvarlak tuğra mührü */
+:root[data-historical-theme="on"] .ferman-box .game-end-result-badge {
+    align-self: center;
+    width: 92px;
+    height: 92px;
+    padding: 0;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    font-family: var(--font-heading);
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border: 3px double var(--color-gold-leaf);
+    box-shadow:
+        0 0 0 1px var(--color-gold-shadow),
+        0 0 14px rgba(201, 162, 75, 0.45),
+        inset 0 0 12px rgba(201, 162, 75, 0.3);
+    animation: badgeStamp 240ms cubic-bezier(0.2, 0.8, 0.2, 1) 80ms backwards;
+}
+
+@keyframes badgeStamp {
+    0%   { transform: translateZ(0) scale(0.9) rotate(-6deg); opacity: 0; }
+    70%  { transform: translateZ(0) scale(1.04) rotate(2deg); opacity: 1; }
+    100% { transform: translateZ(0) scale(1) rotate(0deg); opacity: 1; }
+}
+
+:root[data-historical-theme="on"] .ferman-box .game-end-result-badge.is-win {
+    background: linear-gradient(135deg, var(--color-gold-leaf), var(--color-gold-shadow));
+    color: var(--color-burnt-umber);
+}
+
+:root[data-historical-theme="on"] .ferman-box .game-end-result-badge.is-loss {
+    background: linear-gradient(135deg, var(--color-cinnabar), #6E1A1A);
+    color: var(--color-parchment);
+    border-color: var(--color-cinnabar);
+}
+
+:root[data-historical-theme="on"] .ferman-box .game-end-result-badge.is-draw {
+    background: linear-gradient(135deg, var(--color-parchment), var(--color-parchment-aged));
+    color: var(--color-burnt-umber);
+    border-color: var(--color-gold-shadow);
+}
+
+/* Başlık — Cinzel büyük */
+:root[data-historical-theme="on"] .ferman-box .game-end-result-body h2 {
+    color: var(--color-burnt-umber);
+    font-family: var(--font-heading);
+    font-size: clamp(1.6rem, 5vw, 2.2rem);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-shadow: 0 1px 0 rgba(201, 162, 75, 0.3);
+    margin: 0;
+    animation: fadeInUp 200ms ease-out 90ms backwards;
+}
+
+/* Açıklama — Lora italik */
+:root[data-historical-theme="on"] .ferman-box .game-end-result-body p {
+    color: var(--color-burnt-umber);
+    font-family: var(--font-body);
+    font-style: italic;
+    opacity: 0.85;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 0;
+    animation: fadeInUp 200ms ease-out 120ms backwards;
+}
+
+/* Meta (hamle sayısı, özel olay) — altın chip */
+:root[data-historical-theme="on"] .ferman-box .game-end-result-meta {
+    gap: var(--space-sm, 0.5rem);
+    animation: fadeInUp 200ms ease-out 150ms backwards;
+}
+
+:root[data-historical-theme="on"] .ferman-box .game-end-result-meta span {
+    background: var(--color-parchment);
+    border: 1px solid var(--color-gold-leaf);
+    color: var(--color-burnt-umber);
+    font-family: var(--font-heading);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 6px 14px;
+    letter-spacing: 0.04em;
+    box-shadow: 0 2px 4px rgba(40, 24, 12, 0.15);
+}
+
+@keyframes fadeInUp {
+    0%   { opacity: 0; transform: translate3d(0, 8px, 0); }
+    100% { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+/* Komutan mührü — alt orta */
+:root[data-historical-theme="on"] .ferman-seal {
+    display: grid;
+    place-items: center;
+    margin: var(--space-sm, 0.5rem) auto var(--space-md, 1rem);
+    position: relative;
+    width: 64px;
+    height: 64px;
+    animation: sealStamp 240ms cubic-bezier(0.2, 0.8, 0.2, 1) 170ms backwards;
+}
+
+:root[data-historical-theme="on"] .ferman-seal-portrait {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border: 2px solid var(--color-gold-leaf);
+    box-shadow:
+        0 0 0 1px var(--color-burnt-umber),
+        0 0 12px rgba(201, 162, 75, 0.5),
+        0 4px 8px rgba(40, 24, 12, 0.4);
+    filter: sepia(0.18);
+}
+
+:root[data-historical-theme="on"] .ferman-seal[data-persona="timur"] .ferman-seal-portrait {
+    background-image: url('/portraits/timur.svg');
+}
+:root[data-historical-theme="on"] .ferman-seal[data-persona="beyazid"] .ferman-seal-portrait {
+    background-image: url('/portraits/beyazid.svg');
+}
+:root[data-historical-theme="on"] .ferman-seal[data-persona="ulu_bey"] .ferman-seal-portrait {
+    background-image: url('/portraits/ulu_bey.svg');
+}
+:root[data-historical-theme="on"] .ferman-seal[data-persona="saray_veziri"] .ferman-seal-portrait {
+    background-image: url('/portraits/saray_veziri.svg');
+}
+
+/* Mühür glyph (۞) — portreyi çevreleyen tezhip işareti */
+:root[data-historical-theme="on"] .ferman-seal-mark {
+    position: absolute;
+    bottom: -10px;
+    right: -8px;
+    font-size: 22px;
+    color: var(--color-cinnabar);
+    background: var(--color-parchment-aged);
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border: 1.5px solid var(--color-gold-leaf);
+    box-shadow: 0 0 8px rgba(201, 162, 75, 0.45);
+    text-shadow: 0 1px 0 rgba(40, 24, 12, 0.3);
+    transform: rotate(15deg);
+}
+
+@keyframes sealStamp {
+    0%   { transform: translateZ(0) scale(0.9) rotate(-8deg); opacity: 0; }
+    70%  { transform: translateZ(0) scale(1.05) rotate(3deg); opacity: 1; }
+    100% { transform: translateZ(0) scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* Aksiyon butonları (Tekrar Oyna / Analize Git / Ana Menü) */
+:root[data-historical-theme="on"] .ferman-box .game-end-result-actions {
+    margin-top: var(--space-sm, 0.5rem);
+    animation: fadeInUp 200ms ease-out 190ms backwards;
+    gap: var(--space-sm, 0.5rem);
+}
+
+/* Default tema: ferman-border / ferman-seal gizli (eski davranış korunur) */
+:root:not([data-historical-theme="on"]) .ferman-border-top,
+:root:not([data-historical-theme="on"]) .ferman-border-bottom,
+:root:not([data-historical-theme="on"]) .ferman-seal {
+    display: none;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    :root[data-historical-theme="on"] .ferman-box,
+    :root[data-historical-theme="on"] .ferman-box .game-end-result-badge,
+    :root[data-historical-theme="on"] .ferman-box h2,
+    :root[data-historical-theme="on"] .ferman-box p,
+    :root[data-historical-theme="on"] .ferman-box .game-end-result-meta,
+    :root[data-historical-theme="on"] .ferman-box .game-end-result-actions,
+    :root[data-historical-theme="on"] .ferman-seal {
+        animation-duration: 100ms;
+    }
+}
+
+
+/* ================================================================
+   ERİŞİLEBİLİRLİK
+   ================================================================ */
+
+/* Klavye focus göstergesi */
+:root[data-historical-theme="on"] .btn:focus-visible,
+:root[data-historical-theme="on"] .card:focus-visible,
+:root[data-historical-theme="on"] .lang-btn:focus-visible {
+    outline: 2px solid var(--color-cinnabar);
+    outline-offset: 3px;
+}
+
+/* Animasyonu kapat ayarı varsa */
+@media (prefers-reduced-motion: reduce) {
+    :root[data-historical-theme="on"] .menu-box {
+        animation: none;
+    }
+    :root[data-historical-theme="on"] .btn,
+    :root[data-historical-theme="on"] .card,
+    :root[data-historical-theme="on"] .card-seal,
+    :root[data-historical-theme="on"] .persona-portrait {
+        transition: none;
+    }
+    :root[data-historical-theme="on"] .cell.selected::before,
+    :root[data-historical-theme="on"] .cell.in-check,
+    :root[data-historical-theme="on"] .cell.in-check::before,
+    :root[data-historical-theme="on"] .player-clock.is-low {
+        animation: none;
+    }
+}
+
+
+/* ================================================================
+   FAZ 1 — DİKEY UI TOKENLARI VE DURUM KURALLARI
+   Tarih: 2026-06-08
+   Amaç: tüm dikey yüzeylerde okunabilirlik, dokunma hedefi,
+   selected/focus ayrımı ve parşömen kontrastını tek kurala bağlamak.
+   ================================================================ */
+
+:root[data-historical-theme="on"] {
+    --ui-surface-parchment: var(--color-parchment-aged);
+    --ui-surface-parchment-soft: var(--color-parchment);
+    --ui-text-ink: var(--color-burnt-umber);
+    --ui-text-muted-ink: var(--color-ink-gray);
+    --ui-border-subtle-gold: rgba(139, 105, 20, 0.58);
+    --ui-focus-ring: var(--color-focus-turquoise);
+    --ui-selected-bg: var(--color-selected-wash);
+    --ui-selected-edge: var(--color-selected-edge);
+    --setup-selected-surface: #285e63;
+    --setup-selected-surface-deep: #1d474b;
+    --setup-selected-text: #fff4d6;
+    --setup-selected-edge: #f0cf78;
+    --ui-control-min: var(--touch-target-min, 44px);
+}
+
+:root[data-historical-theme="on"] .btn,
+:root[data-historical-theme="on"] button.btn,
+:root[data-historical-theme="on"] .icon-btn,
+:root[data-historical-theme="on"] .lang-btn,
+:root[data-historical-theme="on"] .policy-link-button,
+:root[data-historical-theme="on"] .bot-menu-entry-btn,
+:root[data-historical-theme="on"] .settings-toggle,
+:root[data-historical-theme="on"] .theme-choice-btn,
+:root[data-historical-theme="on"] .tutorial-tab {
+    min-height: var(--ui-control-min);
+    touch-action: manipulation;
+}
+
+:root[data-historical-theme="on"] .icon-btn,
+:root[data-historical-theme="on"] .lang-btn {
+    min-width: var(--ui-control-min);
+}
+
+:root[data-historical-theme="on"] .policy-link,
+:root[data-historical-theme="on"] .menu-footer-links .policy-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--ui-control-min);
+    padding: 6px 8px;
+    color: var(--ui-text-muted-ink);
+}
+
+:root[data-historical-theme="on"] .glass-panel,
+:root[data-historical-theme="on"] .menu-box,
+:root[data-historical-theme="on"] .card,
+:root[data-historical-theme="on"] .settings-row,
+:root[data-historical-theme="on"] .tutorial-content,
+:root[data-historical-theme="on"] .tutorial-card,
+:root[data-historical-theme="on"] .match-history-box,
+:root[data-historical-theme="on"] .license-box,
+:root[data-historical-theme="on"] .online-status-card {
+    color: var(--ui-text-ink);
+}
+
+:root[data-historical-theme="on"] .card p,
+:root[data-historical-theme="on"] .settings-hint,
+:root[data-historical-theme="on"] .bot-menu-entry-copy small,
+:root[data-historical-theme="on"] .menu-footer-meta,
+:root[data-historical-theme="on"] .tutorial-content p,
+:root[data-historical-theme="on"] .license-box p {
+    color: var(--ui-text-muted-ink);
+}
+
+:root[data-historical-theme="on"] #formation-menu .card.selected {
+    background:
+        linear-gradient(180deg,
+            var(--setup-selected-surface),
+            var(--setup-selected-surface-deep)) !important;
+    background-blend-mode: normal !important;
+    border-color: var(--setup-selected-edge) !important;
+    outline: 2px solid var(--setup-selected-edge);
+    outline-offset: -2px;
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 244, 214, 0.34),
+        0 3px 8px rgba(25, 41, 39, 0.28) !important;
+    transform: none;
+}
+
+:root[data-historical-theme="on"] #formation-menu .card.selected h3,
+:root[data-historical-theme="on"] #formation-menu .card.selected p,
+:root[data-historical-theme="on"] #formation-menu .card.selected .card-icon {
+    color: var(--setup-selected-text) !important;
+    text-shadow: 0 1px 1px rgba(11, 28, 30, 0.52);
+}
+
+:root[data-historical-theme="on"] #formation-menu .ai-persona-card.selected .persona-portrait {
+    border-color: var(--setup-selected-edge) !important;
+    box-shadow:
+        0 0 0 2px rgba(255, 244, 214, 0.88),
+        0 2px 5px rgba(11, 28, 30, 0.42) !important;
+}
+
+:root[data-historical-theme="on"] .btn:focus-visible,
+:root[data-historical-theme="on"] .card:focus-visible,
+:root[data-historical-theme="on"] .lang-btn:focus-visible,
+:root[data-historical-theme="on"] .icon-btn:focus-visible,
+:root[data-historical-theme="on"] .policy-link:focus-visible,
+:root[data-historical-theme="on"] .bot-menu-entry-btn:focus-visible,
+:root[data-historical-theme="on"] .settings-toggle:focus-visible,
+:root[data-historical-theme="on"] .theme-choice-btn:focus-visible,
+:root[data-historical-theme="on"] .tutorial-tab:focus-visible {
+    outline: 3px solid var(--ui-focus-ring);
+    outline-offset: 3px;
+    box-shadow:
+        0 0 0 1px var(--color-parchment-aged),
+        0 0 0 5px rgba(31, 127, 150, 0.28);
+}
+
+:root[data-historical-theme="on"] .btn:active,
+:root[data-historical-theme="on"] .card:active,
+:root[data-historical-theme="on"] .bot-menu-entry-btn:active,
+:root[data-historical-theme="on"] .theme-choice-btn:active {
+    transform: translateY(1px);
+}
+
+:root[data-historical-theme="on"] .card.disabled,
+:root[data-historical-theme="on"] .btn:disabled,
+:root[data-historical-theme="on"] .btn.disabled {
+    filter: saturate(0.72);
+}
+
+/* Faz 9 — Öğretici rehber ve oynayarak öğren okunabilirliği */
+:root[data-historical-theme="on"] .piece-guide-card,
+:root[data-historical-theme="on"] .scripted-tutorial-coach,
+:root[data-historical-theme="on"] .itut-message {
+    background:
+        linear-gradient(135deg, rgba(255, 248, 220, 0.78), rgba(230, 211, 160, 0.62)),
+        var(--bg-parchment-url),
+        var(--ui-surface-parchment);
+    background-blend-mode: normal, multiply, normal;
+    border-color: var(--ui-border-subtle-gold);
+    color: var(--ui-text-ink);
+}
+
+:root[data-historical-theme="on"] .piece-guide-card h4,
+:root[data-historical-theme="on"] .piece-guide-rule,
+:root[data-historical-theme="on"] .scripted-tutorial-text,
+:root[data-historical-theme="on"] .itut-title {
+    color: var(--ui-text-ink);
+}
+
+:root[data-historical-theme="on"] .piece-guide-subtitle,
+:root[data-historical-theme="on"] .piece-guide-note,
+:root[data-historical-theme="on"] .scripted-tutorial-step,
+:root[data-historical-theme="on"] .itut-description {
+    color: var(--ui-text-muted-ink);
+}
+
+:root[data-historical-theme="on"] .piece-guide-rule strong,
+:root[data-historical-theme="on"] .scripted-tutorial-phase,
+:root[data-historical-theme="on"] .itut-description strong {
+    color: var(--color-selected-edge);
+}
+
+:root[data-historical-theme="on"] .piece-guide-move {
+    background: rgba(31, 127, 150, 0.11);
+    border-color: rgba(31, 127, 150, 0.28);
+}
+
+:root[data-historical-theme="on"] .piece-guide-capture {
+    background: rgba(139, 105, 20, 0.10);
+}
+
+/* Faz 10 — Sefer defteri, analiz ve oyun sonu okunabilirliği */
+:root[data-historical-theme="on"] .match-history-card,
+:root[data-historical-theme="on"] .analysis-card,
+:root[data-historical-theme="on"] .analysis-phase-card,
+:root[data-historical-theme="on"] .analysis-moment-card,
+:root[data-historical-theme="on"] .analysis-move-row,
+:root[data-historical-theme="on"] .analysis-story-card {
+    background:
+        linear-gradient(135deg, rgba(255, 248, 220, 0.78), rgba(230, 211, 160, 0.58)),
+        var(--bg-parchment-url),
+        var(--ui-surface-parchment);
+    background-blend-mode: normal, multiply, normal;
+    border-color: var(--ui-border-subtle-gold);
+    color: var(--ui-text-ink);
+}
+
+:root[data-historical-theme="on"] .match-history-title,
+:root[data-historical-theme="on"] .match-history-summary-chip strong,
+:root[data-historical-theme="on"] .analysis-card-value,
+:root[data-historical-theme="on"] .analysis-section-header h3,
+:root[data-historical-theme="on"] .analysis-story-card p,
+:root[data-historical-theme="on"] .analysis-piece-row,
+:root[data-historical-theme="on"] .analysis-recommendations,
+:root[data-historical-theme="on"] .analysis-move-best {
+    color: var(--ui-text-ink);
+}
+
+:root[data-historical-theme="on"] .match-history-meta,
+:root[data-historical-theme="on"] .match-history-moves,
+:root[data-historical-theme="on"] .match-history-summary-chip small,
+:root[data-historical-theme="on"] .analysis-card-label,
+:root[data-historical-theme="on"] .analysis-phase-owner,
+:root[data-historical-theme="on"] .analysis-card-subtle,
+:root[data-historical-theme="on"] .analysis-move-meta,
+:root[data-historical-theme="on"] .analysis-empty {
+    color: var(--ui-text-muted-ink);
+}
+
+:root[data-historical-theme="on"] .match-history-summary-chip,
+:root[data-historical-theme="on"] .match-history-moves,
+:root[data-historical-theme="on"] .analysis-piece-row,
+:root[data-historical-theme="on"] .analysis-tag {
+    background: rgba(139, 105, 20, 0.10);
+    border-color: rgba(139, 105, 20, 0.22);
+}
+
+:root[data-historical-theme="on"] .match-history-result-pill,
+:root[data-historical-theme="on"] .match-history-analysis-summary {
+    color: var(--ui-text-ink);
+    background: rgba(31, 127, 150, 0.12);
+    border-color: rgba(31, 127, 150, 0.26);
+}
+
+:root[data-historical-theme="on"] .match-history-result-pill.is-win {
+    background: rgba(47, 122, 77, 0.16);
+    border-color: rgba(47, 122, 77, 0.34);
+}
+
+:root[data-historical-theme="on"] .match-history-result-pill.is-loss {
+    background: rgba(165, 42, 42, 0.14);
+    border-color: rgba(165, 42, 42, 0.32);
+}
+
+:root[data-historical-theme="on"] .match-history-box::before,
+:root[data-historical-theme="on"] .match-history-box::after,
+:root[data-historical-theme="on"] .analysis-box::before,
+:root[data-historical-theme="on"] .analysis-box::after,
+:root[data-historical-theme="on"] .game-end-result-box::before,
+:root[data-historical-theme="on"] .game-end-result-box::after {
+    left: 0;
+    right: 0;
+}
+
+/* Faz 8 — Durdurma / oyun ayarları paneli */
+:root[data-historical-theme="on"] #game-settings-overlay .game-settings-box {
+    color: var(--ui-text-ink);
+}
+
+:root[data-historical-theme="on"] #game-settings-overlay .game-settings-header h2,
+:root[data-historical-theme="on"] #game-settings-overlay .settings-label {
+    color: var(--ui-text-ink);
+}
+
+:root[data-historical-theme="on"] #game-settings-overlay .settings-section-label {
+    color: #7a4f17;
+}
+
+:root[data-historical-theme="on"] #game-settings-overlay .settings-section-label::after {
+    background: linear-gradient(90deg, rgba(122, 79, 23, 0.42), transparent);
+}
+
+:root[data-historical-theme="on"] #game-settings-overlay .settings-row {
+    background:
+        linear-gradient(90deg, rgba(42, 123, 155, 0.08), transparent 30%),
+        rgba(255, 248, 224, 0.54);
+    border-color: rgba(122, 79, 23, 0.24);
+    box-shadow:
+        inset 2px 0 0 rgba(42, 123, 155, 0.16),
+        0 1px 0 rgba(255, 255, 255, 0.24);
+}
+
+:root[data-historical-theme="on"] #game-settings-overlay .settings-row--choice {
+    background:
+        linear-gradient(90deg, rgba(165, 42, 42, 0.07), transparent 32%),
+        rgba(255, 248, 224, 0.48);
+}
+
+:root[data-historical-theme="on"] #game-settings-overlay .settings-toggle {
+    background: rgba(255, 252, 236, 0.72);
+    border-color: rgba(122, 79, 23, 0.34);
+    color: var(--ui-text-ink);
+    box-shadow: none;
+}
+
+:root[data-historical-theme="on"] #game-settings-overlay .settings-toggle.is-enabled {
+    background:
+        linear-gradient(135deg, rgba(42, 123, 155, 0.22), rgba(201, 162, 75, 0.56)),
+        var(--ui-surface-parchment-soft);
+    border-color: rgba(42, 123, 155, 0.48);
+    color: var(--ui-text-ink);
+    box-shadow: inset 0 0 0 1px rgba(255, 252, 236, 0.38);
+}
+
+:root[data-historical-theme="on"] #game-settings-overlay .theme-choice-btn {
+    background: rgba(255, 252, 236, 0.58);
+    border-color: rgba(122, 79, 23, 0.26);
+    color: var(--ui-text-ink);
+    box-shadow: none;
+}
+
+:root[data-historical-theme="on"] #game-settings-overlay .theme-choice-btn:hover,
+:root[data-historical-theme="on"] #game-settings-overlay .theme-choice-btn:focus-visible {
+    background: rgba(255, 252, 236, 0.82);
+    border-color: rgba(42, 123, 155, 0.44);
+}
+
+:root[data-historical-theme="on"] #game-settings-overlay .theme-choice-btn.active {
+    background:
+        linear-gradient(135deg, rgba(42, 123, 155, 0.20), rgba(165, 42, 42, 0.13)),
+        var(--ui-surface-parchment-soft);
+    border-color: rgba(42, 123, 155, 0.58);
+    color: var(--ui-text-ink);
+    box-shadow:
+        inset 0 -2px 0 rgba(42, 123, 155, 0.42),
+        0 0 0 1px rgba(255, 252, 236, 0.28);
+}
+
+:root[data-historical-theme="on"] #game-settings-overlay .settings-danger-action {
+    background: rgba(165, 42, 42, 0.08);
+    border-color: rgba(165, 42, 42, 0.38);
+    color: #6f221d;
+}
+
+:root[data-historical-theme="on"] #game-settings-overlay .settings-danger-action:hover,
+:root[data-historical-theme="on"] #game-settings-overlay .settings-danger-action:focus-visible {
+    background: rgba(165, 42, 42, 0.14);
+    border-color: rgba(165, 42, 42, 0.58);
+}
+
+:root[data-historical-theme="on"] #game-settings-overlay .settings-confirm-action {
+    color: var(--ui-text-ink);
+}
+
+/* Faz 12 — Genel okunabilirlik ve kontrast son katmanı */
+:root[data-historical-theme="on"] .license-card,
+:root[data-historical-theme="on"] #online-menu .menu-box,
+:root[data-historical-theme="on"] #puzzles-overlay .menu-box {
+    color: var(--ui-text-ink);
+}
+
+:root[data-historical-theme="on"] .license-card {
+    background:
+        linear-gradient(135deg, rgba(255, 248, 220, 0.82), rgba(230, 211, 160, 0.62)),
+        var(--bg-parchment-url),
+        var(--ui-surface-parchment);
+    background-blend-mode: normal, multiply, normal;
+    border-color: var(--ui-border-subtle-gold);
+}
+
+:root[data-historical-theme="on"] .license-card h3,
+:root[data-historical-theme="on"] .license-card-kicker,
+:root[data-historical-theme="on"] .license-external-link,
+:root[data-historical-theme="on"] .history-desc,
+:root[data-historical-theme="on"] #online-menu h2,
+:root[data-historical-theme="on"] #online-menu .blink-text,
+:root[data-historical-theme="on"] #puzzles-overlay p {
+    color: var(--ui-text-ink) !important;
+}
+
+:root[data-historical-theme="on"] .license-card p,
+:root[data-historical-theme="on"] #online-menu p,
+:root[data-historical-theme="on"] #online-menu span,
+:root[data-historical-theme="on"] #puzzles-overlay p {
+    color: var(--ui-text-muted-ink) !important;
+}
+
+:root[data-historical-theme="on"] .license-external-link {
+    color: var(--color-focus-turquoise) !important;
+}
+
+:root[data-historical-theme="on"] #online-menu .styled-input {
+    background: rgba(255, 252, 236, 0.82) !important;
+    border-color: rgba(122, 79, 23, 0.38) !important;
+    color: var(--ui-text-ink) !important;
+}
+
+:root[data-historical-theme="on"] #online-menu .ghost-btn {
+    background: rgba(255, 252, 236, 0.64) !important;
+    border-color: rgba(122, 79, 23, 0.34) !important;
+    color: var(--ui-text-ink) !important;
+}
+
+:root[data-historical-theme="on"] #online-menu .btn span {
+    color: currentColor !important;
+}
+
+/* Faz 12.1 — Ortak panel ikon butonu ve oyun içi bilgi paneli okunabilirliği
+   Not: .btn genel altın zemin verdiği için icon-btn ikonları görünmez kalıyordu.
+   Tüm kapatma/geri/HUD ikonları tek parşömen kontrol diline bağlandı. */
+:root[data-historical-theme="on"] .icon-btn,
+:root[data-historical-theme="on"] button.icon-btn {
+    display: inline-grid !important;
+    place-items: center;
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 !important;
+    border: 1px solid rgba(122, 79, 23, 0.46) !important;
+    border-radius: 10px !important;
+    background:
+        linear-gradient(180deg, rgba(255, 248, 224, 0.96), rgba(230, 211, 160, 0.92)),
+        var(--bg-parchment-url),
+        var(--color-parchment-aged) !important;
+    background-blend-mode: normal, multiply, normal !important;
+    color: var(--color-burnt-umber) !important;
+    box-shadow:
+        0 2px 0 rgba(139, 105, 20, 0.24),
+        inset 0 1px 0 rgba(255, 252, 236, 0.48) !important;
+    text-shadow: none !important;
+}
+
+:root[data-historical-theme="on"] .icon-btn:hover,
+:root[data-historical-theme="on"] button.icon-btn:hover {
+    background:
+        linear-gradient(180deg, rgba(255, 252, 236, 0.98), rgba(244, 225, 181, 0.94)),
+        var(--bg-parchment-url),
+        var(--color-parchment) !important;
+    color: var(--color-burnt-umber) !important;
+    border-color: rgba(127, 36, 31, 0.48) !important;
+    transform: translateY(-1px);
+}
+
+:root[data-historical-theme="on"] .icon-btn .fas,
+:root[data-historical-theme="on"] .icon-btn .fa-solid,
+:root[data-historical-theme="on"] .icon-btn > .icon-system,
+:root[data-historical-theme="on"] .icon-btn > .icon-game,
+:root[data-historical-theme="on"] .icon-btn > .icon-persona,
+:root[data-historical-theme="on"] .btn.icon-btn > .icon-system,
+:root[data-historical-theme="on"] .btn.icon-btn > .icon-game,
+:root[data-historical-theme="on"] .btn.icon-btn > .icon-persona {
+    display: inline-block !important;
+    color: currentColor !important;
+    font-size: 1.04rem;
+    line-height: 1;
+    opacity: 1 !important;
+    filter: none !important;
+    text-shadow: none !important;
+}
+
+:root[data-historical-theme="on"] .icon-btn .icon-close,
+:root[data-historical-theme="on"] .icon-btn[aria-label*="Kapat"] .fas,
+:root[data-historical-theme="on"] .icon-btn[aria-label*="Close"] .fas {
+    color: #7f241f !important;
+}
+
+:root[data-historical-theme="on"] #game-view #btn-toggle-log,
+:root[data-historical-theme="on"] #game-view #btn-game-menu {
+    color: var(--color-burnt-umber) !important;
+}
+
+:root[data-historical-theme="on"] #game-view .piece-info-panel {
+    background:
+        linear-gradient(90deg, rgba(255, 248, 224, 0.92), rgba(230, 211, 160, 0.86)),
+        var(--bg-parchment-url),
+        var(--color-parchment-aged) !important;
+    background-blend-mode: normal, multiply, normal !important;
+    border-color: rgba(122, 79, 23, 0.42) !important;
+    border-left-color: var(--color-gold-shadow) !important;
+    color: var(--color-burnt-umber) !important;
+    box-shadow:
+        0 2px 0 rgba(139, 105, 20, 0.22),
+        inset 0 1px 0 rgba(255, 252, 236, 0.34) !important;
+}
+
+:root[data-historical-theme="on"] #game-view .piece-info-panel .piece-info-summary,
+:root[data-historical-theme="on"] #game-view .piece-info-panel .piece-info-detail,
+:root[data-historical-theme="on"] #game-view .piece-info-panel .details,
+:root[data-historical-theme="on"] #game-view .piece-info-panel .info-piece-text {
+    color: var(--color-burnt-umber) !important;
+}
+
+:root[data-historical-theme="on"] #game-view .piece-info-panel .avatar,
+:root[data-historical-theme="on"] #game-view .piece-info-panel .info-piece-preview {
+    background:
+        linear-gradient(180deg, rgba(255, 252, 236, 0.96), rgba(230, 211, 160, 0.78)) !important;
+    border-color: rgba(122, 79, 23, 0.44) !important;
+    color: var(--color-burnt-umber) !important;
+    box-shadow: 0 1px 0 rgba(139, 105, 20, 0.18) !important;
+}
+
+:root[data-historical-theme="on"] #game-view .piece-info-panel .avatar .fas,
+:root[data-historical-theme="on"] #game-view .piece-info-panel .name,
+:root[data-historical-theme="on"] #game-view .piece-info-panel .info-piece-name {
+    color: var(--color-burnt-umber) !important;
+    opacity: 1 !important;
+    text-shadow: 0 1px 0 rgba(255, 252, 236, 0.42);
+}
+
+:root[data-historical-theme="on"] #game-view .piece-info-panel .status,
+:root[data-historical-theme="on"] #game-view .piece-info-panel .info-piece-desc {
+    color: #5d4b35 !important;
+    opacity: 1 !important;
+}
+
+:root[data-historical-theme="on"] #game-view .piece-info-panel .piece-type-badge {
+    background: rgba(31, 127, 150, 0.12) !important;
+    border-color: rgba(31, 127, 150, 0.24) !important;
+    color: var(--color-burnt-umber) !important;
+}
+
+:root[data-historical-theme="on"] #game-view .piece-info-panel .info-move-diagram {
+    border-color: rgba(122, 79, 23, 0.34) !important;
+    background: rgba(255, 252, 236, 0.46) !important;
+}
+
+/* Faz 12.2 — Sol kenar vurgu şeritlerini sadeleştir
+   Rehber, maç geçmişi ve ayarlar panellerinde kırmızı/renkli sol çizgi
+   yerine nötr parşömen çerçevesi kullanılır. Tahta seçimi etkilenmez. */
+:root[data-historical-theme="on"] #game-view .piece-info-panel {
+    border-left-width: 1px !important;
+    border-left-color: rgba(122, 79, 23, 0.42) !important;
+}
+
+:root[data-historical-theme="on"] #game-settings-overlay .settings-row {
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.24) !important;
+}
+
+:root[data-historical-theme="on"] #match-history-overlay .match-history-card::before {
+    display: none !important;
+}
+
+/* Faz 12.3 — Türkçe karakter uyumlu tipografi katmanı
+   IM Fell English gibi dekoratif fontlar Ğ/Ş/Ç gliflerinde yamalı fallback
+   ürettiği için metinli kontroller Lora tabanlı tarihsel serif zincirini kullanır. */
+:root[data-historical-theme="on"] .btn:not(.icon-btn),
+:root[data-historical-theme="on"] .btn:not(.icon-btn) span,
+:root[data-historical-theme="on"] .tutorial-tab,
+:root[data-historical-theme="on"] .settings-label,
+:root[data-historical-theme="on"] .theme-choice-btn,
+:root[data-historical-theme="on"] .match-history-title,
+:root[data-historical-theme="on"] .game-settings-header h2,
+:root[data-historical-theme="on"] .tutorial-header h2,
+:root[data-historical-theme="on"] .lesson-title {
+    font-family: var(--font-heading) !important;
+    font-synthesis: none;
+    letter-spacing: 0;
+    line-height: 1.24;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+:root[data-historical-theme="on"] #main-menu .menu-options .btn:not(.icon-btn),
+:root[data-historical-theme="on"] #main-menu .menu-options .btn:not(.icon-btn) span {
+    line-height: 1.22;
+}
+
+/* Faz 13 — Açık tarihsel sahne zemini
+   Amaç: koyu/siyah boşluk hissini kaldırıp Semerkant harita masası,
+   parşömen ve taş avlu derinliğini en arka plana taşımak. */
+:root[data-historical-theme="on"] body,
+:root[data-historical-theme="on"] .overlay-container,
+:root[data-historical-theme="on"] #game-view {
+    background-color: #ead9ac;
+    background-image:
+        radial-gradient(ellipse at 18% 10%, rgba(255, 252, 236, 0.78) 0%, rgba(255, 252, 236, 0.30) 23%, transparent 48%),
+        radial-gradient(ellipse at 86% 18%, rgba(42, 123, 155, 0.14) 0%, transparent 36%),
+        radial-gradient(ellipse at 48% 100%, rgba(122, 79, 23, 0.18) 0%, transparent 44%),
+        linear-gradient(90deg, rgba(94, 55, 24, 0.16), transparent 14%, transparent 86%, rgba(94, 55, 24, 0.12)),
+        linear-gradient(145deg, rgba(255, 248, 220, 0.88) 0%, rgba(226, 199, 138, 0.66) 52%, rgba(244, 225, 181, 0.80) 100%),
+        var(--bg-pattern-url),
+        var(--bg-parchment-url);
+    background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, repeat, repeat;
+    background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 300px 300px, 420px 420px;
+    background-position: center;
+    background-blend-mode: normal, normal, normal, normal, normal, soft-light, multiply;
+    color: var(--color-burnt-umber);
+}
+
+:root[data-historical-theme="on"] #game-view {
+    box-shadow:
+        inset 0 22px 42px rgba(255, 252, 236, 0.24),
+        inset 0 -26px 48px rgba(94, 55, 24, 0.16);
+}
+
+:root[data-historical-theme="on"] .overlay-container {
+    box-shadow: inset 0 0 72px rgba(122, 79, 23, 0.16);
+}
+
+:root[data-historical-theme="on"] .board-container::before {
+    background:
+        radial-gradient(ellipse at 50% 46%, rgba(255, 252, 236, 0.38), transparent 58%),
+        radial-gradient(ellipse at 50% 100%, rgba(122, 79, 23, 0.16), transparent 58%),
+        linear-gradient(180deg, rgba(255, 248, 220, 0.14), rgba(139, 105, 20, 0.10)),
+        var(--bg-pattern-url) !important;
+    background-size: 100% 100%, 100% 100%, 100% 100%, 260px 260px !important;
+    background-blend-mode: normal, normal, normal, soft-light !important;
+    border: 1px solid rgba(139, 105, 20, 0.18);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 252, 236, 0.24),
+        0 18px 42px rgba(94, 55, 24, 0.14);
+}

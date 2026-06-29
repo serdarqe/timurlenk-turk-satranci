@@ -1,0 +1,25 @@
+# Timurlenk Satrancı Nasıl Oynanır?
+
+Timurlenk Satrancı (Tamerlane Chess), 10x11'lik bir alanda oynanan, satrancın en eski ve en derinlikli versiyonlarından biridir.
+
+## Temel Kurallar
+- Tahta 10x11 karedir ve ayrıca iki adet 'Karargah' (Citadel) bulunur.
+- Her oyuncunun 28 taşı vardır (11 piyon + 17 ana taş).
+- Amaç rakip Şah'ı mat etmektir.
+
+## Taş Hareketleri
+- **Şah (King):** Her yöne 1 kare.
+- **Vezir (Vizier):** Sadece yatay veya dikey 1 kare.
+- **Bakan (General/Ferz):** Sadece çapraz 1 kare.
+- **Zürafa (Giraffe):** 1 kare çapraz gidip sonra en az 3 kare düz devam eder. Atlama yapamaz.
+- **Gözcü (Picket):** Çapraz yönde en az 2 kare gider (Sivri bir Fil gibi). Atlama yapamaz.
+- **Dabbaba:** Yatay veya dikey tam 2 kare atlar.
+- **Fil (Elephant):** Çapraz tam 2 kare atlar.
+- **Deve (Camel):** (3+1) şeklinde L çizer ve taş üstünden atlar.
+- **Knight (At):** Standart (2+1) L hareketi.
+- **Piyonlar:** İleri 1 kare gider, çapraz 1 kare taş alır.
+
+## Özel Durumlar
+- **Piyon Terfisi:** Her piyon kendi türündeki ana taşa terfi eder. (Örn: At piyonu At'a dönüşür).
+- **Piyonların Piyonu:** 3 aşamalı bir döngü ile yedek bir Şah'a dönüşebilir.
+- **Karargah:** Şah'ınızı rakip karargaha ulaştırmak stratejik bir avantaj veya beraberlik sağlayabilir.

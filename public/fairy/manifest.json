@@ -1,6 +1,6 @@
 {
   "purpose": "Fairy-Stockfish WebView smoke test assets. Not wired into production AI.",
-  "generatedAt": "2026-05-19T19:23:02.348Z",
+  "generatedAt": "2026-06-23T22:47:07.158Z",
   "bundle": "pthread",
   "source": "fairy-poc/vendor/fairy-stockfish-nnue.wasm",
   "variant": "fairy-poc/timur-draft.variants.ini",

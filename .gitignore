@@ -21,6 +21,12 @@ output
 artifacts
 android/.gradle
 android/app/build
+android/app/src/main/assets/public
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/assets/capacitor.plugins.json
+android/app/src/main/res/xml/config.xml
+android/app/src/androidTest/
+android/app/src/test/
 android/keystore.properties
 android/*.keystore
 android/app/*.keystore
@@ -60,49 +66,38 @@ KOZMETIK_SISTEMI.md
 KRITIK_EKSIKLER_KAPATILDI.md
 MAT_ARAMA_MODULU.md
 MOTOR_*.md
+NNUE_*.md
 OBJEKTIF_MOTOR_DEGERLENDIRMESI.md
 OPEN_SOURCE_RELEASE_GUIDE.md
 Online_Multiplayer_Mantigi.md
 OYUN-KAYIT-KOMUTLARI.txt
 TIMUR_SATRANCI_MOTOR_MIMARI_PLANI.md
 UI_*.md
+YATAY_*.md
 ZAAFLAR_KAPATMA_RAPORU.md
 docs/
 play-store-listing.md
 progress.md
 Sesler/
-functions/
 server/
-privacy-policy.html
+functions/node_modules/
+functions/.runtimeconfig.json
+/privacy-policy.html
 public/vite.svg
 android/app/src/main/res/mipmap-xhdpi/ic_launcher_backup.png
 fairy-poc/fairy-stockfish-nnue.wasm-1.1.11.tgz
-tests/game-record-validator.test.js
 
 # Unrelated local experiment folders accidentally placed near the app
 9'lu SoS/
 Satrancı/
 Türk/
+piece-designs-*/
 
-# Private application source kept out of the public engine/license repository
-.env.example
+# Public source release
+# Keep source files in git; only secrets, generated output, local caches, and experiments stay ignored.
 .firebaserc
 .github/
-android/
-src/
-tests/
-scripts/
-index.html
-package.json
-package-lock.json
-capacitor.config.json
-firebase.json
-firestore.rules
 public/fairy-smoke.html
-public/privacy-policy.html
-public/portraits/
-public/sounds/
-public/textures/
 
 # Editor directories and files
 .vscode/*

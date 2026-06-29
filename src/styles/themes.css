@@ -1,0 +1,163 @@
+/* ================================================================
+   THEMES.CSS — Tahta Temaları & Taş Skin'leri
+   Timurlenk Türk Satrancı
+   ================================================================ */
+
+/* ----------------------------------------------------------------
+   TAHTA TEMALARI
+   Uygulanır: document.documentElement.dataset.boardTheme
+   Varsayılan (samarkand) zaten main.css :root'ta tanımlı.
+   ---------------------------------------------------------------- */
+
+/* --- SEMERKANT (samarkand) --- */
+/* main.css :root zaten Semerkant renklerini kullanıyor.
+   Yine de explicit olarak tekrar tanımlıyoruz tutarlılık için. */
+:root[data-board-theme="samarkand"] {
+    --board-light: hsl(184, 46%, 63%);
+    --board-dark: hsl(4, 54%, 36%);
+    --board-highlight: rgba(250, 204, 21, 0.46);
+    --board-valid-move: rgba(42, 220, 150, 0.45);
+    --citadel-bg: hsl(191, 46%, 20%);
+    --citadel-border: hsl(39, 88%, 56%);
+    --bg-color: hsl(220, 30%, 10%);
+    --surface-dark: hsl(220, 25%, 15%);
+    --surface-light: hsl(220, 20%, 25%);
+    --primary-color: hsl(45, 100%, 60%);
+    --primary-color-hover: hsl(45, 100%, 70%);
+    --accent-color: hsl(190, 80%, 50%);
+    --glass-bg: rgba(25, 30, 40, 0.6);
+}
+
+/* --- İPEK YOLU (silk-road) --- */
+/* Çöl & Bakır — Orta Asya kervan yolu esini */
+:root[data-board-theme="silk-road"] {
+    --board-light: hsl(42, 58%, 64%);
+    --board-dark: hsl(9, 56%, 34%);
+    --board-highlight: rgba(255, 184, 48, 0.48);
+    --board-valid-move: rgba(80, 210, 135, 0.44);
+    --citadel-bg: hsl(16, 43%, 19%);
+    --citadel-border: hsl(35, 88%, 57%);
+    --bg-color: hsl(15, 35%, 8%);
+    --surface-dark: hsl(15, 28%, 13%);
+    --surface-light: hsl(15, 22%, 22%);
+    --primary-color: hsl(30, 90%, 55%);
+    --primary-color-hover: hsl(30, 90%, 65%);
+    --accent-color: hsl(15, 75%, 55%);
+    --glass-bg: rgba(30, 16, 8, 0.65);
+    --danger: hsl(0, 80%, 58%);
+}
+
+/* --- SİYAH BEYAZ (black-white) --- */
+/* Klasik kontrast — taş okunabilirliği için saf siyah/beyaz yerine kırık tonlar. */
+:root[data-board-theme="black-white"],
+:root:not([data-board-theme]) {
+    --board-light: hsl(42, 22%, 90%);
+    --board-dark: hsl(220, 8%, 20%);
+    --board-highlight: rgba(245, 158, 11, 0.46);
+    --board-valid-move: rgba(38, 166, 117, 0.42);
+    --citadel-bg: hsl(220, 10%, 12%);
+    --citadel-border: hsl(43, 34%, 64%);
+    --bg-color: hsl(220, 16%, 8%);
+    --surface-dark: hsl(220, 12%, 12%);
+    --surface-light: hsl(220, 9%, 24%);
+    --primary-color: hsl(42, 44%, 66%);
+    --primary-color-hover: hsl(42, 58%, 74%);
+    --accent-color: hsl(0, 0%, 86%);
+    --glass-bg: rgba(18, 20, 24, 0.68);
+    --danger: hsl(0, 72%, 58%);
+}
+
+/* --- YEŞİL BEYAZ (green-white) --- */
+/* Klasik turnuva hissi — taşların iç detaylarını boğmadan okunabilir yeşil/beyaz. */
+:root[data-board-theme="green-white"] {
+    --board-light: hsl(45, 35%, 92%);
+    --board-dark: hsl(132, 28%, 42%);
+    --board-highlight: rgba(245, 158, 11, 0.48);
+    --board-valid-move: rgba(255, 213, 79, 0.42);
+    --citadel-bg: hsl(132, 25%, 24%);
+    --citadel-border: hsl(42, 48%, 66%);
+    --bg-color: hsl(132, 18%, 10%);
+    --surface-dark: hsl(132, 16%, 14%);
+    --surface-light: hsl(132, 12%, 25%);
+    --primary-color: hsl(42, 48%, 66%);
+    --primary-color-hover: hsl(42, 58%, 74%);
+    --accent-color: hsl(132, 32%, 52%);
+    --glass-bg: rgba(18, 31, 22, 0.66);
+    --danger: hsl(0, 72%, 58%);
+}
+
+/* İpek Yolu tahta parlaması — bakır renk */
+:root[data-board-theme="silk-road"] .chess-board {
+    animation: boardGlowSilkRoad 3s ease-in-out forwards;
+}
+
+@keyframes boardGlowSilkRoad {
+    0%   { box-shadow: 0 10px 40px rgba(0,0,0,0.7), 0 0 20px rgba(200, 100, 0, 0.2); }
+    50%  { box-shadow: 0 10px 40px rgba(0,0,0,0.7), 0 0 40px rgba(220, 120, 0, 0.6); }
+    100% { box-shadow: 0 10px 40px rgba(0,0,0,0.7), 0 0 20px rgba(200, 100, 0, 0.2); }
+}
+
+:root[data-board-theme="black-white"] .chess-board {
+    box-shadow:
+        0 10px 38px rgba(0, 0, 0, 0.58),
+        0 0 0 2px rgba(232, 226, 210, 0.28),
+        0 0 22px rgba(255, 255, 255, 0.10);
+}
+
+:root[data-board-theme="green-white"] .chess-board {
+    box-shadow:
+        0 10px 38px rgba(0, 0, 0, 0.52),
+        0 0 0 2px rgba(226, 238, 221, 0.26),
+        0 0 20px rgba(93, 150, 88, 0.16);
+}
+
+
+/* ================================================================
+   TAŞ SKİN'LERİ
+   Uygulanır: document.documentElement.dataset.pieceSkin
+   Varsayılan (classic) zaten pieces.css'de tanımlı.
+   ================================================================ */
+
+/* --- SAVAŞÇI (warrior) --- */
+/* Köşeli, geometrik, askeri tarz — vektör SVG taşlar */
+
+/* Savaşçı = eski tarihî PNG figürinler. Beyaz: orijinal. Siyah: invert filtresi. */
+:root[data-piece-skin="warrior"] .piece-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+:root[data-piece-skin="warrior"] .piece.white {
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+}
+
+:root[data-piece-skin="warrior"] .piece.black {
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5));
+}
+
+:root[data-piece-skin="warrior"] .piece.black .piece-img {
+    filter:
+        invert(100%)
+        brightness(0.72)
+        contrast(1.18)
+        saturate(0.82)
+        sepia(0.08);
+}
+
+:root[data-piece-skin="warrior"] .piece.selected,
+:root[data-piece-skin="warrior"] .piece:hover {
+    filter: drop-shadow(0 0 7px rgba(212, 175, 90, 0.85)) !important;
+}
+
+:root[data-piece-skin="warrior"] .piece.adventitious_king {
+    filter: drop-shadow(0 0 12px rgba(212, 175, 90, 0.95)) !important;
+}
+
+
+/* ================================================================
+   EVRENSEL GÖRÜNÜRLÜK İYİLEŞTİRMESİ
+   Tüm tema/skin kombinasyonlarında geçerli
+   ================================================================ */
+
+/* Kontrast dairesi kaldırıldı */

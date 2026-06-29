@@ -1,0 +1,2045 @@
+/* ================================================================
+   ORIENTATION: PORTRAIT (Dikey Mod) — Faz 4
+   Tarih: 2026-05-26
+   ================================================================
+   AMAÇ:
+   - Default mod (data-orientation="portrait" veya attribute yok)
+   - Mevcut UI'yı bozmaz, sadece dikey-spesifik iyileştirmeler
+   - Faz 4: Ana menü dikey layout
+
+   data-orientation="portrait" → bu kurallar aktif
+   ================================================================ */
+
+/* ----------------------------------------------------------------
+   ANA MENÜ — Dikey Layout (Saray Salonu)
+   ---------------------------------------------------------------- */
+:root[data-orientation="portrait"] #main-menu .menu-box,
+:root:not([data-orientation]) #main-menu .menu-box {
+    max-width: 460px;
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    padding-top: calc(var(--space-lg, 1.75rem) + var(--space-md, 1rem));
+    /* Üst boşluk yön toggle için */
+}
+
+/* Menü butonlarının dikey hizalanması */
+:root[data-orientation="portrait"] #main-menu .menu-options,
+:root:not([data-orientation]) #main-menu .menu-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+/* Butonlar tam genişlik dikeyde */
+:root[data-orientation="portrait"] #main-menu .menu-options .btn,
+:root:not([data-orientation]) #main-menu .menu-options .btn {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 14px 18px;
+    font-size: var(--fs-body, 1rem);
+}
+
+/* Toggle butonu üst-sağda dikeyde ve tüm ekranlarda erişilebilir */
+:root[data-orientation="portrait"] .orientation-toggle,
+:root:not([data-orientation]) .orientation-toggle {
+    top: 14px;
+    right: 14px;
+}
+
+
+/* ----------------------------------------------------------------
+   DIKEY TEK EKRAN SIKISTIRMA — Reklam payi dahil
+   Hedef: ana menu ve kurulum ekrani kucuk telefonlarda scroll istemesin.
+   Yatay moda dokunmaz; sadece data-orientation="portrait" veya default.
+   ---------------------------------------------------------------- */
+:root[data-orientation="portrait"],
+:root:not([data-orientation]) {
+    --portrait-ad-reserve: clamp(72px, 9.5dvh, 92px);
+    --portrait-edge-x: clamp(8px, 2.6vw, 14px);
+    --portrait-edge-top: clamp(3px, 1dvh, 8px);
+    --portrait-panel-height: calc(
+        100dvh
+        - var(--portrait-ad-reserve)
+        - env(safe-area-inset-top, 0px)
+        - env(safe-area-inset-bottom, 0px)
+        - var(--portrait-edge-top)
+        - var(--portrait-edge-top)
+    );
+}
+
+:root[data-orientation="portrait"] #main-menu,
+:root[data-orientation="portrait"] #formation-menu,
+:root[data-orientation="portrait"] #bot-menu,
+:root:not([data-orientation]) #main-menu,
+:root:not([data-orientation]) #formation-menu,
+:root:not([data-orientation]) #bot-menu {
+    height: 100dvh;
+    min-height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden !important;
+    padding:
+        calc(env(safe-area-inset-top, 0px) + var(--portrait-edge-top))
+        var(--portrait-edge-x)
+        calc(env(safe-area-inset-bottom, 0px) + var(--portrait-ad-reserve)) !important;
+    box-sizing: border-box;
+}
+
+:root[data-orientation="portrait"] #main-menu,
+:root:not([data-orientation]) #main-menu {
+    align-items: center;
+}
+
+:root[data-orientation="portrait"] #main-menu .menu-box,
+:root:not([data-orientation]) #main-menu .menu-box {
+    max-height: var(--portrait-panel-height);
+    min-height: 0;
+    padding: clamp(10px, 2dvh, 16px) clamp(12px, 3.6vw, 18px) !important;
+    gap: clamp(5px, 0.9dvh, 9px) !important;
+    justify-content: center;
+    overflow: hidden !important;
+}
+
+:root[data-orientation="portrait"] #main-menu .game-title,
+:root:not([data-orientation]) #main-menu .game-title {
+    font-size: clamp(1.55rem, 8vw, 2.35rem) !important;
+    line-height: 0.98 !important;
+    margin: 0 !important;
+    padding: clamp(6px, 1.2dvh, 10px) 8px !important;
+    letter-spacing: clamp(0.03em, 1.2vw, 0.06em) !important;
+}
+
+:root[data-orientation="portrait"] #main-menu .game-title::before,
+:root[data-orientation="portrait"] #main-menu .game-title::after,
+:root:not([data-orientation]) #main-menu .game-title::before,
+:root:not([data-orientation]) #main-menu .game-title::after {
+    font-size: clamp(0.72rem, 3vw, 1rem) !important;
+    margin: 0 auto 2px !important;
+}
+
+:root[data-orientation="portrait"] #main-menu .language-selector,
+:root:not([data-orientation]) #main-menu .language-selector {
+    margin: 0 !important;
+    gap: 6px !important;
+}
+
+:root[data-orientation="portrait"] #main-menu .lang-btn,
+:root:not([data-orientation]) #main-menu .lang-btn {
+    width: var(--portrait-icon-target, 44px) !important;
+    height: var(--portrait-icon-target, 44px) !important;
+    font-size: clamp(0.72rem, 3.2vw, 0.88rem) !important;
+}
+
+:root[data-orientation="portrait"] #main-menu .menu-options,
+:root:not([data-orientation]) #main-menu .menu-options {
+    gap: clamp(5px, 0.9dvh, 8px) !important;
+}
+
+:root[data-orientation="portrait"] #main-menu .menu-options .btn,
+:root:not([data-orientation]) #main-menu .menu-options .btn {
+    min-height: max(var(--portrait-control-min, 44px), clamp(38px, 6dvh, 46px)) !important;
+    padding: clamp(7px, 1.2dvh, 10px) clamp(12px, 3.8vw, 16px) !important;
+    font-size: clamp(0.8rem, 3.7vw, 0.96rem) !important;
+    border-radius: 12px !important;
+}
+
+:root[data-orientation="portrait"] #main-menu .menu-options .btn i,
+:root:not([data-orientation]) #main-menu .menu-options .btn i {
+    width: 18px !important;
+    font-size: 0.9em !important;
+}
+
+:root[data-orientation="portrait"] #main-menu .decor-line,
+:root:not([data-orientation]) #main-menu .decor-line {
+    margin: 2px 0 !important;
+}
+
+:root[data-orientation="portrait"] #main-menu .menu-footer,
+:root:not([data-orientation]) #main-menu .menu-footer {
+    margin-top: 0 !important;
+    gap: 2px !important;
+    font-size: clamp(0.56rem, 2.5vw, 0.68rem) !important;
+}
+
+:root[data-orientation="portrait"] #main-menu .menu-footer-meta,
+:root:not([data-orientation]) #main-menu .menu-footer-meta {
+    font-size: clamp(0.5rem, 2.2vw, 0.62rem) !important;
+}
+
+
+/* ----------------------------------------------------------------
+   OYUN AYARLARI / DURDURMA MENUSU — Dikey Layout
+   Hedef: panel reklam ve safe-area alanina tasmasin, 6.4" ekranlarda
+   butonlar altta kaybolmasin. Yatay moda dokunmaz.
+   ---------------------------------------------------------------- */
+:root[data-orientation="portrait"] #game-settings-overlay,
+:root:not([data-orientation]) #game-settings-overlay {
+    height: 100dvh;
+    min-height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden !important;
+    align-items: flex-start;
+    justify-content: center;
+    padding:
+        calc(env(safe-area-inset-top, 0px) + var(--portrait-edge-top))
+        var(--portrait-edge-x)
+        calc(env(safe-area-inset-bottom, 0px) + var(--portrait-ad-reserve)) !important;
+    box-sizing: border-box;
+}
+
+:root[data-orientation="portrait"] #game-settings-overlay .game-settings-box,
+:root:not([data-orientation]) #game-settings-overlay .game-settings-box {
+    width: min(100%, 460px);
+    max-height: var(--portrait-panel-height);
+    min-height: 0;
+    justify-content: flex-start;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: clamp(10px, 1.6dvh, 15px) clamp(12px, 3.4vw, 16px) !important;
+    gap: clamp(7px, 1.1dvh, 10px) !important;
+    box-sizing: border-box;
+}
+
+:root[data-orientation="portrait"] #game-settings-overlay .game-settings-header,
+:root:not([data-orientation]) #game-settings-overlay .game-settings-header {
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+:root[data-orientation="portrait"] #game-settings-overlay .game-settings-header h2,
+:root:not([data-orientation]) #game-settings-overlay .game-settings-header h2 {
+    font-size: clamp(0.96rem, 4.2vw, 1.12rem) !important;
+    line-height: 1.08;
+    margin: 0;
+}
+
+:root[data-orientation="portrait"] #game-settings-overlay .game-settings-header .icon-btn,
+:root:not([data-orientation]) #game-settings-overlay .game-settings-header .icon-btn {
+    width: var(--portrait-icon-target, 44px);
+    height: var(--portrait-icon-target, 44px);
+    min-width: var(--portrait-icon-target, 44px);
+    min-height: var(--portrait-icon-target, 44px);
+    padding: 0 !important;
+}
+
+:root[data-orientation="portrait"] #game-settings-overlay .settings-list,
+:root:not([data-orientation]) #game-settings-overlay .settings-list {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(5px, 0.9dvh, 8px);
+    min-height: 0;
+}
+
+:root[data-orientation="portrait"] #game-settings-overlay .settings-section-label,
+:root:not([data-orientation]) #game-settings-overlay .settings-section-label {
+    margin: clamp(2px, 0.45dvh, 4px) 2px clamp(-3px, -0.35dvh, -1px);
+    font-size: clamp(0.56rem, 2.35vw, 0.66rem);
+    line-height: 1;
+}
+
+:root[data-orientation="portrait"] #game-settings-overlay .settings-row,
+:root:not([data-orientation]) #game-settings-overlay .settings-row {
+    padding: clamp(7px, 1.05dvh, 10px) !important;
+    gap: clamp(5px, 0.85dvh, 8px) !important;
+    border-radius: 12px;
+}
+
+:root[data-orientation="portrait"] #game-settings-overlay .settings-row:not(.settings-row--vertical),
+:root:not([data-orientation]) #game-settings-overlay .settings-row:not(.settings-row--vertical) {
+    flex-direction: row !important;
+    align-items: center !important;
+}
+
+:root[data-orientation="portrait"] #game-settings-overlay .settings-copy,
+:root:not([data-orientation]) #game-settings-overlay .settings-copy {
+    gap: 3px;
+    min-width: 0;
+}
+
+:root[data-orientation="portrait"] #game-settings-overlay .settings-label,
+:root:not([data-orientation]) #game-settings-overlay .settings-label {
+    font-size: clamp(0.82rem, 3.5vw, 0.94rem);
+    line-height: 1.18;
+}
+
+:root[data-orientation="portrait"] #game-settings-overlay .settings-hint,
+:root:not([data-orientation]) #game-settings-overlay .settings-hint {
+    font-size: clamp(0.64rem, 2.75vw, 0.74rem);
+    line-height: 1.14;
+}
+
+:root[data-orientation="portrait"] #game-settings-overlay .settings-toggle,
+:root:not([data-orientation]) #game-settings-overlay .settings-toggle {
+    width: auto !important;
+    min-width: clamp(76px, 21vw, 98px);
+    min-height: max(var(--portrait-control-min, 44px), clamp(32px, 5dvh, 40px));
+    padding: clamp(6px, 0.9dvh, 8px) 11px !important;
+    flex: 0 0 auto;
+    font-size: clamp(0.72rem, 3vw, 0.84rem);
+}
+
+:root[data-orientation="portrait"] #game-settings-overlay .theme-btn-group,
+:root:not([data-orientation]) #game-settings-overlay .theme-btn-group {
+    gap: 6px;
+}
+
+:root[data-orientation="portrait"] #game-settings-overlay .theme-choice-btn,
+:root:not([data-orientation]) #game-settings-overlay .theme-choice-btn {
+    min-height: max(var(--portrait-control-min, 44px), clamp(32px, 5.1dvh, 38px));
+    padding: clamp(5px, 0.75dvh, 7px) 5px !important;
+    font-size: clamp(0.64rem, 2.75vw, 0.76rem);
+    line-height: 1.05;
+}
+
+:root[data-orientation="portrait"] #game-settings-overlay .settings-actions,
+:root:not([data-orientation]) #game-settings-overlay .settings-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: clamp(8px, 2.4vw, 12px);
+    margin-top: clamp(4px, 0.8dvh, 8px) !important;
+    flex-shrink: 0;
+}
+
+:root[data-orientation="portrait"] #game-settings-overlay .settings-actions .btn,
+:root:not([data-orientation]) #game-settings-overlay .settings-actions .btn {
+    width: 100%;
+    min-height: var(--portrait-control-min, 44px);
+    padding: clamp(7px, 0.95dvh, 9px) 10px !important;
+    font-size: clamp(0.74rem, 3.1vw, 0.86rem);
+}
+
+@media (max-height: 720px) {
+    :root[data-orientation="portrait"] #game-settings-overlay .settings-hint,
+    :root:not([data-orientation]) #game-settings-overlay .settings-hint {
+        display: none !important;
+    }
+
+    :root[data-orientation="portrait"] #game-settings-overlay .settings-row,
+    :root:not([data-orientation]) #game-settings-overlay .settings-row {
+        padding-top: 7px !important;
+        padding-bottom: 7px !important;
+    }
+
+    :root[data-orientation="portrait"] #game-settings-overlay .settings-section-label,
+    :root:not([data-orientation]) #game-settings-overlay .settings-section-label {
+        font-size: 0.54rem;
+    }
+}
+
+@media (max-height: 640px) {
+    :root[data-orientation="portrait"] #game-settings-overlay .settings-actions,
+    :root:not([data-orientation]) #game-settings-overlay .settings-actions {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* ----------------------------------------------------------------
+   KOMUTAN KONSEYİ — Dikey Layout (Faz 5) — KOMPAKT (Tek Ekran)
+   Hedef: 5 bölüm + bot entry + aksiyonlar tek ekrana sığsın.
+   Toplam yaklaşık 690px → 92vh içine sığacak.
+   ---------------------------------------------------------------- */
+:root[data-orientation="portrait"] #formation-menu .menu-box,
+:root:not([data-orientation]) #formation-menu .menu-box {
+    max-width: 520px;
+    width: 100%;
+    max-height: var(--portrait-panel-height);
+    min-height: 0;
+    overflow: hidden !important;
+    padding: clamp(6px, 1.1dvh, 10px) clamp(8px, 2.8vw, 14px) !important;
+    gap: clamp(1px, 0.45dvh, 3px) !important;
+}
+
+:root[data-orientation="portrait"] #formation-menu h2[style],
+:root:not([data-orientation]) #formation-menu h2[style] {
+    margin-top: clamp(1px, 0.35dvh, 3px) !important;
+}
+
+/* Bot menu entry — kompakt */
+:root[data-orientation="portrait"] #formation-menu .bot-menu-entry-btn,
+:root:not([data-orientation]) #formation-menu .bot-menu-entry-btn {
+    min-height: var(--portrait-control-min, 44px);
+    padding: clamp(4px, 0.8dvh, 7px) 9px !important;
+    margin-bottom: 0;
+    border-radius: 12px;
+    gap: 8px;
+}
+
+:root[data-orientation="portrait"] #formation-menu .bot-menu-entry-icon,
+:root:not([data-orientation]) #formation-menu .bot-menu-entry-icon {
+    width: clamp(24px, 6.2vw, 28px);
+    height: clamp(24px, 6.2vw, 28px);
+}
+
+:root[data-orientation="portrait"] #formation-menu .bot-menu-entry-copy strong,
+:root:not([data-orientation]) #formation-menu .bot-menu-entry-copy strong {
+    font-size: clamp(0.72rem, 3.2vw, 0.85rem);
+    line-height: 1.05;
+}
+
+:root[data-orientation="portrait"] #formation-menu .bot-menu-entry-copy small,
+:root:not([data-orientation]) #formation-menu .bot-menu-entry-copy small {
+    font-size: clamp(0.52rem, 2.4vw, 0.65rem);
+    line-height: 1.05;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Bölüm başlıkları (h2) — çok kompakt */
+:root[data-orientation="portrait"] #formation-menu h2,
+:root:not([data-orientation]) #formation-menu h2 {
+    font-size: clamp(0.64rem, 2.9vw, 0.78rem) !important;
+    margin: clamp(1px, 0.35dvh, 3px) 0 0 !important;
+    padding-bottom: 1px !important;
+    line-height: 1.1 !important;
+    letter-spacing: 0.02em !important;
+}
+
+:root[data-orientation="portrait"] #formation-menu h2::after,
+:root:not([data-orientation]) #formation-menu h2::after {
+    margin-top: 1px !important;
+}
+
+/* Dikeyde tüm kartlar tek ekrana sığsın — yatay scroll YOK, gerekirse wrap */
+:root[data-orientation="portrait"] #formation-menu .formation-cards,
+:root[data-orientation="portrait"] #formation-menu .difficulty-cards,
+:root[data-orientation="portrait"] #formation-menu .player-color-cards,
+:root[data-orientation="portrait"] #formation-menu .ai-persona-cards,
+:root[data-orientation="portrait"] #formation-menu .time-control-cards,
+:root:not([data-orientation]) #formation-menu .formation-cards,
+:root:not([data-orientation]) #formation-menu .difficulty-cards,
+:root:not([data-orientation]) #formation-menu .player-color-cards,
+:root:not([data-orientation]) #formation-menu .ai-persona-cards,
+:root:not([data-orientation]) #formation-menu .time-control-cards {
+    flex-wrap: wrap !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    justify-content: center !important;
+    gap: clamp(3px, 1vw, 5px) !important;
+    padding: 1px 1px !important;
+    margin-bottom: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* Kartlar dikeyde kompakt — satir sayilari sabit, yatay scroll yok */
+:root[data-orientation="portrait"] #formation-menu .card,
+:root:not([data-orientation]) #formation-menu .card {
+    flex: 0 1 auto;
+    min-width: 0 !important;
+    min-height: 50px !important;
+    padding: clamp(3px, 0.7dvh, 5px) 3px !important;
+    gap: 1px;
+    box-sizing: border-box;
+}
+
+:root[data-orientation="portrait"] #formation-menu .formation-cards .card,
+:root[data-orientation="portrait"] #formation-menu .difficulty-cards .card,
+:root:not([data-orientation]) #formation-menu .formation-cards .card,
+:root:not([data-orientation]) #formation-menu .difficulty-cards .card {
+    flex-basis: calc((100% - 10px) / 3) !important;
+    width: calc((100% - 10px) / 3) !important;
+}
+
+:root[data-orientation="portrait"] #formation-menu .player-color-cards .card,
+:root:not([data-orientation]) #formation-menu .player-color-cards .card {
+    flex-basis: calc((100% - 5px) / 2) !important;
+    width: calc((100% - 5px) / 2) !important;
+}
+
+:root[data-orientation="portrait"] #formation-menu .ai-persona-cards .card,
+:root[data-orientation="portrait"] #formation-menu .time-control-cards .card,
+:root:not([data-orientation]) #formation-menu .ai-persona-cards .card,
+:root:not([data-orientation]) #formation-menu .time-control-cards .card {
+    flex-basis: calc((100% - 15px) / 4) !important;
+    width: calc((100% - 15px) / 4) !important;
+}
+
+/* Persona ve formation/color kartları (içerik daha fazla) */
+:root[data-orientation="portrait"] #formation-menu .formation-card,
+:root[data-orientation="portrait"] #formation-menu .player-color-card,
+:root[data-orientation="portrait"] #formation-menu .ai-persona-card,
+:root:not([data-orientation]) #formation-menu .formation-card,
+:root:not([data-orientation]) #formation-menu .player-color-card,
+:root:not([data-orientation]) #formation-menu .ai-persona-card {
+    min-height: clamp(54px, 7.7dvh, 68px) !important;
+}
+
+/* Difficulty/time-control daha kısa (sadece ikon + başlık) */
+:root[data-orientation="portrait"] #formation-menu .difficulty-card,
+:root[data-orientation="portrait"] #formation-menu .time-control-card,
+:root:not([data-orientation]) #formation-menu .difficulty-card,
+:root:not([data-orientation]) #formation-menu .time-control-card {
+    min-height: max(var(--portrait-control-min, 44px), clamp(40px, 5.9dvh, 48px)) !important;
+}
+
+/* Persona portrait — kompakt */
+:root[data-orientation="portrait"] #formation-menu .ai-persona-card .persona-portrait,
+:root:not([data-orientation]) #formation-menu .ai-persona-card .persona-portrait {
+    width: clamp(24px, 6.6vw, 30px);
+    height: clamp(24px, 6.6vw, 30px);
+    margin: 0 auto 1px;
+}
+
+/* Kart ikonu — küçük */
+:root[data-orientation="portrait"] #formation-menu .card-icon,
+:root:not([data-orientation]) #formation-menu .card-icon {
+    font-size: clamp(0.86rem, 4vw, 1.02rem) !important;
+    margin-bottom: 1px !important;
+}
+
+/* Kart başlığı kompakt */
+:root[data-orientation="portrait"] #formation-menu .card h3,
+:root:not([data-orientation]) #formation-menu .card h3 {
+    font-size: clamp(0.54rem, 2.8vw, 0.66rem) !important;
+    line-height: 1.04 !important;
+    margin: 0 !important;
+}
+
+/* Kart açıklaması — 1 satır clamp (yer kazanmak için) */
+:root[data-orientation="portrait"] #formation-menu .card p,
+:root:not([data-orientation]) #formation-menu .card p {
+    font-size: clamp(0.42rem, 2vw, 0.52rem) !important;
+    line-height: 1 !important;
+    margin: 1px 0 0 !important;
+    -webkit-line-clamp: 1 !important;
+    line-clamp: 1 !important;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Aksiyon barı kompakt — Geri + Mücadeleye Başla */
+:root[data-orientation="portrait"] #formation-menu .menu-actions,
+:root:not([data-orientation]) #formation-menu .menu-actions {
+    margin-top: clamp(1px, 0.6dvh, 4px) !important;
+    gap: clamp(6px, 2vw, 10px) !important;
+    padding: 0 !important;
+}
+
+:root[data-orientation="portrait"] #formation-menu .menu-actions .btn,
+:root:not([data-orientation]) #formation-menu .menu-actions .btn {
+    padding: clamp(5px, 0.9dvh, 7px) clamp(12px, 4vw, 16px) !important;
+    font-size: clamp(0.74rem, 3.2vw, 0.84rem) !important;
+    min-height: var(--portrait-control-min, 44px) !important;
+}
+
+@media (max-height: 720px) {
+    :root[data-orientation="portrait"] #main-menu .menu-footer-meta,
+    :root:not([data-orientation]) #main-menu .menu-footer-meta {
+        display: none !important;
+    }
+
+    :root[data-orientation="portrait"] #formation-menu .bot-menu-entry-copy small,
+    :root[data-orientation="portrait"] #formation-menu .card p,
+    :root:not([data-orientation]) #formation-menu .bot-menu-entry-copy small,
+    :root:not([data-orientation]) #formation-menu .card p {
+        display: none !important;
+    }
+
+    :root[data-orientation="portrait"] #main-menu .decor-line,
+    :root:not([data-orientation]) #main-menu .decor-line {
+        display: none !important;
+    }
+}
+
+/* ai-bot-cards mevcut scroll davranışını koru (15 bot olabilir, scroll mantıklı) */
+:root[data-orientation="portrait"] #formation-menu .ai-bot-cards,
+:root:not([data-orientation]) #formation-menu .ai-bot-cards {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    justify-content: flex-start !important;
+}
+
+/* Çok kısa ekranlar (max-height: 640px) — açıklamaları tamamen gizle */
+@media (max-height: 640px) {
+    :root[data-orientation="portrait"] #formation-menu .card p,
+    :root:not([data-orientation]) #formation-menu .card p {
+        display: none !important;
+    }
+
+    :root[data-orientation="portrait"] #formation-menu .bot-menu-entry-btn,
+    :root:not([data-orientation]) #formation-menu .bot-menu-entry-btn {
+        min-height: var(--portrait-control-min, 44px) !important;
+        padding: 3px 8px !important;
+    }
+
+    :root[data-orientation="portrait"] #formation-menu h2,
+    :root:not([data-orientation]) #formation-menu h2 {
+        font-size: 0.58rem !important;
+        line-height: 0.95 !important;
+    }
+
+    :root[data-orientation="portrait"] #formation-menu .formation-card,
+    :root[data-orientation="portrait"] #formation-menu .player-color-card,
+    :root[data-orientation="portrait"] #formation-menu .ai-persona-card,
+    :root:not([data-orientation]) #formation-menu .formation-card,
+    :root:not([data-orientation]) #formation-menu .player-color-card,
+    :root:not([data-orientation]) #formation-menu .ai-persona-card {
+        min-height: 44px !important;
+    }
+
+    :root[data-orientation="portrait"] #formation-menu .difficulty-card,
+    :root[data-orientation="portrait"] #formation-menu .time-control-card,
+    :root:not([data-orientation]) #formation-menu .difficulty-card,
+    :root:not([data-orientation]) #formation-menu .time-control-card {
+        min-height: var(--portrait-control-min, 44px) !important;
+    }
+
+    :root[data-orientation="portrait"] #formation-menu .ai-persona-card .persona-portrait,
+    :root:not([data-orientation]) #formation-menu .ai-persona-card .persona-portrait {
+        width: 20px !important;
+        height: 20px !important;
+    }
+
+    :root[data-orientation="portrait"] #formation-menu .card-icon,
+    :root:not([data-orientation]) #formation-menu .card-icon {
+        font-size: 0.78rem !important;
+    }
+
+    :root[data-orientation="portrait"] #formation-menu .card h3,
+    :root:not([data-orientation]) #formation-menu .card h3 {
+        font-size: 0.48rem !important;
+    }
+}
+
+@media (max-height: 580px) {
+    :root[data-orientation="portrait"] #main-menu .game-title,
+    :root:not([data-orientation]) #main-menu .game-title {
+        font-size: 1.36rem !important;
+    }
+
+    :root[data-orientation="portrait"] #main-menu .language-selector,
+    :root:not([data-orientation]) #main-menu .language-selector {
+        display: none !important;
+    }
+
+    :root[data-orientation="portrait"] #main-menu .menu-options .btn,
+    :root:not([data-orientation]) #main-menu .menu-options .btn {
+        min-height: var(--portrait-control-min, 44px) !important;
+        padding-top: 5px !important;
+        padding-bottom: 5px !important;
+    }
+
+    :root[data-orientation="portrait"] #formation-menu .bot-menu-entry-copy,
+    :root:not([data-orientation]) #formation-menu .bot-menu-entry-copy {
+        display: none !important;
+    }
+
+    :root[data-orientation="portrait"] #formation-menu .bot-menu-entry-btn,
+    :root:not([data-orientation]) #formation-menu .bot-menu-entry-btn {
+        justify-content: center !important;
+    }
+
+    :root[data-orientation="portrait"] #formation-menu .menu-actions .btn,
+    :root:not([data-orientation]) #formation-menu .menu-actions .btn {
+        min-height: var(--portrait-control-min, 44px) !important;
+        padding-top: 4px !important;
+        padding-bottom: 4px !important;
+    }
+}
+
+
+/* ----------------------------------------------------------------
+   FAZ 2 — DIKEY GUVENLI ALAN, PANEL SCROLL VE CTA KORUMASI
+   Hedef: reklam/safe-area altinda aksiyon kaybetmemek, panel icinde
+   yatay scrollbar uretmemek ve bot/kurulum CTA'larini 44px altina
+   dusurmemek. Yatay moda dokunmaz.
+   ---------------------------------------------------------------- */
+:root[data-orientation="portrait"],
+:root:not([data-orientation]) {
+    --portrait-panel-max-width: min(460px, calc(100vw - var(--portrait-edge-x) - var(--portrait-edge-x)));
+    --portrait-panel-safe-bottom: calc(env(safe-area-inset-bottom, 0px) + clamp(8px, 1.4dvh, 12px));
+    --portrait-ad-reserve: clamp(64px, 8.4dvh, 86px);
+    --portrait-panel-height: calc(
+        100dvh
+        - var(--portrait-ad-reserve)
+        - env(safe-area-inset-top, 0px)
+        - env(safe-area-inset-bottom, 0px)
+        - var(--portrait-edge-top)
+        - var(--portrait-edge-top)
+    );
+}
+
+:root[data-orientation="portrait"] #main-menu,
+:root[data-orientation="portrait"] #formation-menu,
+:root[data-orientation="portrait"] #bot-menu,
+:root[data-orientation="portrait"] #game-settings-overlay,
+:root:not([data-orientation]) #main-menu,
+:root:not([data-orientation]) #formation-menu,
+:root:not([data-orientation]) #bot-menu,
+:root:not([data-orientation]) #game-settings-overlay {
+    width: 100%;
+    height: 100dvh;
+    min-height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden !important;
+    padding:
+        calc(env(safe-area-inset-top, 0px) + var(--portrait-edge-top))
+        var(--portrait-edge-x)
+        calc(env(safe-area-inset-bottom, 0px) + var(--portrait-ad-reserve)) !important;
+    box-sizing: border-box;
+}
+
+:root[data-orientation="portrait"] #main-menu .menu-box,
+:root[data-orientation="portrait"] #formation-menu .menu-box,
+:root[data-orientation="portrait"] #bot-menu .menu-box,
+:root[data-orientation="portrait"] #game-settings-overlay .game-settings-box,
+:root:not([data-orientation]) #main-menu .menu-box,
+:root:not([data-orientation]) #formation-menu .menu-box,
+:root:not([data-orientation]) #bot-menu .menu-box,
+:root:not([data-orientation]) #game-settings-overlay .game-settings-box {
+    width: 100%;
+    max-width: var(--portrait-panel-max-width);
+    max-height: var(--portrait-panel-height);
+    min-height: 0;
+    box-sizing: border-box;
+    overflow-x: hidden !important;
+}
+
+:root[data-orientation="portrait"] #main-menu .menu-box,
+:root:not([data-orientation]) #main-menu .menu-box {
+    overflow-y: hidden !important;
+}
+
+:root[data-orientation="portrait"] #game-settings-overlay .game-settings-box,
+:root:not([data-orientation]) #game-settings-overlay .game-settings-box {
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+
+/* Bot ve mac ayar ekraninda dis panel kaydirmasini tamamen kapat.
+   Bot listesinin kendi ic kaydirmasi (.ai-bot-list) bilincli olarak korunur. */
+:root[data-orientation="portrait"] #formation-menu .menu-box,
+:root[data-orientation="portrait"] #bot-menu .menu-box,
+:root:not([data-orientation]) #formation-menu .menu-box,
+:root:not([data-orientation]) #bot-menu .menu-box {
+    overflow: hidden !important;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: auto;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+:root[data-orientation="portrait"] #formation-menu .menu-box::-webkit-scrollbar,
+:root[data-orientation="portrait"] #bot-menu .menu-box::-webkit-scrollbar,
+:root:not([data-orientation]) #formation-menu .menu-box::-webkit-scrollbar,
+:root:not([data-orientation]) #bot-menu .menu-box::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
+}
+
+:root[data-orientation="portrait"] #formation-menu .menu-actions,
+:root[data-orientation="portrait"] #bot-menu .bot-menu-actions,
+:root[data-orientation="portrait"] #game-settings-overlay .settings-actions,
+:root:not([data-orientation]) #formation-menu .menu-actions,
+:root:not([data-orientation]) #bot-menu .bot-menu-actions,
+:root:not([data-orientation]) #game-settings-overlay .settings-actions {
+    position: sticky;
+    bottom: calc(var(--portrait-panel-safe-bottom) * -0.25);
+    z-index: 8;
+    width: 100%;
+    padding:
+        clamp(6px, 1dvh, 9px)
+        0
+        clamp(6px, 1dvh, 9px) !important;
+    margin-top: clamp(4px, 0.8dvh, 8px) !important;
+    background:
+        linear-gradient(180deg, rgba(232, 210, 158, 0), rgba(232, 210, 158, 0.92) 28%, rgba(232, 210, 158, 0.98));
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    box-shadow: 0 -8px 16px rgba(80, 45, 20, 0.08);
+}
+
+:root[data-orientation="portrait"] #formation-menu .menu-actions .btn,
+:root[data-orientation="portrait"] #bot-menu .menu-actions .btn,
+:root[data-orientation="portrait"] #game-settings-overlay .settings-actions .btn,
+:root:not([data-orientation]) #formation-menu .menu-actions .btn,
+:root:not([data-orientation]) #bot-menu .menu-actions .btn,
+:root:not([data-orientation]) #game-settings-overlay .settings-actions .btn {
+    min-height: var(--portrait-control-min, 44px) !important;
+}
+
+:root[data-orientation="portrait"] #bot-menu .bot-menu-box,
+:root:not([data-orientation]) #bot-menu .bot-menu-box {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(7px, 1.1dvh, 11px);
+    padding: clamp(10px, 1.6dvh, 16px) clamp(12px, 3.4vw, 16px) !important;
+}
+
+:root[data-orientation="portrait"] #bot-menu .ai-bot-list,
+:root:not([data-orientation]) #bot-menu .ai-bot-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding-bottom: clamp(4px, 0.8dvh, 8px);
+}
+
+:root[data-orientation="portrait"] #bot-menu .bot-menu-actions,
+:root:not([data-orientation]) #bot-menu .bot-menu-actions {
+    display: grid;
+    grid-template-columns: minmax(76px, 0.7fr) minmax(0, 1.3fr);
+    gap: clamp(7px, 2vw, 10px);
+}
+
+:root[data-orientation="portrait"] #bot-menu .bot-menu-actions .btn,
+:root:not([data-orientation]) #bot-menu .bot-menu-actions .btn {
+    width: 100%;
+    padding: clamp(7px, 1dvh, 9px) clamp(9px, 3vw, 12px) !important;
+    font-size: clamp(0.72rem, 3vw, 0.86rem) !important;
+}
+
+:root[data-orientation="portrait"] #game-settings-overlay .game-settings-box,
+:root:not([data-orientation]) #game-settings-overlay .game-settings-box {
+    scrollbar-gutter: stable both-edges;
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] #game-settings-overlay .game-settings-box::before,
+:root[data-orientation="portrait"][data-historical-theme="on"] #game-settings-overlay .game-settings-box::after,
+:root:not([data-orientation])[data-historical-theme="on"] #game-settings-overlay .game-settings-box::before,
+:root:not([data-orientation])[data-historical-theme="on"] #game-settings-overlay .game-settings-box::after,
+:root[data-orientation="portrait"][data-historical-theme="on"] #bot-menu .menu-box::before,
+:root[data-orientation="portrait"][data-historical-theme="on"] #bot-menu .menu-box::after,
+:root:not([data-orientation])[data-historical-theme="on"] #bot-menu .menu-box::before,
+:root:not([data-orientation])[data-historical-theme="on"] #bot-menu .menu-box::after {
+    left: 0;
+    right: 0;
+}
+
+@media (max-height: 740px) {
+    :root[data-orientation="portrait"],
+    :root:not([data-orientation]) {
+        --portrait-ad-reserve: clamp(56px, 7.6dvh, 76px);
+        --portrait-edge-top: clamp(2px, 0.7dvh, 5px);
+    }
+
+    :root[data-orientation="portrait"] #main-menu .menu-box,
+    :root:not([data-orientation]) #main-menu .menu-box {
+        gap: clamp(3px, 0.6dvh, 6px) !important;
+        padding-top: clamp(8px, 1.2dvh, 12px) !important;
+        padding-bottom: clamp(8px, 1.2dvh, 12px) !important;
+    }
+
+    :root[data-orientation="portrait"] #main-menu .menu-options,
+    :root:not([data-orientation]) #main-menu .menu-options {
+        gap: clamp(4px, 0.7dvh, 6px) !important;
+    }
+
+    :root[data-orientation="portrait"] #main-menu .menu-options .btn,
+    :root:not([data-orientation]) #main-menu .menu-options .btn {
+        min-height: var(--portrait-control-min, 44px) !important;
+    }
+
+    :root[data-orientation="portrait"] #formation-menu .menu-box,
+    :root:not([data-orientation]) #formation-menu .menu-box {
+        padding-top: 6px !important;
+        padding-bottom: 0 !important;
+    }
+}
+
+
+/* ----------------------------------------------------------------
+   FAZ 3 — ANA MENU SADELESTIRME VE EYLEM HIYERARSISI
+   Hedef: Hızlı Başlat + Yeni Oyun ilk 3 saniyede ana karar olarak
+   okunur; rehber, öğrenme, geçmiş ve çevrimiçi daha sakin yardımcı
+   seçenekler olarak kalır.
+   ---------------------------------------------------------------- */
+:root[data-orientation="portrait"] #main-menu .menu-box,
+:root:not([data-orientation]) #main-menu .menu-box {
+    width: min(100%, calc(100vw - var(--portrait-edge-x) - var(--portrait-edge-x))) !important;
+    max-width: min(460px, calc(100vw - var(--portrait-edge-x) - var(--portrait-edge-x))) !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    margin-left: auto;
+    margin-right: auto;
+    justify-content: flex-start;
+    gap: clamp(7px, 1.1dvh, 11px) !important;
+    padding:
+        clamp(12px, 2dvh, 18px)
+        clamp(13px, 3.8vw, 18px)
+        clamp(10px, 1.7dvh, 16px) !important;
+}
+
+:root[data-orientation="portrait"] #main-menu .game-title,
+:root:not([data-orientation]) #main-menu .game-title {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    white-space: pre-line;
+    font-size: clamp(1.45rem, 7.5vw, 2.08rem) !important;
+    padding: clamp(7px, 1.2dvh, 10px) clamp(8px, 2.8vw, 12px) !important;
+    overflow-wrap: anywhere;
+    overflow: hidden;
+}
+
+:root[data-orientation="portrait"] #main-menu .language-selector,
+:root:not([data-orientation]) #main-menu .language-selector {
+    align-self: center;
+    margin-top: -2px !important;
+}
+
+:root[data-orientation="portrait"] #main-menu .menu-options,
+:root:not([data-orientation]) #main-menu .menu-options {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    gap: clamp(6px, 1dvh, 9px) !important;
+}
+
+:root[data-orientation="portrait"] #main-menu .menu-options .btn,
+:root:not([data-orientation]) #main-menu .menu-options .btn {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    justify-content: center !important;
+    text-align: center;
+    gap: 8px;
+}
+
+:root[data-orientation="portrait"] #main-menu .menu-options .btn span,
+:root:not([data-orientation]) #main-menu .menu-options .btn span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+:root[data-orientation="portrait"] #main-menu .menu-options .btn:nth-child(-n + 2),
+:root:not([data-orientation]) #main-menu .menu-options .btn:nth-child(-n + 2) {
+    grid-column: 1 / -1;
+    min-height: clamp(48px, 6.5dvh, 56px) !important;
+    font-size: clamp(0.92rem, 4vw, 1.05rem) !important;
+}
+
+:root[data-orientation="portrait"] #main-menu .menu-options .btn:nth-child(n + 3),
+:root:not([data-orientation]) #main-menu .menu-options .btn:nth-child(n + 3) {
+    min-height: var(--portrait-control-min, 44px) !important;
+    padding: clamp(7px, 1dvh, 9px) clamp(6px, 2.5vw, 10px) !important;
+    font-size: clamp(0.68rem, 3vw, 0.82rem) !important;
+    line-height: 1.08;
+}
+
+:root[data-orientation="portrait"] #main-menu .menu-options .btn:nth-child(n + 3) i,
+:root:not([data-orientation]) #main-menu .menu-options .btn:nth-child(n + 3) i {
+    width: 15px !important;
+    font-size: 0.86em !important;
+}
+
+:root[data-orientation="portrait"] #main-menu .decor-line,
+:root:not([data-orientation]) #main-menu .decor-line {
+    width: min(72%, 260px);
+    align-self: center;
+    opacity: 0.64;
+}
+
+:root[data-orientation="portrait"] #main-menu .menu-footer,
+:root:not([data-orientation]) #main-menu .menu-footer {
+    opacity: 0.92;
+}
+
+:root[data-orientation="portrait"] #main-menu .menu-footer-links,
+:root:not([data-orientation]) #main-menu .menu-footer-links {
+    gap: clamp(5px, 2vw, 10px);
+    justify-content: center;
+}
+
+:root[data-orientation="portrait"] #main-menu .policy-link,
+:root[data-orientation="portrait"] #main-menu .policy-link-button,
+:root:not([data-orientation]) #main-menu .policy-link,
+:root:not([data-orientation]) #main-menu .policy-link-button {
+    min-height: var(--portrait-control-min, 44px);
+    padding: 0 3px;
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] #main-menu .menu-box,
+:root:not([data-orientation])[data-historical-theme="on"] #main-menu .menu-box {
+    border-width: 2px;
+    box-shadow:
+        0 18px 42px rgba(0, 0, 0, 0.44),
+        inset 0 0 64px rgba(201, 162, 75, 0.10);
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] #main-menu .game-title,
+:root:not([data-orientation])[data-historical-theme="on"] #main-menu .game-title {
+    border-color: rgba(139, 105, 20, 0.34);
+    box-shadow: inset 0 0 18px rgba(201, 162, 75, 0.12);
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] #main-menu .menu-options .quick-start-btn,
+:root:not([data-orientation])[data-historical-theme="on"] #main-menu .menu-options .quick-start-btn {
+    background-color: #84281c;
+    background:
+        linear-gradient(180deg, rgba(184, 58, 42, 0.98), rgba(132, 40, 28, 0.98));
+    color: var(--color-parchment-aged);
+    border-color: var(--color-cinnabar);
+    box-shadow:
+        0 5px 0 rgba(92, 35, 8, 0.42),
+        0 10px 20px rgba(132, 40, 28, 0.24),
+        inset 0 1px 0 rgba(255, 224, 170, 0.24);
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] #main-menu .menu-options .btn:nth-child(2),
+:root:not([data-orientation])[data-historical-theme="on"] #main-menu .menu-options .btn:nth-child(2) {
+    background-color: var(--color-gold-leaf);
+    background:
+        linear-gradient(180deg, var(--color-gold-leaf), var(--color-gold-shadow));
+    color: var(--color-burnt-umber);
+    border-color: var(--color-gold-shadow);
+    box-shadow:
+        0 4px 0 rgba(139, 105, 20, 0.38),
+        inset 0 1px 0 var(--color-parchment);
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] #main-menu .menu-options .btn:nth-child(n + 3),
+:root:not([data-orientation])[data-historical-theme="on"] #main-menu .menu-options .btn:nth-child(n + 3) {
+    background-color: var(--color-parchment-aged);
+    background:
+        linear-gradient(180deg, rgba(244, 225, 181, 0.92), rgba(232, 210, 158, 0.88));
+    color: var(--color-burnt-umber);
+    border-color: rgba(139, 105, 20, 0.55);
+    box-shadow:
+        0 2px 0 rgba(139, 105, 20, 0.18),
+        inset 0 1px 0 rgba(255, 248, 220, 0.32);
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] #main-menu .menu-options .learn-btn,
+:root:not([data-orientation])[data-historical-theme="on"] #main-menu .menu-options .learn-btn {
+    border-left: 4px solid var(--color-mosque-green);
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] #main-menu .menu-options .secondary-btn,
+:root:not([data-orientation])[data-historical-theme="on"] #main-menu .menu-options .secondary-btn {
+    background-blend-mode: multiply;
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] #main-menu .menu-footer,
+:root:not([data-orientation])[data-historical-theme="on"] #main-menu .menu-footer {
+    opacity: 1 !important;
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] #main-menu .policy-link,
+:root[data-orientation="portrait"][data-historical-theme="on"] #main-menu .policy-link-button,
+:root[data-orientation="portrait"][data-historical-theme="on"] #main-menu .footer-version,
+:root[data-orientation="portrait"][data-historical-theme="on"] #main-menu .footer-tagline,
+:root[data-orientation="portrait"][data-historical-theme="on"] #main-menu .footer-divider,
+:root:not([data-orientation])[data-historical-theme="on"] #main-menu .policy-link,
+:root:not([data-orientation])[data-historical-theme="on"] #main-menu .policy-link-button,
+:root:not([data-orientation])[data-historical-theme="on"] #main-menu .footer-version,
+:root:not([data-orientation])[data-historical-theme="on"] #main-menu .footer-tagline,
+:root:not([data-orientation])[data-historical-theme="on"] #main-menu .footer-divider {
+    color: #4f3f2d !important;
+    opacity: 1 !important;
+    text-shadow: 0 1px 0 rgba(255, 248, 224, 0.36);
+}
+
+@media (max-height: 740px) {
+    :root[data-orientation="portrait"] #main-menu .menu-box,
+    :root:not([data-orientation]) #main-menu .menu-box {
+        gap: clamp(4px, 0.7dvh, 7px) !important;
+    }
+
+    :root[data-orientation="portrait"] #main-menu .game-title,
+    :root:not([data-orientation]) #main-menu .game-title {
+        font-size: clamp(1.34rem, 7vw, 1.85rem) !important;
+    }
+
+    :root[data-orientation="portrait"] #main-menu .menu-options .btn:nth-child(-n + 2),
+    :root:not([data-orientation]) #main-menu .menu-options .btn:nth-child(-n + 2) {
+        min-height: var(--portrait-control-min, 44px) !important;
+    }
+}
+
+
+/* ----------------------------------------------------------------
+   FAZ 4 - YENI OYUN / ZORLUK SECIMI
+   Hedef: klasik kurulum akisini tek bakista okunur yapmak:
+   Botlar > Dizilim > Zorluk > Renk > Karakter > Sure > Baslat.
+   Dikey moda ozeldir; yatay yerlesime ve ikonlara dokunmaz.
+   ---------------------------------------------------------------- */
+:root[data-orientation="portrait"] #formation-menu .menu-box,
+:root:not([data-orientation]) #formation-menu .menu-box {
+    counter-reset: setup-step;
+    gap: clamp(3px, 0.65dvh, 6px) !important;
+    padding:
+        clamp(7px, 1.2dvh, 11px)
+        clamp(10px, 3vw, 14px)
+        0 !important;
+}
+
+:root[data-orientation="portrait"] #formation-menu h2,
+:root:not([data-orientation]) #formation-menu h2 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: clamp(18px, 2.7dvh, 24px);
+    color: var(--color-gold-leaf, var(--primary-color));
+    text-wrap: balance;
+}
+
+:root[data-orientation="portrait"] #formation-menu h2::before,
+:root:not([data-orientation]) #formation-menu h2::before {
+    counter-increment: setup-step;
+    content: counter(setup-step);
+    display: inline-grid;
+    place-items: center;
+    width: clamp(17px, 4.8vw, 21px);
+    height: clamp(17px, 4.8vw, 21px);
+    border-radius: 999px;
+    background: rgba(245, 158, 11, 0.14);
+    border: 1px solid rgba(245, 158, 11, 0.48);
+    color: var(--color-gold-leaf, #f59e0b);
+    font-size: 0.62em;
+    font-weight: 800;
+    line-height: 1;
+}
+
+:root[data-orientation="portrait"] #formation-menu h2::after,
+:root:not([data-orientation]) #formation-menu h2::after {
+    display: none !important;
+}
+
+:root[data-orientation="portrait"] #formation-menu .formation-cards,
+:root[data-orientation="portrait"] #formation-menu .difficulty-cards,
+:root[data-orientation="portrait"] #formation-menu .player-color-cards,
+:root[data-orientation="portrait"] #formation-menu .ai-persona-cards,
+:root[data-orientation="portrait"] #formation-menu .time-control-cards,
+:root:not([data-orientation]) #formation-menu .formation-cards,
+:root:not([data-orientation]) #formation-menu .difficulty-cards,
+:root:not([data-orientation]) #formation-menu .player-color-cards,
+:root:not([data-orientation]) #formation-menu .ai-persona-cards,
+:root:not([data-orientation]) #formation-menu .time-control-cards {
+    display: grid !important;
+    width: 100%;
+    align-items: stretch;
+    gap: clamp(4px, 1.2vw, 6px) !important;
+    padding: 1px !important;
+}
+
+:root[data-orientation="portrait"] #formation-menu .formation-cards,
+:root[data-orientation="portrait"] #formation-menu .difficulty-cards,
+:root:not([data-orientation]) #formation-menu .formation-cards,
+:root:not([data-orientation]) #formation-menu .difficulty-cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+:root[data-orientation="portrait"] #formation-menu .player-color-cards,
+:root:not([data-orientation]) #formation-menu .player-color-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+:root[data-orientation="portrait"] #formation-menu .ai-persona-cards,
+:root[data-orientation="portrait"] #formation-menu .time-control-cards,
+:root:not([data-orientation]) #formation-menu .ai-persona-cards,
+:root:not([data-orientation]) #formation-menu .time-control-cards {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+:root[data-orientation="portrait"] #formation-menu .formation-cards .card,
+:root[data-orientation="portrait"] #formation-menu .difficulty-cards .card,
+:root[data-orientation="portrait"] #formation-menu .player-color-cards .card,
+:root[data-orientation="portrait"] #formation-menu .ai-persona-cards .card,
+:root[data-orientation="portrait"] #formation-menu .time-control-cards .card,
+:root:not([data-orientation]) #formation-menu .formation-cards .card,
+:root:not([data-orientation]) #formation-menu .difficulty-cards .card,
+:root:not([data-orientation]) #formation-menu .player-color-cards .card,
+:root:not([data-orientation]) #formation-menu .ai-persona-cards .card,
+:root:not([data-orientation]) #formation-menu .time-control-cards .card {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    flex: none !important;
+    transform: none !important;
+}
+
+:root[data-orientation="portrait"] #formation-menu .formation-card,
+:root[data-orientation="portrait"] #formation-menu .player-color-card,
+:root:not([data-orientation]) #formation-menu .formation-card,
+:root:not([data-orientation]) #formation-menu .player-color-card {
+    min-height: clamp(58px, 7.4dvh, 68px) !important;
+}
+
+:root[data-orientation="portrait"] #formation-menu .ai-persona-card,
+:root:not([data-orientation]) #formation-menu .ai-persona-card {
+    min-height: clamp(66px, 8.4dvh, 76px) !important;
+}
+
+:root[data-orientation="portrait"] #formation-menu .difficulty-card,
+:root[data-orientation="portrait"] #formation-menu .time-control-card,
+:root:not([data-orientation]) #formation-menu .difficulty-card,
+:root:not([data-orientation]) #formation-menu .time-control-card {
+    min-height: max(var(--portrait-control-min, 44px), clamp(44px, 5.8dvh, 50px)) !important;
+}
+
+:root[data-orientation="portrait"] #formation-menu .card h3,
+:root:not([data-orientation]) #formation-menu .card h3 {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+:root[data-orientation="portrait"] #formation-menu .card p,
+:root:not([data-orientation]) #formation-menu .card p {
+    max-width: 100%;
+    text-wrap: balance;
+}
+
+:root[data-orientation="portrait"] #formation-menu .card.selected,
+:root:not([data-orientation]) #formation-menu .card.selected {
+    outline: 2px solid rgba(245, 158, 11, 0.76);
+    outline-offset: -2px;
+    border-color: rgba(245, 158, 11, 0.95) !important;
+    background:
+        linear-gradient(180deg, rgba(245, 158, 11, 0.18), rgba(91, 22, 22, 0.10)),
+        rgba(255, 255, 255, 0.04);
+    box-shadow:
+        0 0 0 1px rgba(255, 224, 170, 0.16) inset,
+        0 4px 10px rgba(245, 158, 11, 0.10) !important;
+}
+
+:root[data-orientation="portrait"] #formation-menu .formation-card.disabled,
+:root:not([data-orientation]) #formation-menu .formation-card.disabled {
+    opacity: 0.54;
+    filter: saturate(0.65);
+}
+
+:root[data-orientation="portrait"] #formation-menu .bot-menu-entry-btn,
+:root:not([data-orientation]) #formation-menu .bot-menu-entry-btn {
+    width: 100%;
+    box-sizing: border-box;
+    background:
+        linear-gradient(180deg, rgba(3, 37, 52, 0.68), rgba(10, 15, 26, 0.82)),
+        rgba(0, 0, 0, 0.18);
+}
+
+:root[data-orientation="portrait"] #formation-menu .menu-actions,
+:root:not([data-orientation]) #formation-menu .menu-actions {
+    display: grid !important;
+    grid-template-columns: minmax(74px, 0.64fr) minmax(0, 1.36fr);
+    align-items: stretch;
+}
+
+:root[data-orientation="portrait"] #formation-menu .menu-actions .btn,
+:root:not([data-orientation]) #formation-menu .menu-actions .btn {
+    width: 100%;
+    white-space: nowrap;
+}
+
+:root[data-orientation="portrait"] #formation-menu #btn-start-match,
+:root:not([data-orientation]) #formation-menu #btn-start-match {
+    font-size: clamp(0.78rem, 3.35vw, 0.92rem) !important;
+    font-weight: 850;
+}
+
+@media (max-height: 740px) {
+    :root[data-orientation="portrait"] #formation-menu .menu-box,
+    :root:not([data-orientation]) #formation-menu .menu-box {
+        gap: clamp(2px, 0.45dvh, 4px) !important;
+    }
+
+    :root[data-orientation="portrait"] #formation-menu h2,
+    :root:not([data-orientation]) #formation-menu h2 {
+        min-height: 17px;
+    }
+
+    :root[data-orientation="portrait"] #formation-menu h2::before,
+    :root:not([data-orientation]) #formation-menu h2::before {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+
+/* ----------------------------------------------------------------
+   FAZ 5 - BOT RAKIPLERI MENUSU
+   Hedef: 1-15 botlari yildiz seviyelerine gore okunur satirlara
+   ayirmak; 3 kolon korunur, yazilar mikro boyuta dusmez, CTA sabit
+   kalir. Dikey moda ozeldir.
+   ---------------------------------------------------------------- */
+:root[data-orientation="portrait"] #bot-menu .bot-menu-box,
+:root:not([data-orientation]) #bot-menu .bot-menu-box {
+    gap: clamp(6px, 0.95dvh, 9px) !important;
+    padding:
+        clamp(10px, 1.5dvh, 14px)
+        clamp(10px, 3.2vw, 15px)
+        0 !important;
+}
+
+:root[data-orientation="portrait"] #bot-menu .bot-menu-header,
+:root:not([data-orientation]) #bot-menu .bot-menu-header {
+    flex: 0 0 auto;
+    gap: clamp(2px, 0.45dvh, 5px) !important;
+}
+
+:root[data-orientation="portrait"] #bot-menu .bot-menu-eyebrow,
+:root:not([data-orientation]) #bot-menu .bot-menu-eyebrow {
+    font-size: clamp(0.58rem, 2.35vw, 0.68rem) !important;
+    letter-spacing: 0.09em;
+}
+
+:root[data-orientation="portrait"] #bot-menu .bot-menu-header h2,
+:root:not([data-orientation]) #bot-menu .bot-menu-header h2 {
+    font-size: clamp(1.08rem, 5vw, 1.34rem) !important;
+    line-height: 1.02;
+}
+
+:root[data-orientation="portrait"] #bot-menu .bot-menu-header p:last-child,
+:root:not([data-orientation]) #bot-menu .bot-menu-header p:last-child {
+    max-width: 30ch;
+    font-size: clamp(0.66rem, 2.75vw, 0.78rem) !important;
+    line-height: 1.16;
+}
+
+:root[data-orientation="portrait"] #bot-menu .ai-bot-list,
+:root:not([data-orientation]) #bot-menu .ai-bot-list {
+    gap: clamp(8px, 1.15dvh, 11px) !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 2px clamp(2px, 0.9vw, 4px) clamp(5px, 0.8dvh, 8px) !important;
+    scrollbar-gutter: stable;
+}
+
+:root[data-orientation="portrait"] #bot-menu .ai-bot-star-tier,
+:root:not([data-orientation]) #bot-menu .ai-bot-star-tier {
+    gap: clamp(4px, 0.7dvh, 6px) !important;
+}
+
+:root[data-orientation="portrait"] #bot-menu .ai-bot-star-tier-label,
+:root:not([data-orientation]) #bot-menu .ai-bot-star-tier-label {
+    width: 100%;
+    min-height: 20px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 3px 8px !important;
+    border-radius: 8px;
+    background:
+        linear-gradient(90deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.03));
+    border-color: rgba(245, 158, 11, 0.30) !important;
+    color: var(--color-gold-leaf, #fbbf24);
+    font-size: clamp(0.56rem, 2.35vw, 0.68rem) !important;
+}
+
+:root[data-orientation="portrait"] #bot-menu .ai-bot-tier-stars,
+:root:not([data-orientation]) #bot-menu .ai-bot-tier-stars {
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+}
+
+:root[data-orientation="portrait"] #bot-menu .ai-bot-tier-text,
+:root:not([data-orientation]) #bot-menu .ai-bot-tier-text {
+    color: rgba(255, 248, 220, 0.78);
+    font-weight: 800;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+:root[data-orientation="portrait"] #bot-menu .ai-bot-tier-grid,
+:root:not([data-orientation]) #bot-menu .ai-bot-tier-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(5px, 1.35vw, 7px) !important;
+}
+
+:root[data-orientation="portrait"] #bot-menu .ai-bot-card,
+:root:not([data-orientation]) #bot-menu .ai-bot-card {
+    min-height: clamp(90px, 10.6dvh, 98px) !important;
+    padding: clamp(7px, 1dvh, 9px) clamp(4px, 1.4vw, 6px) !important;
+    border-radius: 10px;
+    gap: 3px !important;
+}
+
+:root[data-orientation="portrait"] #bot-menu .ai-bot-card .card-icon,
+:root:not([data-orientation]) #bot-menu .ai-bot-card .card-icon {
+    font-size: clamp(1rem, 4.1vw, 1.18rem) !important;
+    line-height: 1;
+}
+
+:root[data-orientation="portrait"] #bot-menu .ai-bot-card h3,
+:root:not([data-orientation]) #bot-menu .ai-bot-card h3 {
+    font-size: clamp(0.68rem, 2.85vw, 0.78rem) !important;
+    line-height: 1.05 !important;
+}
+
+:root[data-orientation="portrait"] #bot-menu .ai-bot-card .ai-bot-meta,
+:root:not([data-orientation]) #bot-menu .ai-bot-card .ai-bot-meta {
+    padding: 2px 5px;
+    border-radius: 999px;
+    background: rgba(255, 248, 220, 0.08);
+    color: rgba(255, 248, 220, 0.82);
+    font-size: clamp(0.52rem, 2.25vw, 0.62rem) !important;
+    line-height: 1.05;
+}
+
+:root[data-orientation="portrait"] #bot-menu .ai-bot-card .ai-bot-stars,
+:root:not([data-orientation]) #bot-menu .ai-bot-card .ai-bot-stars {
+    font-size: clamp(0.56rem, 2.28vw, 0.66rem) !important;
+    color: var(--color-gold-leaf, #fbbf24);
+}
+
+:root[data-orientation="portrait"] #bot-menu .ai-bot-card .ai-bot-desc,
+:root:not([data-orientation]) #bot-menu .ai-bot-card .ai-bot-desc {
+    max-width: 100%;
+    color: rgba(255, 248, 220, 0.68);
+    font-size: clamp(0.54rem, 2.2vw, 0.63rem) !important;
+    line-height: 1.08 !important;
+    -webkit-line-clamp: 1 !important;
+    line-clamp: 1 !important;
+}
+
+:root[data-orientation="portrait"] #bot-menu .ai-bot-card.selected,
+:root:not([data-orientation]) #bot-menu .ai-bot-card.selected {
+    transform: none !important;
+    outline: 2px solid rgba(245, 158, 11, 0.78);
+    outline-offset: -2px;
+    background:
+        linear-gradient(180deg, rgba(245, 158, 11, 0.18), rgba(91, 22, 22, 0.14)),
+        rgba(255, 255, 255, 0.05);
+    box-shadow:
+        0 0 0 1px rgba(255, 224, 170, 0.18) inset,
+        0 5px 12px rgba(245, 158, 11, 0.12) !important;
+}
+
+:root[data-orientation="portrait"] #bot-menu .bot-menu-actions,
+:root:not([data-orientation]) #bot-menu .bot-menu-actions {
+    grid-template-columns: minmax(72px, 0.62fr) minmax(0, 1.38fr);
+}
+
+:root[data-orientation="portrait"] #bot-menu #btn-start-bot-match,
+:root:not([data-orientation]) #bot-menu #btn-start-bot-match {
+    font-weight: 850;
+    white-space: nowrap;
+}
+
+@media (max-height: 740px) {
+    :root[data-orientation="portrait"] #bot-menu .bot-menu-box,
+    :root:not([data-orientation]) #bot-menu .bot-menu-box {
+        gap: 5px !important;
+        padding-top: 8px !important;
+    }
+
+    :root[data-orientation="portrait"] #bot-menu .bot-menu-header p:last-child,
+    :root:not([data-orientation]) #bot-menu .bot-menu-header p:last-child {
+        display: none;
+    }
+
+    :root[data-orientation="portrait"] #bot-menu .ai-bot-card,
+    :root:not([data-orientation]) #bot-menu .ai-bot-card {
+        min-height: 86px !important;
+    }
+
+    :root[data-orientation="portrait"] #bot-menu .ai-bot-card .ai-bot-desc,
+    :root:not([data-orientation]) #bot-menu .ai-bot-card .ai-bot-desc {
+        display: none !important;
+    }
+}
+
+
+/* ----------------------------------------------------------------
+   OYUN TAHTASI — Dikey Layout (Faz 6)
+   Mevcut akış: header → piece-info → board-container → footer
+   Dikey modda tahta merkez, HUD sabit ve tahta güvenli alanda kalır.
+   ---------------------------------------------------------------- */
+:root[data-orientation="portrait"] #game-view,
+:root:not([data-orientation]) #game-view {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+    --portrait-game-x: clamp(6px, 2.4vw, 12px);
+    --portrait-game-panel-h: clamp(54px, 7dvh, 64px);
+    --portrait-piece-info-h: clamp(56px, 7.2dvh, 66px);
+    --portrait-footer-h: clamp(58px, 7.6dvh, 72px);
+    --portrait-ad-safe: env(safe-area-inset-bottom, 0px);
+}
+
+:root[data-orientation="portrait"] #game-view .game-header,
+:root:not([data-orientation]) #game-view .game-header {
+    flex: 0 0 auto;
+    min-height: var(--portrait-game-panel-h);
+    max-height: var(--portrait-game-panel-h);
+    padding: 5px var(--portrait-game-x);
+    position: relative;
+}
+
+:root[data-orientation="portrait"] #game-view .game-header .top-player,
+:root:not([data-orientation]) #game-view .game-header .top-player {
+    min-width: 0;
+}
+
+:root[data-orientation="portrait"] #game-view .game-header .top-player .captured-pieces,
+:root:not([data-orientation]) #game-view .game-header .top-player .captured-pieces {
+    height: 32px;
+    min-height: 32px;
+    max-height: 32px;
+    max-width: min(36vw, 150px);
+    padding: 2px 6px;
+}
+
+:root[data-orientation="portrait"] #game-view #btn-toggle-log,
+:root:not([data-orientation]) #game-view #btn-toggle-log {
+    margin-right: 6px !important;
+}
+
+:root[data-orientation="portrait"] #game-view #btn-toggle-log,
+:root[data-orientation="portrait"] #game-view #btn-game-menu,
+:root:not([data-orientation]) #game-view #btn-toggle-log,
+:root:not([data-orientation]) #game-view #btn-game-menu {
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    min-height: 38px;
+}
+
+:root[data-orientation="portrait"] #game-view .piece-info-panel,
+:root:not([data-orientation]) #game-view .piece-info-panel {
+    flex: 0 0 var(--portrait-piece-info-h);
+    width: calc(100% - (var(--portrait-game-x) * 2));
+    height: var(--portrait-piece-info-h);
+    min-height: var(--portrait-piece-info-h);
+    max-height: var(--portrait-piece-info-h);
+    margin: 5px var(--portrait-game-x) 0;
+    padding: 5px 10px;
+    gap: 8px;
+    transform: translateZ(0);
+}
+
+:root[data-orientation="portrait"] #game-view .piece-info-panel .piece-info-summary,
+:root[data-orientation="portrait"] #game-view .piece-info-panel .piece-info-detail,
+:root:not([data-orientation]) #game-view .piece-info-panel .piece-info-summary,
+:root:not([data-orientation]) #game-view .piece-info-panel .piece-info-detail {
+    min-height: 0;
+}
+
+:root[data-orientation="portrait"] #game-view .piece-info-panel .info-piece-desc,
+:root:not([data-orientation]) #game-view .piece-info-panel .info-piece-desc {
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+}
+
+:root[data-orientation="portrait"] #game-view .piece-info-panel .info-move-diagram,
+:root:not([data-orientation]) #game-view .piece-info-panel .info-move-diagram {
+    width: 34px;
+    height: 34px;
+}
+
+:root[data-orientation="portrait"] #game-view .game-footer,
+:root:not([data-orientation]) #game-view .game-footer {
+    flex: 0 0 auto;
+    min-height: var(--portrait-footer-h);
+    max-height: var(--portrait-footer-h);
+    padding: 7px var(--portrait-game-x) max(6px, var(--portrait-ad-safe));
+    position: relative;
+    z-index: 19;
+}
+
+:root[data-orientation="portrait"] #game-view .game-footer .bottom-player,
+:root:not([data-orientation]) #game-view .game-footer .bottom-player {
+    width: 100%;
+    min-height: 40px;
+    justify-content: flex-start;
+}
+
+:root[data-orientation="portrait"] #game-view .game-footer .bottom-player .captured-pieces,
+:root:not([data-orientation]) #game-view .game-footer .bottom-player .captured-pieces {
+    height: 32px;
+    min-height: 32px;
+    max-height: 32px;
+    max-width: min(44vw, 170px);
+    overflow: hidden;
+}
+
+:root[data-orientation="portrait"] #game-view .turn-indicator,
+:root:not([data-orientation]) #game-view .turn-indicator {
+    top: -31px;
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 140px;
+    padding: 5px 16px;
+    font-size: 0.78rem;
+    line-height: 1.05;
+    text-align: center;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+:root[data-orientation="portrait"] #game-view .board-container,
+:root:not([data-orientation]) #game-view .board-container {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    padding: 6px calc(var(--portrait-game-x) + 18px) 12px calc(var(--portrait-game-x) + 24px);
+    align-items: center;
+    justify-content: center;
+}
+
+:root[data-orientation="portrait"] #game-view .board-container::before,
+:root:not([data-orientation]) #game-view .board-container::before {
+    inset: 6px var(--portrait-game-x) 10px;
+    border-radius: 24px;
+}
+
+:root[data-orientation="portrait"] #game-view .advantage-meter,
+:root:not([data-orientation]) #game-view .advantage-meter {
+    left: max(4px, calc(var(--portrait-game-x) - 2px));
+    top: 50%;
+    width: 16px;
+    min-height: 168px;
+    height: min(36vh, 250px);
+    z-index: 17;
+}
+
+:root[data-orientation="portrait"] #game-view .advantage-meter-track,
+:root:not([data-orientation]) #game-view .advantage-meter-track {
+    width: 8px;
+    min-height: 160px;
+    box-shadow: 0 2px 9px rgba(0, 0, 0, 0.38);
+}
+
+:root[data-orientation="portrait"] #game-view .advantage-meter-score,
+:root:not([data-orientation]) #game-view .advantage-meter-score {
+    display: none;
+}
+
+/* Move log panel dikeyde sağ üst köşe (mevcut davranış) */
+:root[data-orientation="portrait"] #game-view .move-log-panel,
+:root:not([data-orientation]) #game-view .move-log-panel {
+    top: calc(var(--portrait-game-panel-h) + 10px);
+    right: 12px;
+    width: min(280px, calc(100vw - 24px));
+    max-height: calc(100dvh - 200px);
+}
+
+@media (max-width: 380px) {
+    :root[data-orientation="portrait"] #game-view,
+    :root:not([data-orientation]) #game-view {
+        --portrait-game-x: 6px;
+        --portrait-game-panel-h: 52px;
+        --portrait-piece-info-h: 54px;
+        --portrait-footer-h: 56px;
+    }
+
+    :root[data-orientation="portrait"] #game-view .game-header .top-player .captured-pieces,
+    :root:not([data-orientation]) #game-view .game-header .top-player .captured-pieces {
+        max-width: 30vw;
+    }
+
+    :root[data-orientation="portrait"] #game-view .board-container,
+    :root:not([data-orientation]) #game-view .board-container {
+        padding-right: 3px;
+        padding-left: 24px;
+    }
+
+    :root[data-orientation="portrait"] #game-view .turn-indicator,
+    :root:not([data-orientation]) #game-view .turn-indicator {
+        top: -29px;
+        min-width: 128px;
+        padding-inline: 14px;
+        font-size: 0.74rem;
+    }
+}
+
+/* ----------------------------------------------------------------
+   FAZ 12 — DIKEY TARIHSEL OKUNABILIRLIK VE SON QA KATMANI
+   Hedef: portre dosyasi tarihsel temadan sonra yüklendiği için
+   açık zemin/açık metin ve görünmeyen ikon risklerini burada kapatır.
+   ---------------------------------------------------------------- */
+:root[data-orientation="portrait"][data-historical-theme="on"],
+:root:not([data-orientation])[data-historical-theme="on"] {
+    --portrait-readable-panel: rgba(255, 248, 224, 0.88);
+    --portrait-readable-panel-soft: rgba(244, 232, 200, 0.78);
+    --portrait-readable-ink: var(--color-burnt-umber);
+    --portrait-readable-muted: #5d4b35;
+    --portrait-readable-accent: #7a4f17;
+    --portrait-readable-danger: #7f241f;
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] #formation-menu h2,
+:root:not([data-orientation])[data-historical-theme="on"] #formation-menu h2,
+:root[data-orientation="portrait"][data-historical-theme="on"] #bot-menu .bot-menu-header h2,
+:root:not([data-orientation])[data-historical-theme="on"] #bot-menu .bot-menu-header h2 {
+    color: var(--portrait-readable-ink) !important;
+    text-shadow: 0 1px 0 rgba(255, 248, 224, 0.46);
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] #formation-menu h2::before,
+:root:not([data-orientation])[data-historical-theme="on"] #formation-menu h2::before {
+    background: rgba(122, 79, 23, 0.12);
+    border-color: rgba(122, 79, 23, 0.48);
+    color: var(--portrait-readable-accent);
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] #formation-menu .bot-menu-entry-btn,
+:root:not([data-orientation])[data-historical-theme="on"] #formation-menu .bot-menu-entry-btn {
+    background:
+        linear-gradient(135deg, var(--portrait-readable-panel), var(--portrait-readable-panel-soft)),
+        var(--bg-parchment-url) !important;
+    background-blend-mode: normal, multiply !important;
+    border-color: rgba(122, 79, 23, 0.44) !important;
+    color: var(--portrait-readable-ink) !important;
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] #formation-menu .bot-menu-entry-copy strong,
+:root[data-orientation="portrait"][data-historical-theme="on"] #formation-menu .bot-menu-entry-copy small,
+:root:not([data-orientation])[data-historical-theme="on"] #formation-menu .bot-menu-entry-copy strong,
+:root:not([data-orientation])[data-historical-theme="on"] #formation-menu .bot-menu-entry-copy small {
+    color: var(--portrait-readable-ink) !important;
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] #formation-menu .bot-menu-entry-copy small,
+:root:not([data-orientation])[data-historical-theme="on"] #formation-menu .bot-menu-entry-copy small {
+    color: var(--portrait-readable-muted) !important;
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] #formation-menu .card.selected,
+:root:not([data-orientation])[data-historical-theme="on"] #formation-menu .card.selected {
+    background:
+        linear-gradient(180deg,
+            var(--setup-selected-surface),
+            var(--setup-selected-surface-deep)) !important;
+    background-blend-mode: normal !important;
+    color: var(--setup-selected-text) !important;
+    border-color: var(--setup-selected-edge) !important;
+    outline-color: var(--setup-selected-edge) !important;
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] #formation-menu .card h3,
+:root[data-orientation="portrait"][data-historical-theme="on"] #formation-menu .card p,
+:root:not([data-orientation])[data-historical-theme="on"] #formation-menu .card h3,
+:root:not([data-orientation])[data-historical-theme="on"] #formation-menu .card p {
+    color: var(--portrait-readable-ink) !important;
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] #formation-menu .card p,
+:root:not([data-orientation])[data-historical-theme="on"] #formation-menu .card p {
+    color: var(--portrait-readable-muted) !important;
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] #formation-menu .card.selected h3,
+:root[data-orientation="portrait"][data-historical-theme="on"] #formation-menu .card.selected p,
+:root:not([data-orientation])[data-historical-theme="on"] #formation-menu .card.selected h3,
+:root:not([data-orientation])[data-historical-theme="on"] #formation-menu .card.selected p {
+    color: var(--setup-selected-text) !important;
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] #bot-menu .bot-menu-eyebrow,
+:root[data-orientation="portrait"][data-historical-theme="on"] #bot-menu .bot-menu-header p,
+:root:not([data-orientation])[data-historical-theme="on"] #bot-menu .bot-menu-eyebrow,
+:root:not([data-orientation])[data-historical-theme="on"] #bot-menu .bot-menu-header p {
+    color: var(--portrait-readable-muted) !important;
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] #bot-menu .ai-bot-star-tier-label,
+:root:not([data-orientation])[data-historical-theme="on"] #bot-menu .ai-bot-star-tier-label {
+    background:
+        linear-gradient(90deg, rgba(122, 79, 23, 0.12), rgba(255, 248, 224, 0.50)) !important;
+    border-color: rgba(122, 79, 23, 0.36) !important;
+    color: var(--portrait-readable-ink) !important;
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] #bot-menu .ai-bot-tier-text,
+:root:not([data-orientation])[data-historical-theme="on"] #bot-menu .ai-bot-tier-text {
+    color: var(--portrait-readable-ink) !important;
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] #bot-menu .ai-bot-tier-stars,
+:root[data-orientation="portrait"][data-historical-theme="on"] #bot-menu .ai-bot-stars,
+:root:not([data-orientation])[data-historical-theme="on"] #bot-menu .ai-bot-tier-stars,
+:root:not([data-orientation])[data-historical-theme="on"] #bot-menu .ai-bot-stars {
+    color: var(--portrait-readable-accent) !important;
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] #bot-menu .ai-bot-card,
+:root:not([data-orientation])[data-historical-theme="on"] #bot-menu .ai-bot-card {
+    background:
+        linear-gradient(135deg, var(--portrait-readable-panel), rgba(230, 211, 160, 0.68)),
+        var(--bg-parchment-url),
+        var(--color-parchment-aged) !important;
+    background-blend-mode: normal, multiply, normal !important;
+    border-color: rgba(122, 79, 23, 0.34) !important;
+    color: var(--portrait-readable-ink) !important;
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] #bot-menu .ai-bot-card.selected,
+:root:not([data-orientation])[data-historical-theme="on"] #bot-menu .ai-bot-card.selected {
+    background:
+        linear-gradient(135deg, rgba(201, 162, 75, 0.28), rgba(255, 248, 224, 0.88)),
+        var(--bg-parchment-url),
+        var(--color-parchment) !important;
+    background-blend-mode: normal, multiply, normal !important;
+    outline-color: rgba(122, 79, 23, 0.86) !important;
+    box-shadow:
+        inset 0 0 0 1px rgba(122, 79, 23, 0.22),
+        0 5px 12px rgba(80, 45, 20, 0.12) !important;
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] #bot-menu .ai-bot-card h3,
+:root[data-orientation="portrait"][data-historical-theme="on"] #bot-menu .ai-bot-card .ai-bot-meta,
+:root[data-orientation="portrait"][data-historical-theme="on"] #bot-menu .ai-bot-card .ai-bot-desc,
+:root:not([data-orientation])[data-historical-theme="on"] #bot-menu .ai-bot-card h3,
+:root:not([data-orientation])[data-historical-theme="on"] #bot-menu .ai-bot-card .ai-bot-meta,
+:root:not([data-orientation])[data-historical-theme="on"] #bot-menu .ai-bot-card .ai-bot-desc {
+    color: var(--portrait-readable-ink) !important;
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] #bot-menu .ai-bot-card .ai-bot-meta,
+:root:not([data-orientation])[data-historical-theme="on"] #bot-menu .ai-bot-card .ai-bot-meta {
+    background: rgba(31, 127, 150, 0.12) !important;
+    border: 1px solid rgba(31, 127, 150, 0.22);
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] #bot-menu .ai-bot-card .ai-bot-desc,
+:root:not([data-orientation])[data-historical-theme="on"] #bot-menu .ai-bot-card .ai-bot-desc {
+    color: var(--portrait-readable-muted) !important;
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] #game-view #btn-toggle-log,
+:root[data-orientation="portrait"][data-historical-theme="on"] #game-view #btn-game-menu,
+:root:not([data-orientation])[data-historical-theme="on"] #game-view #btn-toggle-log,
+:root:not([data-orientation])[data-historical-theme="on"] #game-view #btn-game-menu {
+    flex-basis: 44px !important;
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] .btn:focus-visible,
+:root[data-orientation="portrait"][data-historical-theme="on"] .card:focus-visible,
+:root[data-orientation="portrait"][data-historical-theme="on"] .theme-choice-btn:focus-visible,
+:root[data-orientation="portrait"][data-historical-theme="on"] .settings-toggle:focus-visible,
+:root:not([data-orientation])[data-historical-theme="on"] .btn:focus-visible,
+:root:not([data-orientation])[data-historical-theme="on"] .card:focus-visible,
+:root:not([data-orientation])[data-historical-theme="on"] .theme-choice-btn:focus-visible,
+:root:not([data-orientation])[data-historical-theme="on"] .settings-toggle:focus-visible {
+    outline: 3px solid var(--color-focus-turquoise) !important;
+    outline-offset: 3px;
+}
+
+/* Portre son katman — Türkçe karakterler için font ve aralık koruması */
+:root[data-orientation="portrait"][data-historical-theme="on"] #main-menu .menu-options .btn:not(.icon-btn),
+:root[data-orientation="portrait"][data-historical-theme="on"] #main-menu .menu-options .btn:not(.icon-btn) span,
+:root:not([data-orientation])[data-historical-theme="on"] #main-menu .menu-options .btn:not(.icon-btn),
+:root:not([data-orientation])[data-historical-theme="on"] #main-menu .menu-options .btn:not(.icon-btn) span,
+:root[data-orientation="portrait"][data-historical-theme="on"] #tutorial-overlay .tutorial-header h2,
+:root:not([data-orientation])[data-historical-theme="on"] #tutorial-overlay .tutorial-header h2,
+:root[data-orientation="portrait"][data-historical-theme="on"] #match-history-overlay .match-history-title,
+:root:not([data-orientation])[data-historical-theme="on"] #match-history-overlay .match-history-title,
+:root[data-orientation="portrait"][data-historical-theme="on"] #game-settings-overlay .game-settings-header h2,
+:root:not([data-orientation])[data-historical-theme="on"] #game-settings-overlay .game-settings-header h2 {
+    font-family: var(--font-heading) !important;
+    font-synthesis: none;
+    letter-spacing: 0 !important;
+    line-height: 1.24 !important;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Portre oyun alanı — avantaj barı kaldırıldı, tahta sol rezervi temizlendi */
+:root[data-orientation="portrait"] #game-view .advantage-meter,
+:root:not([data-orientation]) #game-view .advantage-meter,
+:root[data-orientation="portrait"] #advantage-meter,
+:root:not([data-orientation]) #advantage-meter,
+:root[data-orientation="portrait"] #game-settings-overlay .settings-row--advantage-meter,
+:root:not([data-orientation]) #game-settings-overlay .settings-row--advantage-meter {
+    display: none !important;
+}
+
+:root[data-orientation="portrait"] #game-view .board-container,
+:root:not([data-orientation]) #game-view .board-container {
+    padding-inline: calc(var(--portrait-game-x) + 8px) !important;
+}
+
+/* Portre taş okunabilirliği — klasik siyah taşları siyaha çevir, iç çizgiyi koru */
+:root[data-piece-skin="classic"][data-orientation="portrait"] #game-view .piece.black .piece-img,
+:root[data-piece-skin="classic"]:not([data-orientation]) #game-view .piece.black .piece-img {
+    filter:
+        invert(100%)
+        brightness(0.72)
+        contrast(1.18)
+        saturate(0.82)
+        sepia(0.08) !important;
+}
+
+:root[data-piece-skin="classic"][data-orientation="portrait"] #game-view .piece.black,
+:root[data-piece-skin="classic"]:not([data-orientation]) #game-view .piece.black {
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.48)) !important;
+}
+
+/* Açık/parşömen zeminlerde metin kontrastı — açık renk yazı kalmasın */
+:root[data-orientation="portrait"][data-historical-theme="on"] :is(
+    #tutorial-overlay .tutorial-box,
+    #match-history-overlay .match-history-box,
+    #game-settings-overlay .game-settings-box,
+    #game-end-result-overlay .game-end-result-box,
+    #analysis-overlay .analysis-box,
+    #game-view .piece-info-panel
+),
+:root:not([data-orientation])[data-historical-theme="on"] :is(
+    #tutorial-overlay .tutorial-box,
+    #match-history-overlay .match-history-box,
+    #game-settings-overlay .game-settings-box,
+    #game-end-result-overlay .game-end-result-box,
+    #analysis-overlay .analysis-box,
+    #game-view .piece-info-panel
+) {
+    color: var(--color-burnt-umber) !important;
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] :is(
+    #tutorial-overlay .tutorial-box,
+    #match-history-overlay .match-history-box,
+    #game-settings-overlay .game-settings-box,
+    #game-end-result-overlay .game-end-result-box,
+    #analysis-overlay .analysis-box,
+    #game-view .piece-info-panel
+) :is(h1, h2, h3, h4, p, li, span, strong, small, label, div),
+:root:not([data-orientation])[data-historical-theme="on"] :is(
+    #tutorial-overlay .tutorial-box,
+    #match-history-overlay .match-history-box,
+    #game-settings-overlay .game-settings-box,
+    #game-end-result-overlay .game-end-result-box,
+    #analysis-overlay .analysis-box,
+    #game-view .piece-info-panel
+) :is(h1, h2, h3, h4, p, li, span, strong, small, label, div) {
+    color: var(--color-burnt-umber) !important;
+    opacity: 1 !important;
+    text-shadow: none !important;
+}
+
+:root[data-orientation="portrait"][data-historical-theme="on"] :is(
+    #tutorial-overlay .piece-guide-subtitle,
+    #tutorial-overlay .piece-guide-note,
+    #tutorial-overlay .lesson-body p,
+    #tutorial-overlay .lesson-body li,
+    #game-settings-overlay .settings-hint,
+    #match-history-overlay .match-history-meta,
+    #match-history-overlay .match-history-moves,
+    #analysis-overlay .analysis-card-label,
+    #analysis-overlay .analysis-card-subtle,
+    #game-view .piece-info-panel .status,
+    #game-view .piece-info-panel .info-piece-desc
+),
+:root:not([data-orientation])[data-historical-theme="on"] :is(
+    #tutorial-overlay .piece-guide-subtitle,
+    #tutorial-overlay .piece-guide-note,
+    #tutorial-overlay .lesson-body p,
+    #tutorial-overlay .lesson-body li,
+    #game-settings-overlay .settings-hint,
+    #match-history-overlay .match-history-meta,
+    #match-history-overlay .match-history-moves,
+    #analysis-overlay .analysis-card-label,
+    #analysis-overlay .analysis-card-subtle,
+    #game-view .piece-info-panel .status,
+    #game-view .piece-info-panel .info-piece-desc
+) {
+    color: var(--color-ink-gray) !important;
+}
+
+/* Faz 14 — Dikey modda sade maç kurulumu */
+:root[data-orientation="portrait"] #formation-menu .menu-box,
+:root:not([data-orientation]) #formation-menu .menu-box {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: none !important;
+    grid-template-rows: none !important;
+    gap: 9px !important;
+}
+
+:root[data-orientation="portrait"] #formation-menu .setup-summary-card,
+:root:not([data-orientation]) #formation-menu .setup-summary-card {
+    display: grid !important;
+}
+
+:root[data-orientation="portrait"] #formation-menu .setup-choice-row,
+:root:not([data-orientation]) #formation-menu .setup-choice-row {
+    display: grid !important;
+    height: auto !important;
+    overflow: visible !important;
+}
+
+:root[data-orientation="portrait"] #formation-menu .setup-choice-row .card,
+:root:not([data-orientation]) #formation-menu .setup-choice-row .card {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 55px !important;
+}
+
+:root[data-orientation="portrait"] #formation-menu .setup-sheet .formation-cards,
+:root[data-orientation="portrait"] #formation-menu .setup-sheet .ai-persona-cards,
+:root[data-orientation="portrait"] #formation-menu .setup-sheet .time-control-cards,
+:root:not([data-orientation]) #formation-menu .setup-sheet .formation-cards,
+:root:not([data-orientation]) #formation-menu .setup-sheet .ai-persona-cards,
+:root:not([data-orientation]) #formation-menu .setup-sheet .time-control-cards {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)) !important;
+    height: auto !important;
+    overflow: visible !important;
+}
+
+/* Faz 15 — Portre menüleri ekrana daha tok oturtma
+   Ölçekleri korur; yalnızca panel yüksekliğini reklam rezervini aşmadan
+   büyütür ve içerikleri dikeyde daha dengeli yayar. */
+:root[data-orientation="portrait"],
+:root:not([data-orientation]) {
+    --portrait-main-menu-height: min(var(--portrait-panel-height), clamp(590px, 78dvh, 690px));
+    --portrait-setup-menu-height: min(var(--portrait-panel-height), clamp(600px, 76dvh, 680px));
+}
+
+:root[data-orientation="portrait"] #main-menu .menu-box,
+:root:not([data-orientation]) #main-menu .menu-box {
+    height: var(--portrait-main-menu-height) !important;
+    min-height: var(--portrait-main-menu-height) !important;
+    max-height: var(--portrait-panel-height) !important;
+    justify-content: space-between !important;
+}
+
+:root[data-orientation="portrait"] #main-menu .menu-options,
+:root:not([data-orientation]) #main-menu .menu-options {
+    flex: 0 0 auto;
+}
+
+:root[data-orientation="portrait"] #main-menu .menu-footer,
+:root:not([data-orientation]) #main-menu .menu-footer {
+    margin-top: clamp(4px, 1dvh, 10px) !important;
+}
+
+:root[data-orientation="portrait"] #formation-menu .menu-box,
+:root:not([data-orientation]) #formation-menu .menu-box {
+    height: var(--portrait-setup-menu-height) !important;
+    min-height: var(--portrait-setup-menu-height) !important;
+    max-height: var(--portrait-panel-height) !important;
+    justify-content: space-between !important;
+    padding-bottom: clamp(8px, 1.3dvh, 12px) !important;
+}
+
+:root[data-orientation="portrait"] #formation-menu .setup-primary-section,
+:root:not([data-orientation]) #formation-menu .setup-primary-section {
+    gap: clamp(8px, 1.35dvh, 12px) !important;
+}
+
+:root[data-orientation="portrait"] #formation-menu .menu-actions,
+:root:not([data-orientation]) #formation-menu .menu-actions {
+    margin-top: auto !important;
+}
+
+@media (max-height: 740px) {
+    :root[data-orientation="portrait"],
+    :root:not([data-orientation]) {
+        --portrait-main-menu-height: min(var(--portrait-panel-height), clamp(540px, 75dvh, 590px));
+        --portrait-setup-menu-height: min(var(--portrait-panel-height), clamp(540px, 73dvh, 590px));
+    }
+}
