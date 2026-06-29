@@ -95,9 +95,11 @@ piece-designs-*/
 
 # Public source release
 # Keep source files in git; only secrets, generated output, local caches, and experiments stay ignored.
+!OPEN_SOURCE_RELEASE_GUIDE.md
+!FAIRY_GPL_RELEASE_DECISION.md
+!public/fairy-smoke.html
 .firebaserc
 .github/
-public/fairy-smoke.html
 
 # Editor directories and files
 .vscode/*
